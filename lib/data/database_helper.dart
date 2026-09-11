@@ -1,7 +1,9 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'seed_kategori.dart';
+import 'seed_pengaturan.dart';
 import 'models/kategori.dart';
+import 'models/pengaturan.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -96,6 +98,10 @@ class DatabaseHelper {
 
     for (Kategori kategori in seedKategori) {
       await db.insert('kategori', kategori.toMap());
+    }
+
+    for (Pengaturan pengaturan in buatSeedPengaturan()) {
+      await db.insert('pengaturan', pengaturan.toMap());
     }
   }
 

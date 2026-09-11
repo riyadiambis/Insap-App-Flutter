@@ -1,5 +1,6 @@
 String formatRupiah(int nominal) {
-  String nominalStr = nominal.toString();
+  final bool negatif = nominal < 0;
+  String nominalStr = nominal.abs().toString();
   String result = '';
   int count = 0;
   for (int i = nominalStr.length - 1; i >= 0; i--) {
@@ -9,5 +10,5 @@ String formatRupiah(int nominal) {
     result = nominalStr[i] + result;
     count++;
   }
-  return 'Rp$result';
+  return negatif ? '-Rp$result' : 'Rp$result';
 }
