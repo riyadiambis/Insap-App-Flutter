@@ -108,6 +108,23 @@ void main() {
   });
 
   test(
+    'rentang pekan persis 2026-09-21 dan 2026-09-27 untuk acuan '
+    'Rabu 23 September 2026 (Jebakan 1)',
+    () async {
+      final fake = _FakeTransaksiRepository();
+      final usecase = AmbilRingkasanPekan(
+        fake,
+        sekarang: () => DateTime(2026, 9, 23),
+      );
+
+      await usecase();
+
+      expect(fake.tanggalMulaiIni, '2026-09-21');
+      expect(fake.tanggalAkhirIni, '2026-09-27');
+    },
+  );
+
+  test(
     'selisihMingguan tetap negatif (tidak diambil absolut) saat pekan ini lebih hemat',
     () async {
       // Jebakan 2 di ISSUE-02: .abs() adalah urusan pemformatan tampilan,

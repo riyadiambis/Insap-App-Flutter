@@ -11,13 +11,18 @@ import '../repositories/transaksi_repository.dart';
 class AmbilRingkasanPekan {
   final TransaksiRepository repository;
 
-  AmbilRingkasanPekan(this.repository);
+  /// Sumber "sekarang". Bawaannya `DateTime.now`, bisa diganti saat
+  /// pengujian supaya tanggal acuan tetap, tidak berubah tiap hari.
+  final DateTime Function() sekarang;
+
+  AmbilRingkasanPekan(this.repository, {DateTime Function()? sekarang})
+      : sekarang = sekarang ?? DateTime.now;
 
   Future<RingkasanPekanEntity> call() async {
-    final DateTime sekarang = DateTime.now();
-    final RentangMinggu pekanIni = rentangMingguIso(sekarang);
+    final DateTime hariIni = sekarang();
+    final RentangMinggu pekanIni = rentangMingguIso(hariIni);
     final RentangMinggu pekanLalu = rentangMingguIso(
-      sekarang.subtract(const Duration(days: 7)),
+      hariIni.subtract(const Duration(days: 7)),
     );
 
     final int totalMingguIni = await repository.totalMingguIni(
