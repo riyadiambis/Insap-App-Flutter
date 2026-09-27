@@ -1,20 +1,20 @@
-import 'database_helper.dart';
-import 'models/kategori.dart';
+import '../../../../data/database_helper.dart';
+import '../models/kategori_model.dart';
 
-class KategoriRepository {
+class KategoriLocalDataSource {
   final DatabaseHelper _dbHelper;
 
-  KategoriRepository({DatabaseHelper? dbHelper})
+  KategoriLocalDataSource({DatabaseHelper? dbHelper})
       : _dbHelper = dbHelper ?? DatabaseHelper();
 
-  Future<List<Kategori>> ambilSemua() async {
+  Future<List<KategoriModel>> ambilSemua() async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'kategori',
       orderBy: 'urutan ASC',
     );
     return List.generate(maps.length, (i) {
-      return Kategori.fromMap(maps[i]);
+      return KategoriModel.fromMap(maps[i]);
     });
   }
 }
