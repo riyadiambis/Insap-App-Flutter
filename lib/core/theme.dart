@@ -57,6 +57,11 @@ class AppSpacing {
 
 class AppDurations {
   static const Duration animasiTekan = Duration(milliseconds: 80);
+  static const Duration animasiMunculKartu = Duration(milliseconds: 200);
+}
+
+class AppConstraints {
+  static const int maxPanjangCatatan = 100;
 }
 
 class AppTheme {
