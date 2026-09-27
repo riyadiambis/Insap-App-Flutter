@@ -29,6 +29,17 @@ class AppColors {
   ];
 }
 
+class AppSizes {
+  static const double badgeKategori = 46.0;
+  static const double radiusBadge = 12.0;
+  static const double radiusTombol = 14.0;
+  static const double tinggiTombol = 56.0;
+}
+
+class AppDurations {
+  static const Duration animasiTekan = Duration(milliseconds: 80);
+}
+
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
