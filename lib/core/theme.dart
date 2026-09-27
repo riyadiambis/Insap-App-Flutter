@@ -39,6 +39,7 @@ class AppSizes {
   static const double tinggiTombol = 56.0;
   static const double radiusKartu = 16.0;
   static const double border = 2.0;
+  static const double batasLebarKonten = 460.0;
 
   // jarak geser kartu/tombol pas ditekan, = selisih offset bayangan
   // normal (4) dan tertekan (2)
