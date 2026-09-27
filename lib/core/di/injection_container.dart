@@ -1,14 +1,17 @@
 import 'package:get_it/get_it.dart';
 
+import '../../features/beranda/presentation/cubit/beranda_cubit.dart';
 import '../../features/kategori/data/datasources/kategori_local_datasource.dart';
 import '../../features/kategori/data/repositories/kategori_repository_impl.dart';
 import '../../features/kategori/domain/repositories/kategori_repository.dart';
 import '../../features/kategori/domain/usecases/ambil_kategori.dart';
+import '../../features/kategori/presentation/cubit/kategori_cubit.dart';
 import '../../features/transaksi/data/datasources/transaksi_local_datasource.dart';
 import '../../features/transaksi/data/repositories/transaksi_repository_impl.dart';
 import '../../features/transaksi/domain/repositories/transaksi_repository.dart';
 import '../../features/transaksi/domain/usecases/ambil_ringkasan_pekan.dart';
 import '../../features/transaksi/domain/usecases/tambah_transaksi.dart';
+import '../../features/transaksi/presentation/catat/cubit/catat_transaksi_cubit.dart';
 
 /// Instansiasi seluruh objek terpusat di sini (P07-Clean). `sl` singkatan
 /// dari service locator, nama umum untuk instance global `GetIt`.
@@ -32,7 +35,7 @@ void setupInjectionContainer() {
   );
   sl.registerLazySingleton(() => TambahTransaksi(sl()));
   sl.registerLazySingleton(() => AmbilRingkasanPekan(sl()));
-  // CatatTransaksiCubit didaftarkan di Tahap 4.
+  sl.registerFactory(() => CatatTransaksiCubit(tambahTransaksi: sl()));
 
   // ---------------------------------------------------------------------
   // riwayat (Dafa)
@@ -51,16 +54,17 @@ void setupInjectionContainer() {
     () => KategoriRepositoryImpl(dataSource: sl()),
   );
   sl.registerLazySingleton(() => AmbilKategori(sl()));
-  // KategoriCubit didaftarkan di Tahap 4 (dipakai beranda dan catat,
-  // fondasi ISSUE-02). Use case TambahKategori dan SembunyikanKategori,
-  // plus KelolaKategoriCubit, didaftarkan di ISSUE-04.
+  sl.registerFactory(() => KategoriCubit(ambilKategori: sl()));
+  // KategoriCubit ini fondasi ISSUE-02, dipakai beranda dan catat. Use
+  // case TambahKategori dan SembunyikanKategori, plus
+  // KelolaKategoriCubit, didaftarkan di ISSUE-04.
 
   // ---------------------------------------------------------------------
   // beranda (Riyadi)
   // ---------------------------------------------------------------------
-  // BerandaCubit didaftarkan di Tahap 4. Hanya presentation/, tidak
-  // punya domain/data sendiri, memakai AmbilRingkasanPekan dari blok
-  // transaksi di atas.
+  // Hanya presentation/, tidak punya domain/data sendiri, memakai
+  // AmbilRingkasanPekan dari blok transaksi di atas.
+  sl.registerFactory(() => BerandaCubit(ambilRingkasanPekan: sl()));
 
   // ---------------------------------------------------------------------
   // perkenalan (Luthfi)
