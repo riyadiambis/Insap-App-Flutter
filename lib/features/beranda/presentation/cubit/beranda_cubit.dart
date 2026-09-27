@@ -3,20 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../transaksi/domain/usecases/ambil_ringkasan_pekan.dart';
 import 'beranda_state.dart';
 
-/// `beranda` hanya punya lapisan presentation (lihat MATERI-KULIAH.md),
-/// karena seluruh datanya diambil lewat use case fitur `transaksi`.
+// beranda cuma punya presentation, datanya dari use case fitur transaksi
 class BerandaCubit extends Cubit<BerandaState> {
-  final AmbilRingkasanPekan _ambilRingkasanPekan;
+  final AmbilRingkasanPekan ambilRingkasanPekan;
 
-  BerandaCubit({required AmbilRingkasanPekan ambilRingkasanPekan})
-      // ignore: prefer_initializing_formals
-      : _ambilRingkasanPekan = ambilRingkasanPekan,
-        super(const BerandaInitial());
+  BerandaCubit({required this.ambilRingkasanPekan})
+      : super(const BerandaInitial());
 
   Future<void> muatRingkasan() async {
     emit(const BerandaLoading());
     try {
-      final ringkasan = await _ambilRingkasanPekan();
+      final ringkasan = await ambilRingkasanPekan();
       emit(BerandaLoaded(ringkasan));
     } catch (e) {
       emit(BerandaError(e.toString()));

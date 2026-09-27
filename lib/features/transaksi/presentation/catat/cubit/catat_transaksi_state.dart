@@ -1,21 +1,19 @@
 import 'package:equatable/equatable.dart';
 
-/// Status isian form catat transaksi (P06-Cubit).
+// status isian form (P06-Cubit)
 enum StatusCatatTransaksi { awal, menyimpan, berhasil, gagal }
 
-/// State `CatatTransaksiCubit`. Satu class dengan field `status` berupa
-/// enum dan `copyWith`, bukan sealed class, karena isian form berubah
-/// sebagian demi sebagian (nominal berubah tanpa mengubah kategori,
-/// kategori berubah tanpa mengubah tanggal, dan seterusnya).
+// satu class state + copyWith, bukan sealed, soalnya isian form berubah
+// sebagian-sebagian (nominal doang, kategori doang, dst)
 class CatatTransaksiState extends Equatable {
   final StatusCatatTransaksi status;
   final int nominal;
   final int? kategoriId;
 
-  /// Tanggal transaksi, format `yyyy-MM-dd` (Jebakan 1, ISSUE-02).
+  // format yyyy-MM-dd (Jebakan 1, ISSUE-02)
   final String tanggal;
 
-  /// `'butuh'`, `'pengen'`, atau null. Boleh tetap null, lihat F-07.
+  // 'butuh', 'pengen', atau null (boleh tetap null, lihat F-07)
   final String? tipeKebutuhan;
   final String? catatan;
   final String? pesanKesalahan;
@@ -30,11 +28,8 @@ class CatatTransaksiState extends Equatable {
     this.pesanKesalahan,
   });
 
-  /// `hapusKategoriId`, `hapusTipeKebutuhan`, `hapusCatatan`, dan
-  /// `hapusPesanKesalahan` ada supaya field nullable bisa sengaja
-  /// dikosongkan lagi lewat `copyWith`. Tanpa penanda ini, pola
-  /// `field ?? this.field` yang umum dipakai tidak akan pernah bisa
-  /// mengembalikan field tersebut ke null.
+  // flag hapusX biar field nullable bisa sengaja di-null-kan lagi, pola
+  // "?? this.field" biasa nggak bisa balikin ke null
   CatatTransaksiState copyWith({
     StatusCatatTransaksi? status,
     int? nominal,

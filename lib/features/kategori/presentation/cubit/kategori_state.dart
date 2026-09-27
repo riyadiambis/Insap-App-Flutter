@@ -2,8 +2,8 @@ import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/kategori_entity.dart';
 
-/// State `KategoriCubit`. Sealed class empat status (P06-Cubit), seperti
-/// contoh dosen P07: Initial, Loading, Loaded, Error.
+// sealed class 4 status (P06-Cubit), ikut contoh dosen: Initial, Loading,
+// Loaded, Error
 sealed class KategoriState extends Equatable {
   const KategoriState();
 

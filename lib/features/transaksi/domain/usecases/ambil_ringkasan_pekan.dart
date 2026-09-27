@@ -2,17 +2,14 @@ import '../../../../core/utils/iso_week.dart';
 import '../entities/ringkasan_pekan_entity.dart';
 import '../repositories/transaksi_repository.dart';
 
-/// Use case F-05: hitung ringkasan pekan berjalan untuk layar beranda.
-///
-/// Memakai [rentangMingguIso] untuk menentukan rentang pekan ISO 8601
-/// (Senin sampai Minggu) berjalan dan pekan sebelumnya, lalu memformat
-/// tanggalnya lewat [formatTanggalIso] sebelum dikirim ke repository
-/// (Jebakan 1, ISSUE-02).
+// F-05: hitung ringkasan pekan buat beranda. pakai rentangMingguIso buat
+// rentang pekan ini & pekan lalu, tanggalnya diformat yyyy-MM-dd dulu
+// sebelum dikirim ke repository (Jebakan 1, ISSUE-02)
 class AmbilRingkasanPekan {
   final TransaksiRepository repository;
 
-  /// Sumber "sekarang". Bawaannya `DateTime.now`, bisa diganti saat
-  /// pengujian supaya tanggal acuan tetap, tidak berubah tiap hari.
+  // bawaannya DateTime.now, bisa diganti pas testing biar tanggal acuan
+  // tetap
   final DateTime Function() sekarang;
 
   AmbilRingkasanPekan(this.repository, {DateTime Function()? sekarang})

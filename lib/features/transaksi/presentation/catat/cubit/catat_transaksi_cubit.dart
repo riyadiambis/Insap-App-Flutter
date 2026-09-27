@@ -5,15 +5,13 @@ import '../../../domain/entities/transaksi_entity.dart';
 import '../../../domain/usecases/tambah_transaksi.dart';
 import 'catat_transaksi_state.dart';
 
-/// Cubit F-01. Menyimpan lewat use case `TambahTransaksi`, tidak pernah
-/// memanggil `TransaksiRepository` langsung (P07-Clean).
+// F-01. simpan lewat use case TambahTransaksi, jangan panggil
+// TransaksiRepository langsung dari sini
 class CatatTransaksiCubit extends Cubit<CatatTransaksiState> {
-  final TambahTransaksi _tambahTransaksi;
+  final TambahTransaksi tambahTransaksi;
 
-  CatatTransaksiCubit({required TambahTransaksi tambahTransaksi})
-      // ignore: prefer_initializing_formals
-      : _tambahTransaksi = tambahTransaksi,
-        super(CatatTransaksiState(tanggal: formatTanggalIso(DateTime.now())));
+  CatatTransaksiCubit({required this.tambahTransaksi})
+      : super(CatatTransaksiState(tanggal: formatTanggalIso(DateTime.now())));
 
   void ubahNominal(int nominal) {
     emit(state.copyWith(nominal: nominal));
@@ -27,8 +25,7 @@ class CatatTransaksiCubit extends Cubit<CatatTransaksiState> {
     emit(state.copyWith(tanggal: tanggal));
   }
 
-  /// `tipe` berupa `'butuh'`, `'pengen'`, atau null untuk melewati
-  /// pertanyaan (F-07, boleh dilewati).
+  // 'butuh', 'pengen', atau null buat skip pertanyaannya (F-07)
   void pilihTipeKebutuhan(String? tipe) {
     if (tipe == null) {
       emit(state.copyWith(hapusTipeKebutuhan: true));
@@ -63,7 +60,7 @@ class CatatTransaksiCubit extends Cubit<CatatTransaksiState> {
 
     emit(state.copyWith(status: StatusCatatTransaksi.menyimpan));
     try {
-      await _tambahTransaksi(TransaksiEntity(
+      await tambahTransaksi(TransaksiEntity(
         jumlah: state.nominal,
         kategoriId: state.kategoriId!,
         tanggal: state.tanggal,

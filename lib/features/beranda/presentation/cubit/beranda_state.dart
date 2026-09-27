@@ -2,8 +2,8 @@ import 'package:equatable/equatable.dart';
 
 import '../../../transaksi/domain/entities/ringkasan_pekan_entity.dart';
 
-/// State `BerandaCubit`. Sealed class empat status (P06-Cubit), seperti
-/// contoh dosen P07: Initial, Loading, Loaded, Error.
+// sealed class 4 status (P06-Cubit), ikut contoh dosen: Initial, Loading,
+// Loaded, Error
 sealed class BerandaState extends Equatable {
   const BerandaState();
 

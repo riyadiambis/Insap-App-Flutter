@@ -11,17 +11,16 @@ abstract class TransaksiRepository {
 
   Future<int> ambilKuotaPindai();
 
-  /// Dibutuhkan riwayat (ISSUE-03): daftar transaksi dengan saringan
-  /// rentang tanggal dan kategori, keduanya opsional.
+  // buat riwayat (ISSUE-03): filter rentang tanggal & kategori, opsional
   Future<List<TransaksiEntity>> ambilDaftar({
     String? tanggalMulai,
     String? tanggalAkhir,
     int? kategoriId,
   });
 
-  /// Dibutuhkan riwayat (ISSUE-03): satu transaksi berdasarkan id.
+  // buat riwayat (ISSUE-03)
   Future<TransaksiEntity?> ambilSatu(int id);
 
-  /// Dibutuhkan riwayat (ISSUE-03): hapus satu transaksi.
+  // buat riwayat (ISSUE-03)
   Future<int> hapus(int id);
 }

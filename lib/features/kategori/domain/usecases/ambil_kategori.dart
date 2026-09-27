@@ -1,7 +1,7 @@
 import '../entities/kategori_entity.dart';
 import '../repositories/kategori_repository.dart';
 
-/// Use case F-03: ambil seluruh kategori, terurut sesuai `urutan`.
+// F-03: ambil semua kategori, urut sesuai kolom urutan
 class AmbilKategori {
   final KategoriRepository repository;
 

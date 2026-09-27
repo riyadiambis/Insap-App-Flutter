@@ -67,9 +67,8 @@ class TransaksiLocalDataSource {
     return _kuotaPindaiCadangan;
   }
 
-  /// Ambil daftar transaksi dengan saringan rentang tanggal dan kategori,
-  /// keduanya opsional. Memakai idx_transaksi_tanggal dan
-  /// idx_transaksi_kategori lewat klausa WHERE, bukan menyaring di memori.
+  // filter rentang tanggal & kategori, opsional. lewat WHERE biar kepakai
+  // idx_transaksi_tanggal & idx_transaksi_kategori, bukan filter di memori
   Future<List<TransaksiModel>> ambilDaftar({
     String? tanggalMulai,
     String? tanggalAkhir,

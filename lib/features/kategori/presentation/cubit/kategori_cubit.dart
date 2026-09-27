@@ -4,30 +4,24 @@ import '../../domain/entities/kategori_entity.dart';
 import '../../domain/usecases/ambil_kategori.dart';
 import 'kategori_state.dart';
 
-/// Cubit fondasi ISSUE-02, dipakai layar beranda dan catat transaksi.
-/// Halaman kelola kategori (ISSUE-04) memakai `KelolaKategoriCubit`
-/// terpisah, bukan Cubit ini (lihat ATURAN-GIT.md).
+// fondasi ISSUE-02, dipakai beranda & catat. kelola kategori (ISSUE-04)
+// pakai KelolaKategoriCubit sendiri, lihat ATURAN-GIT.md
 class KategoriCubit extends Cubit<KategoriState> {
-  final AmbilKategori _ambilKategori;
+  final AmbilKategori ambilKategori;
 
-  KategoriCubit({required AmbilKategori ambilKategori})
-      // ignore: prefer_initializing_formals
-      : _ambilKategori = ambilKategori,
-        super(const KategoriInitial());
+  KategoriCubit({required this.ambilKategori}) : super(const KategoriInitial());
 
   Future<void> muat() async {
     emit(const KategoriLoading());
     try {
-      final daftar = await _ambilKategori();
+      final daftar = await ambilKategori();
       emit(KategoriLoaded(daftar));
     } catch (e) {
       emit(KategoriError(e.toString()));
     }
   }
 
-  /// Dipakai layar catat untuk mengecek `kelompokKakeibo` kategori
-  /// terpilih. Mengembalikan null kalau kategori belum dimuat atau id
-  /// tidak ditemukan.
+  // buat layar catat, cek kelompok kakeibo kategori terpilih
   KategoriEntity? kategoriById(int id) {
     final s = state;
     if (s is KategoriLoaded) {
