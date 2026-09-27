@@ -45,6 +45,11 @@ class TransaksiLocalDataSource {
     return 0;
   }
 
+  // Nilai cadangan kalau baris belum ada atau nilainya rusak. Disamakan
+  // dengan nilai awal kuota_pindai_sisa di seed_pengaturan.dart (Jebakan
+  // 3, ISSUE-02), supaya kedua kasus gagal berperilaku sama.
+  static const int _kuotaPindaiCadangan = 10;
+
   Future<int> ambilKuotaPindai() async {
     final db = await _dbHelper.database;
     final result = await db.query(
@@ -57,9 +62,9 @@ class TransaksiLocalDataSource {
 
     if (result.isNotEmpty) {
       final val = result.first['nilai'] as String?;
-      return int.tryParse(val ?? '') ?? 0;
+      return int.tryParse(val ?? '') ?? _kuotaPindaiCadangan;
     }
-    return 10;
+    return _kuotaPindaiCadangan;
   }
 
   /// Ambil daftar transaksi dengan saringan rentang tanggal dan kategori,
