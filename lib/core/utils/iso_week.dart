@@ -27,3 +27,15 @@ RentangMinggu rentangMingguIso(DateTime date) {
   DateTime akhir = DateTime(awal.year, awal.month, awal.day, 23, 59, 59, 999).add(const Duration(days: 6));
   return RentangMinggu(awal: awal, akhir: akhir);
 }
+
+/// Format bagian tanggal saja, `yyyy-MM-dd`, tanpa jam. Kolom `tanggal` di
+/// tabel `transaksi` disimpan dalam format ini (lihat SCHEMA.sql), jadi
+/// rentang dari [rentangMingguIso] harus diformat lewat fungsi ini sebelum
+/// dikirim ke repository. Memakai `toIso8601String()` mentah akan
+/// menyisipkan jam dan membuat perbandingan BETWEEN meleset (Jebakan 1,
+/// ISSUE-02).
+String formatTanggalIso(DateTime date) {
+  return '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
+}
