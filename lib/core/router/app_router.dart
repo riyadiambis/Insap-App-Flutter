@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/beranda/presentation/pages/halaman_beranda.dart';
-import '../../features/transaksi/presentation/catat/halaman_catat_transaksi.dart';
-import '../../features/refleksi/presentation/pages/halaman_refleksi.dart';
-import '../../features/transaksi/presentation/riwayat/halaman_riwayat.dart';
-import '../../features/transaksi/presentation/riwayat/halaman_detail_transaksi.dart';
 import '../../features/kategori/presentation/pages/halaman_kelola_kategori.dart';
 import '../../features/perkenalan/presentation/pages/halaman_perkenalan.dart';
-import '../theme.dart';
+import '../../features/refleksi/presentation/pages/halaman_refleksi.dart';
+import '../../features/transaksi/presentation/catat/pages/halaman_catat_transaksi.dart';
+import '../../features/transaksi/presentation/riwayat/pages/halaman_detail_transaksi.dart';
+import '../../features/transaksi/presentation/riwayat/pages/halaman_riwayat.dart';
+import 'app_shell.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -18,49 +18,7 @@ final GoRouter appRouter = GoRouter(
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return Scaffold(
-          body: navigationShell,
-          bottomNavigationBar: Container(
-            decoration: const BoxDecoration(
-              boxShadow: [AppTheme.bayanganAtas],
-            ),
-            child: BottomNavigationBar(
-              currentIndex: navigationShell.currentIndex,
-              onTap: (index) => navigationShell.goBranch(
-                index,
-                initialLocation: index == navigationShell.currentIndex,
-              ),
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: AppColors.paper,
-              selectedItemColor: AppColors.ink,
-              unselectedItemColor: AppColors.inkSoft,
-              showSelectedLabels: true,
-              showUnselectedLabels: true,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home_outlined),
-                  activeIcon: Icon(Icons.home),
-                  label: 'Beranda',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.add_circle_outline),
-                  activeIcon: Icon(Icons.add_circle),
-                  label: 'Catat',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.lightbulb_outline),
-                  activeIcon: Icon(Icons.lightbulb),
-                  label: 'Refleksi',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.history_outlined),
-                  activeIcon: Icon(Icons.history),
-                  label: 'Riwayat',
-                ),
-              ],
-            ),
-          ),
-        );
+        return AppShell(navigationShell: navigationShell);
       },
       branches: [
         StatefulShellBranch(
@@ -92,16 +50,17 @@ final GoRouter appRouter = GoRouter(
             GoRoute(
               path: '/riwayat',
               builder: (context, state) => const HalamanRiwayat(),
-              routes: [
-                GoRoute(
-                  path: 'detail/:id',
-                  builder: (context, state) => const HalamanDetailTransaksi(),
-                ),
-              ],
             ),
           ],
         ),
       ],
+    ),
+    // di luar shell, jadi layar detail tampil penuh tanpa navigasi bawah
+    GoRoute(
+      path: '/transaksi/:id',
+      builder: (context, state) => HalamanDetailTransaksi(
+        id: int.parse(state.pathParameters['id']!),
+      ),
     ),
     GoRoute(
       path: '/kategori',

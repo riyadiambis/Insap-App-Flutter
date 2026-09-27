@@ -12,8 +12,8 @@ class KartuBukuTulis extends StatefulWidget {
     super.key,
     required this.child,
     this.onTap,
-    this.padding = const EdgeInsets.all(16.0),
-    this.radius = 16.0,
+    this.padding = const EdgeInsets.all(AppSpacing.besar),
+    this.radius = AppSizes.radiusKartu,
     this.backgroundColor = AppColors.kartu,
   });
 
@@ -44,7 +44,8 @@ class _KartuBukuTulisState extends State<KartuBukuTulis> {
 
   @override
   Widget build(BuildContext context) {
-    final offset = _isPressed ? const Offset(2, 2) : const Offset(4, 4);
+    // pas ditekan kartu geser ke arah bayangan, bayangannya mengecil
+    const geser = AppSizes.geserTekan;
 
     return GestureDetector(
       onTapDown: _handleTapDown,
@@ -54,22 +55,20 @@ class _KartuBukuTulisState extends State<KartuBukuTulis> {
       child: AnimatedContainer(
         duration: AppDurations.animasiTekan,
         margin: EdgeInsets.only(
-          left: _isPressed ? 2 : 0,
-          top: _isPressed ? 2 : 0,
-          right: _isPressed ? 0 : 2,
-          bottom: _isPressed ? 0 : 2,
+          left: _isPressed ? geser : 0,
+          top: _isPressed ? geser : 0,
+          right: _isPressed ? 0 : geser,
+          bottom: _isPressed ? 0 : geser,
         ),
         padding: widget.padding,
         decoration: BoxDecoration(
           color: widget.backgroundColor,
-          border: Border.all(color: AppColors.ink, width: 2.0),
+          border: Border.all(color: AppColors.ink, width: AppSizes.border),
           borderRadius: BorderRadius.circular(widget.radius),
           boxShadow: [
-            BoxShadow(
-              color: AppColors.garis,
-              offset: offset,
-              blurRadius: 0,
-            ),
+            _isPressed
+                ? AppTheme.bayanganDefaultTertekan
+                : AppTheme.bayanganDefault,
           ],
         ),
         child: widget.child,

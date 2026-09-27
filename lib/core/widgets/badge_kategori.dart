@@ -25,7 +25,7 @@ class BadgeKategori extends StatelessWidget {
       child: Center(
         child: Icon(
           ikon,
-          color: Colors.white,
+          color: AppColors.ikonBadge,
           size: ukuran * 0.6,
         ),
       ),

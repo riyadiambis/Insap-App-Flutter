@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme.dart';
 import '../../../../core/utils/rupiah_extension.dart';
 import '../../../../core/widgets/badge_kategori.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
@@ -27,14 +28,17 @@ class KartuTransaksi extends StatelessWidget {
   Widget build(BuildContext context) {
     return KartuBukuTulis(
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.besar,
+        vertical: AppSpacing.sedang,
+      ),
       child: Row(
         children: [
           BadgeKategori(
             ikon: ikonKategori,
             warna: warnaKategori,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.besar),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,7 +57,7 @@ class KartuTransaksi extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.kecil),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [

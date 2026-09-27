@@ -41,7 +41,7 @@ class _TombolStabiloState extends State<TombolStabilo> {
   @override
   Widget build(BuildContext context) {
     final bool disabled = widget.onPressed == null || widget.isLoading;
-    final offset = _isPressed ? const Offset(2, 2) : const Offset(4, 4);
+    const geser = AppSizes.geserTekan;
 
     return GestureDetector(
       onTapDown: disabled ? null : _handleTapDown,
@@ -52,30 +52,29 @@ class _TombolStabiloState extends State<TombolStabilo> {
         duration: AppDurations.animasiTekan,
         height: AppSizes.tinggiTombol,
         margin: EdgeInsets.only(
-          left: _isPressed ? 2 : 0,
-          top: _isPressed ? 2 : 0,
-          right: _isPressed ? 0 : 2,
-          bottom: _isPressed ? 0 : 2,
+          left: _isPressed ? geser : 0,
+          top: _isPressed ? geser : 0,
+          right: _isPressed ? 0 : geser,
+          bottom: _isPressed ? 0 : geser,
         ),
         decoration: BoxDecoration(
           color: disabled ? AppColors.garis : AppColors.stabilo,
-          border: Border.all(color: AppColors.ink, width: 2.0),
+          border: Border.all(color: AppColors.ink, width: AppSizes.border),
           borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
+          // tombol utama stabilo pakai bayangan gelap (lihat theme.dart)
           boxShadow: [
-            BoxShadow(
-              color: AppColors.ink,
-              offset: offset,
-              blurRadius: 0,
-            ),
+            _isPressed
+                ? AppTheme.bayanganGelapTertekan
+                : AppTheme.bayanganGelap,
           ],
         ),
         child: Center(
           child: widget.isLoading
               ? const SizedBox(
-                  width: 24,
-                  height: 24,
+                  width: AppSizes.indikatorMuat,
+                  height: AppSizes.indikatorMuat,
                   child: CircularProgressIndicator(
-                    strokeWidth: 3,
+                    strokeWidth: AppSizes.tebalIndikatorMuat,
                     valueColor: AlwaysStoppedAnimation<Color>(AppColors.ink),
                   ),
                 )

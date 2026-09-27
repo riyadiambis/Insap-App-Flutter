@@ -27,6 +27,9 @@ class AppColors {
     Color(0xFF5B7793),
     Color(0xFF1F9254),
   ];
+
+  // ikon putih di atas badge kategori (UI-GUIDE), sama dengan warna kartu
+  static const Color ikonBadge = kartu;
 }
 
 class AppSizes {
@@ -34,6 +37,21 @@ class AppSizes {
   static const double radiusBadge = 12.0;
   static const double radiusTombol = 14.0;
   static const double tinggiTombol = 56.0;
+  static const double radiusKartu = 16.0;
+  static const double border = 2.0;
+
+  // jarak geser kartu/tombol pas ditekan, = selisih offset bayangan
+  // normal (4) dan tertekan (2)
+  static const double geserTekan = 2.0;
+
+  static const double indikatorMuat = 24.0;
+  static const double tebalIndikatorMuat = 3.0;
+}
+
+class AppSpacing {
+  static const double kecil = 8.0;
+  static const double sedang = 12.0;
+  static const double besar = 16.0;
 }
 
 class AppDurations {
