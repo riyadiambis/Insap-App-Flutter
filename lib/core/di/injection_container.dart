@@ -9,9 +9,14 @@ import '../../features/kategori/presentation/cubit/kategori_cubit.dart';
 import '../../features/transaksi/data/datasources/transaksi_local_datasource.dart';
 import '../../features/transaksi/data/repositories/transaksi_repository_impl.dart';
 import '../../features/transaksi/domain/repositories/transaksi_repository.dart';
+import '../../features/transaksi/domain/usecases/ambil_detail_transaksi.dart';
 import '../../features/transaksi/domain/usecases/ambil_ringkasan_pekan.dart';
+import '../../features/transaksi/domain/usecases/ambil_riwayat.dart';
+import '../../features/transaksi/domain/usecases/hapus_transaksi.dart';
 import '../../features/transaksi/domain/usecases/tambah_transaksi.dart';
 import '../../features/transaksi/presentation/catat/cubit/catat_transaksi_cubit.dart';
+import '../../features/transaksi/presentation/riwayat/cubit/detail_transaksi_cubit.dart';
+import '../../features/transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
 
 // service locator get_it (P07-Clean). satu blok komentar per fitur,
 // urutannya ikut ATURAN-GIT.md. tambah baris cuma di blok fiturmu sendiri
@@ -32,6 +37,18 @@ void setupInjectionContainer() {
 
   // riwayat (Dafa) — AmbilRiwayat, HapusTransaksi, RiwayatCubit di ISSUE-03
   // (pakai TransaksiRepository dari blok transaksi di atas)
+  sl.registerLazySingleton(() => AmbilRiwayat(sl()));
+  sl.registerLazySingleton(() => HapusTransaksi(sl()));
+  sl.registerLazySingleton(() => AmbilDetailTransaksi(sl()));
+  sl.registerFactory(() => RiwayatCubit(
+        ambilRiwayat: sl(),
+        hapusTransaksi: sl(),
+        tambahTransaksi: sl(),
+      ));
+  sl.registerFactory(() => DetailTransaksiCubit(
+        ambilDetailTransaksi: sl(),
+        hapusTransaksi: sl(),
+      ));
 
   // kategori (Luthfi)
   sl.registerLazySingleton<KategoriLocalDataSource>(
