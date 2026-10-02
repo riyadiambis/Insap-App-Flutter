@@ -35,3 +35,41 @@ String formatTanggalIso(DateTime date) {
       '${date.month.toString().padLeft(2, '0')}-'
       '${date.day.toString().padLeft(2, '0')}';
 }
+
+const List<String> _namaBulanSingkat = [
+  '',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'Mei',
+  'Jun',
+  'Jul',
+  'Agu',
+  'Sep',
+  'Okt',
+  'Nov',
+  'Des',
+];
+
+/// Memformat rentang tanggal pekan ISO menjadi teks singkat bahasa Indonesia.
+///
+/// Contoh:
+/// - Beda bulan: "28 Sep - 4 Okt"
+/// - Sebulan: "5 - 11 Okt"
+String formatRentangTanggal(DateTime awal, DateTime akhir) {
+  final namaBulanAwal = _namaBulanSingkat[awal.month];
+  final namaBulanAkhir = _namaBulanSingkat[akhir.month];
+
+  if (awal.month == akhir.month && awal.year == akhir.year) {
+    return '${awal.day} - ${akhir.day} $namaBulanAkhir';
+  } else {
+    return '${awal.day} $namaBulanAwal - ${akhir.day} $namaBulanAkhir';
+  }
+}
+
+/// Helper untuk memformat objek [RentangMinggu].
+String formatRentangMinggu(RentangMinggu rentang) {
+  return formatRentangTanggal(rentang.awal, rentang.akhir);
+}
+

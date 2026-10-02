@@ -8,6 +8,7 @@ import '../../../../../core/paper_background.dart';
 import '../../../../../core/theme.dart';
 import '../../../../../core/utils/iso_week.dart';
 import '../../../../../core/utils/rupiah_extension.dart';
+import '../../../../../core/widgets/header_aplikasi.dart';
 import '../../../../../core/widgets/kartu_buku_tulis.dart';
 import '../../../../../core/widgets/tombol_stabilo.dart';
 import '../../../../beranda/presentation/cubit/beranda_cubit.dart';
@@ -223,6 +224,8 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
                   ),
                   children: [
                     const SizedBox(height: AppSpacing.sangatKecil),
+                    const HeaderAplikasi(namaLayar: 'CATAT'),
+                    const SizedBox(height: AppSpacing.lebihBesar),
                     // judul layar dengan aksen stabilo
                     _JudulCatat(),
                     const SizedBox(height: AppSpacing.besar),
