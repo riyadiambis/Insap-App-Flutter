@@ -28,17 +28,59 @@ Insap adalah aplikasi pencatat keuangan pribadi yang dirancang khusus untuk maha
 - **Target utama:** Mahasiswa (rentang usia 18 sampai 25 tahun), baik mahasiswa yang menerima uang kiriman bulanan dari orang tua maupun mahasiswa indekos yang memiliki penghasilan tambahan dan mengelola pengeluaran bersama atau patungan.
 - **Bukan target pengguna:** Pelaku usaha yang membutuhkan sistem akuntansi ganda atau perpajakan, karyawan yang memerlukan sistem penggantian biaya kantor (reimbursement), serta pengguna yang menginginkan integrasi otomatis dengan rekening perbankan.
 
-## Fitur dan Status (v0.1 Fondasi)
+## Fitur dan Status
 
-| Kode Fitur | Nama Fitur | Pemilik | Status |
-|---|---|---|---|
-| F-01 | Input transaksi manual | Riyadi | selesai |
-| F-02 | Riwayat transaksi | Dafa | sedang dikerjakan |
-| F-03 | Kategori khas mahasiswa | Luthfi | belum dimulai |
-| F-04 | Penyimpanan lokal | Riyadi | selesai |
-| F-05 | Ringkasan periodik | Riyadi | selesai |
-| F-06 | Format Rupiah | Riyadi | selesai |
-| F-16 | Perkenalan dan keadaan kosong | Luthfi | belum dimulai |
+Pengembangan aplikasi Insap dilakukan secara bertahap per versi sesuai dengan jadwal dan kriteria selesai pada dokumen ROADMAP.
+
+### v0.1 Fondasi
+
+| Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
+|---|---|---|---|---|
+| F-01 | Input transaksi manual | Form isian jumlah, kategori, tanggal, catatan singkat | Riyadi | selesai |
+| F-02 | Riwayat transaksi | Daftar transaksi yang dapat disaring per tanggal dan kategori | Dafa | sedang dikerjakan |
+| F-03 | Kategori khas mahasiswa | Sembilan kategori bawaan, lihat KATEGORI.md | Luthfi | sebagian |
+| F-04 | Penyimpanan lokal | Seluruh data tersimpan di perangkat menggunakan SQLite | Riyadi | selesai |
+| F-05 | Ringkasan periodik | Total pengeluaran per kategori untuk rentang mingguan dan bulanan | Riyadi | sebagian |
+| F-06 | Format Rupiah | Penulisan mata uang yang benar, misalnya Rp15.000 | Riyadi | selesai |
+| F-16 | Perkenalan dan keadaan kosong | Layar sambutan tiga langkah dan tampilan saat belum ada data | Luthfi | sebagian |
+
+### v0.2 Pembeda
+
+| Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
+|---|---|---|---|---|
+| F-07 | Tanya niat belanja | Pertanyaan "butuh atau pengen" untuk kategori opsional dan hiburan | Luthfi | belum dimulai |
+| F-08 | Refleksi mingguan | Ritual akhir pekan: rencana versus realisasi, plus catatan perbaikan | Luthfi | belum dimulai |
+
+### v0.3 Kecerdasan
+
+| Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
+|---|---|---|---|---|
+| F-09 | Pindai struk | Foto struk dikirim ke Gemini untuk diekstrak toko, tanggal, total | Dafa | belum dimulai |
+| F-10 | Konfirmasi hasil pindai | Hasil AI ditampilkan sebagai draf yang wajib disetujui pengguna | Dafa | belum dimulai |
+| F-11 | Kuota pindai gratis | Pembatasan sepuluh pemindaian per minggu untuk pengguna gratis | Dafa | belum dimulai |
+
+### v0.4 Pemantapan
+
+| Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
+|---|---|---|---|---|
+| F-14 | Ekspor laporan | Unduh rekap bulanan dalam bentuk berkas PDF | - | belum dimulai |
+
+### v1.0 Rilis
+
+| Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
+|---|---|---|---|---|
+| F-12 | Laporan AI bulanan | Ringkasan naratif berbahasa santai tentang pola belanja sebulan | - | belum dimulai |
+
+### Fitur Bersyarat
+
+Fitur-fitur ini baru akan dikerjakan apabila gerbang mutu pada akhir Pertemuan 13 terpenuhi; jika tidak terpenuhi, fitur F-17 dan F-13 diganti dengan mekanisme ekspor dan impor cadangan berkas manual tanpa akun, sedangkan fitur F-18 dan F-15 tidak diimplementasikan dengan kuota gratis sepuluh pindaian per minggu berlaku untuk semua pengguna.
+
+| Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
+|---|---|---|---|---|
+| F-17 | Masuk dengan akun Google | Firebase Auth, prasyarat wajib bagi F-13 | - | belum dimulai |
+| F-13 | Cadangan awan | Sinkronisasi ke Firestore, bergantung pada F-17 | - | belum dimulai |
+| F-18 | Langganan premium | Penagihan lewat Google Play Billing, bergantung pada F-17 | - | belum dimulai |
+| F-15 | Pindai tanpa batas | Menghapus kuota mingguan bagi pelanggan, bergantung pada F-18 | - | belum dimulai |
 
 ## Teknologi
 
