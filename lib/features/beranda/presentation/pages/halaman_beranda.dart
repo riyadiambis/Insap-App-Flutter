@@ -6,6 +6,7 @@ import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/utils/iso_week.dart';
 import '../../../../core/utils/rupiah_extension.dart';
+import '../../../../core/widgets/header_aplikasi.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
 import '../../../kategori/domain/entities/kategori_entity.dart';
 import '../../../kategori/presentation/cubit/kategori_cubit.dart';
@@ -99,7 +100,8 @@ class _BerandaContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pekanIni = isoWeekNumber(DateTime.now());
+    final rentangPekan = rentangMingguIso(DateTime.now());
+    final teksRentang = formatRentangMinggu(rentangPekan);
 
     return ListView(
       padding: const EdgeInsets.only(
@@ -110,6 +112,8 @@ class _BerandaContent extends StatelessWidget {
       ),
       children: [
         const SizedBox(height: AppSpacing.sangatKecil),
+        const HeaderAplikasi(namaLayar: 'BERANDA'),
+        const SizedBox(height: AppSpacing.lebihBesar),
         // Greeting Header
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -174,7 +178,7 @@ class _BerandaContent extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.sangatKecil),
                   Text(
-                    'Pekan ke-$pekanIni',
+                    teksRentang,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppColors.ink,
                           fontWeight: FontWeight.w800,
@@ -239,7 +243,10 @@ class _BerandaContent extends StatelessWidget {
                 style: AppTheme.nominalUtama,
               ),
               const SizedBox(height: AppSpacing.sedang),
-              _IndikatorSelisih(selisih: ringkasan.selisihMingguan),
+              _IndikatorSelisih(
+                selisih: ringkasan.selisihMingguan,
+                totalMingguLalu: ringkasan.totalMingguLalu,
+              ),
             ],
           ),
         ),
@@ -522,30 +529,56 @@ class _BerandaContent extends StatelessWidget {
         const SizedBox(height: AppSpacing.lebihBesar),
         // Recent Transactions Section Header
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Catatan Terakhir',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
+            Row(
+              children: [
+                Text(
+                  'Catatan Terakhir',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(width: AppSpacing.kecil),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.kecil,
+                    vertical: AppSpacing.mini,
                   ),
+                  decoration: BoxDecoration(
+                    color: AppColors.grid,
+                    border: Border.all(color: AppColors.ink, width: 1.0),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+                  ),
+                  child: Text(
+                    '${ringkasan.transaksiTerakhir.length}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.ink,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: AppSpacing.kecil),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.kecil,
-                vertical: AppSpacing.mini,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.grid,
-                border: Border.all(color: AppColors.ink, width: 1.0),
-                borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-              ),
-              child: Text(
-                '${ringkasan.transaksiTerakhir.length}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.ink,
-                      fontWeight: FontWeight.w800,
-                    ),
+            GestureDetector(
+              onTap: () => context.go('/riwayat'),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Lihat Semua',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.ink,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(width: AppSpacing.sangatKecil),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: AppSizes.ikonKecil,
+                    color: AppColors.ink,
+                  ),
+                ],
               ),
             ),
           ],
@@ -576,11 +609,49 @@ class _BerandaContent extends StatelessWidget {
 
 class _IndikatorSelisih extends StatelessWidget {
   final int selisih;
+  final int totalMingguLalu;
 
-  const _IndikatorSelisih({required this.selisih});
+  const _IndikatorSelisih({
+    required this.selisih,
+    required this.totalMingguLalu,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (totalMingguLalu == 0) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: AppSizes.tinggiGarisPemisah,
+            color: AppColors.garis,
+          ),
+          const SizedBox(height: AppSpacing.sedang),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sedang,
+                vertical: AppSpacing.sangatKecil,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.grid,
+                border: Border.all(color: AppColors.ink, width: 1.0),
+                borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+              ),
+              child: Text(
+                'Belum ada data pekan lalu',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppColors.inkSoft,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     final bool hemat = selisih < 0;
     final bool boros = selisih > 0;
     final nominalAbsolut = selisih.abs().toRupiah();

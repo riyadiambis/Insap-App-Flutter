@@ -48,7 +48,7 @@ Pengembangan aplikasi Insap dilakukan secara bertahap per versi sesuai dengan ja
 
 | Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
 |---|---|---|---|---|
-| F-07 | Tanya niat belanja | Pertanyaan "butuh atau pengen" untuk kategori opsional dan hiburan | Luthfi | belum dimulai |
+| F-07 | Tanya niat belanja | Pertanyaan "butuh atau pengen" untuk kategori opsional dan hiburan | Luthfi | sebagian |
 | F-08 | Refleksi mingguan | Ritual akhir pekan: rencana versus realisasi, plus catatan perbaikan | Luthfi | belum dimulai |
 
 ### v0.3 Kecerdasan
