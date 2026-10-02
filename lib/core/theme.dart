@@ -13,6 +13,7 @@ class AppColors {
   static const Color benar = Color(0xFF1F9254);
   static const Color salahLatar = Color(0xFFFCEAE6);
   static const Color salah = Color(0xFFD9482F);
+  static const Color aksenPengen = Color(0xFFFFB020);
 
   /// Palet badge kategori, dipakai sebagai cadangan dan acuan warna saat
   /// pengguna membuat kategori sendiri. Warna kategori yang sesungguhnya
@@ -68,6 +69,38 @@ class AppSizes {
       (batasLebarKonten - AppSpacing.besar * 2 - AppSpacing.kecil * 2) /
           kolomKategori;
   static const double ikonChipKategori = badgeKategori * 0.6;
+
+  // grid buku tulis pada latar (paper_background)
+  static const double gridSize = 26.0;
+  static const double ukuranGrid = gridSize;
+  static const double strokeWidth = 1.0;
+  static const double strokeWidthGrid = strokeWidth;
+  static const double tebalGarisGrid = strokeWidth;
+
+  // kotak ikon pada tombol aksi cepat dan kartu kuota (beranda)
+  static const double kotakIkonAksi = 36.0;
+  static const double radiusKotakIkonAksi = 8.0;
+  static const double ikonAksi = 20.0;
+  static const double ikonKalender = 18.0;
+
+  static const double kotakIkonKuota = 44.0;
+  static const double radiusKotakIkonKuota = 12.0;
+  static const double ikonKuota = 24.0;
+  static const double tinggiSegmenKuota = 8.0;
+  static const double radiusSegmenKuota = 2.0;
+
+  static const double ukuranTitikIndikator = 8.0;
+  static const double tinggiGarisPemisah = 2.0;
+
+  // navigasi bawah (app_shell)
+  static const double tinggiNavigasiBawah = 72.0;
+  static const double radiusItemNavigasi = 12.0;
+  static const double ikonNavigasi = 24.0;
+
+  // layar catat transaksi
+  static const double tinggiPilihanTanggal = 44.0;
+  static const double tinggiPilihanKebutuhan = 48.0;
+  static const double ikonKecil = 16.0;
 }
 
 class AppSpacing {
@@ -79,6 +112,9 @@ class AppSpacing {
   static const double besar = 16.0;
   static const double lebihBesar = 24.0;
   static const double antarBagian = 32.0;
+
+  /// Jarak bawah area gulir agar konten terbawah tidak tertutup navigasi bawah.
+  static const double jarakGulirBawah = 80.0;
 }
 
 class AppDurations {
@@ -222,6 +258,20 @@ class AppTheme {
   static const BoxShadow bayanganAtasTertekan = BoxShadow(
     color: AppColors.garis,
     offset: Offset(0, -2),
+    blurRadius: 0,
+  );
+
+  /// Bayangan solid 2x2 ink, dipakai pada kotak ikon dan item aktif navigasi.
+  static const BoxShadow bayanganKecilGelap = BoxShadow(
+    color: AppColors.ink,
+    offset: Offset(2, 2),
+    blurRadius: 0,
+  );
+
+  /// Bayangan solid 2x2 garis, dipakai pada badge sapaan.
+  static const BoxShadow bayanganKecil = BoxShadow(
+    color: AppColors.garis,
+    offset: Offset(2, 2),
     blurRadius: 0,
   );
 

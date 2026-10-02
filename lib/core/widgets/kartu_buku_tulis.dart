@@ -7,6 +7,8 @@ class KartuBukuTulis extends StatefulWidget {
   final EdgeInsetsGeometry padding;
   final double radius;
   final Color backgroundColor;
+  final BoxShadow? shadow;
+  final BoxShadow? pressedShadow;
 
   const KartuBukuTulis({
     super.key,
@@ -15,6 +17,8 @@ class KartuBukuTulis extends StatefulWidget {
     this.padding = const EdgeInsets.all(AppSpacing.besar),
     this.radius = AppSizes.radiusKartu,
     this.backgroundColor = AppColors.kartu,
+    this.shadow,
+    this.pressedShadow,
   });
 
   @override
@@ -67,8 +71,8 @@ class _KartuBukuTulisState extends State<KartuBukuTulis> {
           borderRadius: BorderRadius.circular(widget.radius),
           boxShadow: [
             _isPressed
-                ? AppTheme.bayanganDefaultTertekan
-                : AppTheme.bayanganDefault,
+                ? (widget.pressedShadow ?? AppTheme.bayanganDefaultTertekan)
+                : (widget.shadow ?? AppTheme.bayanganDefault),
           ],
         ),
         child: widget.child,
