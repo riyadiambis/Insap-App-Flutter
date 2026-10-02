@@ -273,10 +273,10 @@ class _JudulCatat extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Positioned(
-              bottom: 4,
-              left: -4,
-              right: -4,
-              height: 12,
+              bottom: AppSizes.geserStabiloJudul,
+              left: -AppSizes.geserStabiloJudul,
+              right: -AppSizes.geserStabiloJudul,
+              height: AppSizes.tinggiStabiloJudul,
               child: Container(color: AppColors.stabilo),
             ),
             Text(
@@ -318,11 +318,10 @@ class _BagianNominal extends StatelessWidget {
             focusNode: focusNode,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            style: AppTheme.nominalBesar.copyWith(fontSize: 32),
+            style: AppTheme.nominalUtama,
             decoration: InputDecoration(
               hintText: 'Rp0',
-              hintStyle: AppTheme.nominalBesar.copyWith(
-                fontSize: 32,
+              hintStyle: AppTheme.nominalUtama.copyWith(
                 color: AppColors.garis,
               ),
               border: InputBorder.none,
@@ -484,9 +483,7 @@ class _ChipKategori extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: AppDurations.animasiTekan,
-        width: (AppSizes.batasLebarKonten - AppSpacing.besar * 2 -
-                AppSpacing.kecil * 2) /
-            3,
+        width: AppSizes.lebarChipKategori,
         padding: const EdgeInsets.symmetric(
           vertical: AppSpacing.sedang,
         ),
@@ -505,7 +502,7 @@ class _ChipKategori extends StatelessWidget {
             Icon(
               ikon,
               color: terpilih ? AppColors.ikonBadge : warna,
-              size: AppSizes.badgeKategori * 0.6,
+              size: AppSizes.ikonChipKategori,
             ),
             const SizedBox(height: AppSpacing.kecil),
             Text(
