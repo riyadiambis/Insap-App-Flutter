@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../theme.dart';
 
@@ -57,12 +56,7 @@ class HeaderAplikasi extends StatelessWidget {
               children: [
                 Text(
                   'Insap',
-                  style: GoogleFonts.baloo2(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.ink,
-                    height: 1.1,
-                  ),
+                  style: AppTheme.judulHeaderLogo,
                 ),
                 Text(
                   namaLayar.toUpperCase(),
