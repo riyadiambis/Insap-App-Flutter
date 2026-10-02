@@ -47,12 +47,38 @@ class AppSizes {
 
   static const double indikatorMuat = 24.0;
   static const double tebalIndikatorMuat = 3.0;
+
+  // radius label persegi kecil (label "PEKAN INI", badge selisih)
+  static const double radiusLabel = 4.0;
+  // radius badge berbentuk pil (badge nomor pekan)
+  static const double radiusPil = 100.0;
+  static const double ikonSelisih = 14.0;
+
+  // coretan stabilo di belakang judul: tinggi dan seberapa jauh menjorok
+  // keluar dari teks
+  static const double tinggiStabiloJudul = 12.0;
+  static const double geserStabiloJudul = 4.0;
+
+  static const double ukuranNominalBesar = 32.0;
+
+  // grid kategori 3 kolom di layar catat, dihitung dari lebar konten
+  // dikurangi padding kiri-kanan dan dua jarak antarchip
+  static const int kolomKategori = 3;
+  static const double lebarChipKategori =
+      (batasLebarKonten - AppSpacing.besar * 2 - AppSpacing.kecil * 2) /
+          kolomKategori;
+  static const double ikonChipKategori = badgeKategori * 0.6;
 }
 
 class AppSpacing {
+  static const double mini = 2.0;
+  static const double sangatKecil = 4.0;
+  static const double agakKecil = 6.0;
   static const double kecil = 8.0;
   static const double sedang = 12.0;
   static const double besar = 16.0;
+  static const double lebihBesar = 24.0;
+  static const double antarBagian = 32.0;
 }
 
 class AppDurations {
@@ -149,6 +175,11 @@ class AppTheme {
         color: AppColors.ink,
         fontWeight: FontWeight.w800,
       );
+
+  /// [nominalBesar] dengan ukuran tampil 32, dipakai untuk total pekan di
+  /// beranda dan kolom nominal di layar catat.
+  static TextStyle get nominalUtama =>
+      nominalBesar.copyWith(fontSize: AppSizes.ukuranNominalBesar);
 
   /// Bayangan offset solid bawaan, dipakai pada kartu dan komponen netral.
   static const BoxShadow bayanganDefault = BoxShadow(

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -104,7 +103,7 @@ class _BerandaContent extends StatelessWidget {
     final pekanIni = isoWeekNumber(DateTime.now());
 
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.lebihBesar),
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -114,49 +113,58 @@ class _BerandaContent extends StatelessWidget {
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sedang,
+                vertical: AppSpacing.sangatKecil,
+              ),
               decoration: BoxDecoration(
                 color: AppColors.ink,
-                borderRadius: BorderRadius.circular(100),
+                borderRadius: BorderRadius.circular(AppSizes.radiusPil),
               ),
               child: Text(
                 'Pekan $pekanIni',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.kartu,
                     ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.lebihBesar),
         KartuBukuTulis(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.kecil,
+                  vertical: AppSpacing.sangatKecil,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.grid,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppSizes.radiusLabel),
                 ),
                 child: Text(
                   'PEKAN INI',
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sedang),
               Text(
                 ringkasan.totalMingguIni.toRupiah(),
-                style: AppTheme.nominalBesar.copyWith(fontSize: 32),
+                style: AppTheme.nominalUtama,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sedang),
               _IndikatorSelisih(selisih: ringkasan.selisihMingguan),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.besar),
         KartuBukuTulis(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.besar,
+            vertical: AppSpacing.sedang,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -171,7 +179,7 @@ class _BerandaContent extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.lebihBesar),
         Row(
           children: [
             Expanded(
@@ -180,7 +188,7 @@ class _BerandaContent extends StatelessWidget {
                 onPressed: () => context.go('/catat'),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.besar),
             Expanded(
               child: TombolStabilo(
                 teks: 'Pindai Struk',
@@ -193,15 +201,15 @@ class _BerandaContent extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: AppSpacing.antarBagian),
         Stack(
           clipBehavior: Clip.none,
           children: [
             Positioned(
-              bottom: 4,
-              left: -4,
-              right: -4,
-              height: 12,
+              bottom: AppSizes.geserStabiloJudul,
+              left: -AppSizes.geserStabiloJudul,
+              right: -AppSizes.geserStabiloJudul,
+              height: AppSizes.tinggiStabiloJudul,
               child: Container(color: AppColors.stabilo),
             ),
             Text(
@@ -210,12 +218,12 @@ class _BerandaContent extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.besar),
         if (ringkasan.transaksiTerakhir.isEmpty)
           KartuBukuTulis(
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(AppSpacing.besar),
                 child: Text(
                   'Belum ada transaksi. Yuk catat pengeluaran pertamamu!',
                   textAlign: TextAlign.center,
@@ -226,16 +234,9 @@ class _BerandaContent extends StatelessWidget {
           )
         else
           ...ringkasan.transaksiTerakhir.map((t) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.only(bottom: AppSpacing.sedang),
                 child: _ItemTransaksi(transaksi: t),
               )),
-        if (kDebugMode) ...[
-          const SizedBox(height: 24),
-          TextButton(
-            onPressed: () => context.push('/uji'),
-            child: const Text('Buka halaman uji'),
-          ),
-        ],
       ],
     );
   }
@@ -265,15 +266,18 @@ class _IndikatorSelisih extends StatelessWidget {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.agakKecil,
+            vertical: AppSpacing.mini,
+          ),
           decoration: BoxDecoration(
             color: warnaLatar,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(AppSizes.radiusLabel),
           ),
           child: Row(
             children: [
-              Icon(ikon, size: 14, color: warnaTeks),
-              const SizedBox(width: 4),
+              Icon(ikon, size: AppSizes.ikonSelisih, color: warnaTeks),
+              const SizedBox(width: AppSpacing.sangatKecil),
               Text(
                 nominalAbsolut,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -283,7 +287,7 @@ class _IndikatorSelisih extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.kecil),
         Text(
           '$teksStatus dibanding pekan lalu',
           style: Theme.of(context).textTheme.bodySmall,

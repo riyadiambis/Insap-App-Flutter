@@ -8,7 +8,6 @@ import '../../features/refleksi/presentation/pages/halaman_refleksi.dart';
 import '../../features/transaksi/presentation/catat/pages/halaman_catat_transaksi.dart';
 import '../../features/transaksi/presentation/riwayat/pages/halaman_detail_transaksi.dart';
 import '../../features/transaksi/presentation/riwayat/pages/halaman_riwayat.dart';
-import '../../presentation/pages/uji_data_page.dart';
 import 'app_shell.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -70,11 +69,6 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/perkenalan',
       builder: (context, state) => const HalamanPerkenalan(),
-    ),
-    // rute sementara untuk akses UjiDataPage, dihapus di Tahap 9
-    GoRoute(
-      path: '/uji',
-      builder: (context, state) => const UjiDataPage(),
     ),
   ],
 );

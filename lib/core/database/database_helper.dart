@@ -108,15 +108,4 @@ class DatabaseHelper {
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     // Siap untuk migrasi selanjutnya
   }
-
-  Future<List<Kategori>> getKategoriBawaan() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'kategori',
-      orderBy: 'urutan ASC',
-    );
-    return List.generate(maps.length, (i) {
-      return Kategori.fromMap(maps[i]);
-    });
-  }
 }
