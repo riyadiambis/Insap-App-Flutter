@@ -68,6 +68,13 @@ class AppSizes {
       (batasLebarKonten - AppSpacing.besar * 2 - AppSpacing.kecil * 2) /
           kolomKategori;
   static const double ikonChipKategori = badgeKategori * 0.6;
+
+  // grid buku tulis pada latar (paper_background)
+  static const double gridSize = 26.0;
+  static const double ukuranGrid = gridSize;
+  static const double strokeWidth = 1.0;
+  static const double strokeWidthGrid = strokeWidth;
+  static const double tebalGarisGrid = strokeWidth;
 }
 
 class AppSpacing {

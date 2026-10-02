@@ -20,15 +20,13 @@ class _PaperGridPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = AppColors.grid
-      ..strokeWidth = 1.0;
+      ..strokeWidth = AppSizes.strokeWidth;
 
-    const double gridSize = 26.0;
-
-    for (double x = 0; x < size.width; x += gridSize) {
+    for (double x = 0; x < size.width; x += AppSizes.gridSize) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }
 
-    for (double y = 0; y < size.height; y += gridSize) {
+    for (double y = 0; y < size.height; y += AppSizes.gridSize) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
   }
