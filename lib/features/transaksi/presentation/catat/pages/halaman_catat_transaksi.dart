@@ -182,6 +182,7 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<CatatTransaksiCubit, CatatTransaksiState>(
+      listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         if (state.status == StatusCatatTransaksi.berhasil) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -191,6 +192,12 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
           context.read<BerandaCubit>().muatRingkasan();
           // kembali ke tab beranda
           context.go('/');
+          _nominalController.clear();
+          _catatanController.clear();
+          setState(() {
+            _chipTanggalAktif = 0;
+          });
+          context.read<CatatTransaksiCubit>().reset();
         } else if (state.status == StatusCatatTransaksi.gagal) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

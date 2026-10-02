@@ -76,4 +76,13 @@ class CatatTransaksiCubit extends Cubit<CatatTransaksiState> {
       ));
     }
   }
+
+  // F-01 baris 24 & 35: setelah simpan berhasil, form kembali ke keadaan awal
+  // untuk transaksi berikutnya, dengan kategori awal = kategori terakhir dipakai
+  void reset() {
+    emit(CatatTransaksiState(
+      tanggal: formatTanggalIso(DateTime.now()),
+      kategoriId: state.kategoriId,
+    ));
+  }
 }
