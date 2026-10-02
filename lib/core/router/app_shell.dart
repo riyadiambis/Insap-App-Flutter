@@ -20,44 +20,98 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final destinations = [
+      (
+        icon: Icons.home_outlined,
+        activeIcon: Icons.home,
+        label: 'Beranda',
+      ),
+      (
+        icon: Icons.edit_note_outlined,
+        activeIcon: Icons.edit_note,
+        label: 'Catat',
+      ),
+      (
+        icon: Icons.lightbulb_outline,
+        activeIcon: Icons.lightbulb,
+        label: 'Refleksi',
+      ),
+      (
+        icon: Icons.receipt_long_outlined,
+        activeIcon: Icons.receipt_long,
+        label: 'Riwayat',
+      ),
+    ];
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
+          color: AppColors.kartu,
           border: Border(
             top: BorderSide(color: AppColors.ink, width: AppSizes.border),
           ),
           boxShadow: [AppTheme.bayanganAtas],
         ),
-        child: NavigationBar(
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: _pindahTab,
-          backgroundColor: AppColors.kartu,
-          indicatorColor: AppColors.stabilo,
-          // jangan pakai elevation Material, bayangannya dari bayanganAtas
-          elevation: 0,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined, color: AppColors.inkSoft),
-              selectedIcon: Icon(Icons.home, color: AppColors.ink),
-              label: 'Beranda',
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: AppSizes.tinggiNavigasiBawah,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(destinations.length, (index) {
+                final aktif = navigationShell.currentIndex == index;
+                final dest = destinations[index];
+
+                return GestureDetector(
+                  onTap: () => _pindahTab(index),
+                  behavior: HitTestBehavior.opaque,
+                  child: AnimatedContainer(
+                    duration: AppDurations.animasiTekan,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sedang,
+                      vertical: AppSpacing.agakKecil,
+                    ),
+                    decoration: BoxDecoration(
+                      color: aktif ? AppColors.stabilo : Colors.transparent,
+                      border: Border.all(
+                        color: aktif ? AppColors.ink : Colors.transparent,
+                        width: AppSizes.border,
+                      ),
+                      borderRadius:
+                          BorderRadius.circular(AppSizes.radiusItemNavigasi),
+                      boxShadow:
+                          aktif ? const [AppTheme.bayanganKecilGelap] : [],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          aktif ? dest.activeIcon : dest.icon,
+                          size: AppSizes.ikonNavigasi,
+                          color: aktif ? AppColors.ink : AppColors.inkSoft,
+                        ),
+                        const SizedBox(height: AppSpacing.mini),
+                        Text(
+                          dest.label,
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(
+                                color:
+                                    aktif ? AppColors.ink : AppColors.inkSoft,
+                                fontWeight:
+                                    aktif ? FontWeight.w800 : FontWeight.w600,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
             ),
-            NavigationDestination(
-              icon: Icon(Icons.add_circle_outline, color: AppColors.inkSoft),
-              selectedIcon: Icon(Icons.add_circle, color: AppColors.ink),
-              label: 'Catat',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.lightbulb_outline, color: AppColors.inkSoft),
-              selectedIcon: Icon(Icons.lightbulb, color: AppColors.ink),
-              label: 'Refleksi',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.history_outlined, color: AppColors.inkSoft),
-              selectedIcon: Icon(Icons.history, color: AppColors.ink),
-              label: 'Riwayat',
-            ),
-          ],
+          ),
         ),
       ),
     );

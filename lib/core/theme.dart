@@ -75,6 +75,26 @@ class AppSizes {
   static const double strokeWidth = 1.0;
   static const double strokeWidthGrid = strokeWidth;
   static const double tebalGarisGrid = strokeWidth;
+
+  // kotak ikon pada tombol aksi cepat dan kartu kuota (beranda)
+  static const double kotakIkonAksi = 36.0;
+  static const double radiusKotakIkonAksi = 8.0;
+  static const double ikonAksi = 20.0;
+  static const double ikonKalender = 18.0;
+
+  static const double kotakIkonKuota = 44.0;
+  static const double radiusKotakIkonKuota = 12.0;
+  static const double ikonKuota = 24.0;
+  static const double tinggiSegmenKuota = 8.0;
+  static const double radiusSegmenKuota = 2.0;
+
+  static const double ukuranTitikIndikator = 8.0;
+  static const double tinggiGarisPemisah = 2.0;
+
+  // navigasi bawah (app_shell)
+  static const double tinggiNavigasiBawah = 72.0;
+  static const double radiusItemNavigasi = 12.0;
+  static const double ikonNavigasi = 24.0;
 }
 
 class AppSpacing {
@@ -229,6 +249,20 @@ class AppTheme {
   static const BoxShadow bayanganAtasTertekan = BoxShadow(
     color: AppColors.garis,
     offset: Offset(0, -2),
+    blurRadius: 0,
+  );
+
+  /// Bayangan solid 2x2 ink, dipakai pada kotak ikon dan item aktif navigasi.
+  static const BoxShadow bayanganKecilGelap = BoxShadow(
+    color: AppColors.ink,
+    offset: Offset(2, 2),
+    blurRadius: 0,
+  );
+
+  /// Bayangan solid 2x2 garis, dipakai pada badge sapaan.
+  static const BoxShadow bayanganKecil = BoxShadow(
+    color: AppColors.garis,
+    offset: Offset(2, 2),
     blurRadius: 0,
   );
 
