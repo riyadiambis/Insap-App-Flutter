@@ -1,4 +1,4 @@
-import '../../../../data/database_helper.dart';
+import '../../../../core/database/database_helper.dart';
 import '../models/kategori_model.dart';
 
 class KategoriLocalDataSource {

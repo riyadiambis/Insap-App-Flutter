@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -238,13 +237,6 @@ class _BerandaContent extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: AppSpacing.sedang),
                 child: _ItemTransaksi(transaksi: t),
               )),
-        if (kDebugMode) ...[
-          const SizedBox(height: AppSpacing.lebihBesar),
-          TextButton(
-            onPressed: () => context.push('/uji'),
-            child: const Text('Buka halaman uji'),
-          ),
-        ],
       ],
     );
   }
