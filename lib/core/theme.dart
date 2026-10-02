@@ -106,6 +106,9 @@ class AppSpacing {
   static const double besar = 16.0;
   static const double lebihBesar = 24.0;
   static const double antarBagian = 32.0;
+
+  /// Jarak bawah area gulir agar konten terbawah tidak tertutup navigasi bawah.
+  static const double jarakGulirBawah = 80.0;
 }
 
 class AppDurations {

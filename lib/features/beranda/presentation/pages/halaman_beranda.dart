@@ -102,7 +102,12 @@ class _BerandaContent extends StatelessWidget {
     final pekanIni = isoWeekNumber(DateTime.now());
 
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.besar),
+      padding: const EdgeInsets.only(
+        left: AppSpacing.besar,
+        top: AppSpacing.besar,
+        right: AppSpacing.besar,
+        bottom: AppSpacing.jarakGulirBawah,
+      ),
       children: [
         const SizedBox(height: AppSpacing.sangatKecil),
         // Greeting Header
@@ -281,7 +286,7 @@ class _BerandaContent extends StatelessWidget {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                      'Sisa Kuota Pindai AI',
+                                      'Sisa Kuota Pindai Struk',
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleMedium
@@ -599,34 +604,43 @@ class _IndikatorSelisih extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sedang),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sedang,
-                vertical: AppSpacing.sangatKecil,
-              ),
-              decoration: BoxDecoration(
-                color: warnaLatar,
-                border: Border.all(color: AppColors.ink, width: 1.0),
-                borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-              ),
-              child: Row(
-                children: [
-                  Icon(ikon, size: AppSizes.ikonSelisih, color: AppColors.ink),
-                  const SizedBox(width: AppSpacing.sangatKecil),
-                  Text(
-                    selisih == 0
-                        ? 'Sama persis dengan pekan lalu'
-                        : '$nominalAbsolut $teksStatus dibanding pekan lalu',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.ink,
-                          fontWeight: FontWeight.w700,
-                        ),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sedang,
+                    vertical: AppSpacing.sangatKecil,
                   ),
-                ],
+                  decoration: BoxDecoration(
+                    color: warnaLatar,
+                    border: Border.all(color: AppColors.ink, width: 1.0),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(ikon, size: AppSizes.ikonSelisih, color: AppColors.ink),
+                      const SizedBox(width: AppSpacing.sangatKecil),
+                      Flexible(
+                        child: Text(
+                          selisih == 0
+                              ? 'Sama persis dengan pekan lalu'
+                              : '$nominalAbsolut $teksStatus dibanding pekan lalu',
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: AppColors.ink,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
+            const SizedBox(width: AppSpacing.sedang),
             Icon(ikonTren, size: AppSizes.ikonAksi, color: AppColors.ink),
           ],
         ),
