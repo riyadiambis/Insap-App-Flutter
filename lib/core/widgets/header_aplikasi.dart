@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../theme.dart';
 
@@ -19,7 +18,7 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(64.0);
+  Size get preferredSize => const Size.fromHeight(AppSizes.tinggiHeader);
 
   void _tampilkanPesanSegeraHadir(BuildContext context) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -40,11 +39,7 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
         boxShadow: [
-          BoxShadow(
-            color: AppColors.garis,
-            offset: Offset(0, 4),
-            blurRadius: 0,
-          ),
+          AppTheme.bayanganBawah,
         ],
       ),
       child: SafeArea(
@@ -54,7 +49,7 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
             constraints: const BoxConstraints(
               maxWidth: AppSizes.batasLebarKonten,
             ),
-            height: 64.0,
+            height: AppSizes.tinggiHeader,
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.besar,
             ),
@@ -88,12 +83,7 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
                       children: [
                         Text(
                           'Insap',
-                          style: GoogleFonts.baloo2(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.ink,
-                            height: 1.1,
-                          ),
+                          style: AppTheme.judulHeaderLogo,
                         ),
                         Text(
                           namaLayar.toUpperCase(),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   static const Color paper = Color(0xFFFFFDF4);
@@ -92,6 +91,9 @@ class AppSizes {
   static const double ukuranTitikIndikator = 8.0;
   static const double tinggiGarisPemisah = 2.0;
 
+  // header aplikasi (header_aplikasi)
+  static const double tinggiHeader = 64.0;
+
   // navigasi bawah (app_shell)
   static const double tinggiNavigasiBawah = 72.0;
   static const double radiusItemNavigasi = 12.0;
@@ -130,72 +132,88 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       scaffoldBackgroundColor: AppColors.paper,
+      fontFamily: 'Nunito',
       colorScheme: const ColorScheme.light(
         primary: AppColors.ink,
         surface: AppColors.kartu,
       ),
-      textTheme: TextTheme(
-        displayLarge: GoogleFonts.baloo2(
+      textTheme: const TextTheme(
+        displayLarge: TextStyle(
+          fontFamily: 'Baloo2',
           color: AppColors.ink,
           fontWeight: FontWeight.w700,
         ),
-        displayMedium: GoogleFonts.baloo2(
+        displayMedium: TextStyle(
+          fontFamily: 'Baloo2',
           color: AppColors.ink,
           fontWeight: FontWeight.w700,
         ),
-        displaySmall: GoogleFonts.baloo2(
+        displaySmall: TextStyle(
+          fontFamily: 'Baloo2',
           color: AppColors.ink,
           fontWeight: FontWeight.w700,
         ),
-        headlineLarge: GoogleFonts.baloo2(
+        headlineLarge: TextStyle(
+          fontFamily: 'Baloo2',
           color: AppColors.ink,
           fontWeight: FontWeight.w700,
         ),
-        headlineMedium: GoogleFonts.baloo2(
+        headlineMedium: TextStyle(
+          fontFamily: 'Baloo2',
           color: AppColors.ink,
           fontWeight: FontWeight.w700,
         ),
-        headlineSmall: GoogleFonts.baloo2(
+        headlineSmall: TextStyle(
+          fontFamily: 'Baloo2',
           color: AppColors.ink,
           fontWeight: FontWeight.w600,
         ),
-        titleLarge: GoogleFonts.baloo2(
+        titleLarge: TextStyle(
+          fontFamily: 'Baloo2',
           color: AppColors.ink,
           fontWeight: FontWeight.w700,
         ),
-        titleMedium: GoogleFonts.baloo2(
+        titleMedium: TextStyle(
+          fontFamily: 'Baloo2',
           color: AppColors.ink,
           fontWeight: FontWeight.w600,
         ),
-        titleSmall: GoogleFonts.baloo2(
+        titleSmall: TextStyle(
+          fontFamily: 'Baloo2',
           color: AppColors.ink,
           fontWeight: FontWeight.w600,
         ),
-        bodyLarge: GoogleFonts.nunito(
+        bodyLarge: TextStyle(
+          fontFamily: 'Nunito',
           color: AppColors.ink,
           fontWeight: FontWeight.w400,
         ),
-        bodyMedium: GoogleFonts.nunito(
+        bodyMedium: TextStyle(
+          fontFamily: 'Nunito',
           color: AppColors.ink,
           fontWeight: FontWeight.w400,
         ),
-        bodySmall: GoogleFonts.nunito(
+        bodySmall: TextStyle(
+          fontFamily: 'Nunito',
           color: AppColors.inkSoft,
           fontWeight: FontWeight.w400,
         ),
-        labelLarge: GoogleFonts.nunito(
+        labelLarge: TextStyle(
+          fontFamily: 'Nunito',
           color: AppColors.ink,
           fontWeight: FontWeight.w600,
           fontSize: 13,
           letterSpacing: 1.2,
         ),
-        labelMedium: GoogleFonts.nunito(
+        labelMedium: TextStyle(
+          fontFamily: 'Nunito',
           color: AppColors.ink,
           fontWeight: FontWeight.w600,
           fontSize: 13,
           letterSpacing: 1.2,
         ),
-        labelSmall: GoogleFonts.nunito(
+        labelSmall: TextStyle(
+          fontFamily: 'Nunito',
           color: AppColors.inkSoft,
           fontWeight: FontWeight.w600,
           fontSize: 13,
@@ -207,15 +225,25 @@ class AppTheme {
 
   /// Gaya untuk nominal Rupiah besar (F-06), Baloo 2 bobot 800 sesuai
   /// `UI-GUIDE.md`.
-  static TextStyle get nominalBesar => GoogleFonts.baloo2(
-        color: AppColors.ink,
-        fontWeight: FontWeight.w800,
-      );
+  static const TextStyle nominalBesar = TextStyle(
+    fontFamily: 'Baloo2',
+    color: AppColors.ink,
+    fontWeight: FontWeight.w800,
+  );
 
   /// [nominalBesar] dengan ukuran tampil 32, dipakai untuk total pekan di
   /// beranda dan kolom nominal di layar catat.
   static TextStyle get nominalUtama =>
       nominalBesar.copyWith(fontSize: AppSizes.ukuranNominalBesar);
+
+  /// Gaya teks untuk judul logo "Insap" pada header aplikasi (UI-GUIDE).
+  static const TextStyle judulHeaderLogo = TextStyle(
+    fontFamily: 'Baloo2',
+    fontSize: 22,
+    fontWeight: FontWeight.w800,
+    color: AppColors.ink,
+    height: 1.1,
+  );
 
   /// Bayangan offset solid bawaan, dipakai pada kartu dan komponen netral.
   static const BoxShadow bayanganDefault = BoxShadow(
@@ -258,6 +286,13 @@ class AppTheme {
   static const BoxShadow bayanganAtasTertekan = BoxShadow(
     color: AppColors.garis,
     offset: Offset(0, -2),
+    blurRadius: 0,
+  );
+
+  /// Bayangan ke bawah, dipakai untuk batas bawah header aplikasi.
+  static const BoxShadow bayanganBawah = BoxShadow(
+    color: AppColors.garis,
+    offset: Offset(0, 4),
     blurRadius: 0,
   );
 
