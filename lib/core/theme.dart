@@ -91,6 +91,9 @@ class AppSizes {
   static const double ukuranTitikIndikator = 8.0;
   static const double tinggiGarisPemisah = 2.0;
 
+  // header aplikasi (header_aplikasi)
+  static const double tinggiHeader = 64.0;
+
   // navigasi bawah (app_shell)
   static const double tinggiNavigasiBawah = 72.0;
   static const double radiusItemNavigasi = 12.0;
@@ -283,6 +286,13 @@ class AppTheme {
   static const BoxShadow bayanganAtasTertekan = BoxShadow(
     color: AppColors.garis,
     offset: Offset(0, -2),
+    blurRadius: 0,
+  );
+
+  /// Bayangan ke bawah, dipakai untuk batas bawah header aplikasi.
+  static const BoxShadow bayanganBawah = BoxShadow(
+    color: AppColors.garis,
+    offset: Offset(0, 4),
     blurRadius: 0,
   );
 
