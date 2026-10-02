@@ -13,6 +13,7 @@ class AppColors {
   static const Color benar = Color(0xFF1F9254);
   static const Color salahLatar = Color(0xFFFCEAE6);
   static const Color salah = Color(0xFFD9482F);
+  static const Color aksenPengen = Color(0xFFFFB020);
 
   /// Palet badge kategori, dipakai sebagai cadangan dan acuan warna saat
   /// pengguna membuat kategori sendiri. Warna kategori yang sesungguhnya
@@ -95,6 +96,11 @@ class AppSizes {
   static const double tinggiNavigasiBawah = 72.0;
   static const double radiusItemNavigasi = 12.0;
   static const double ikonNavigasi = 24.0;
+
+  // layar catat transaksi
+  static const double tinggiPilihanTanggal = 44.0;
+  static const double tinggiPilihanKebutuhan = 48.0;
+  static const double ikonKecil = 16.0;
 }
 
 class AppSpacing {

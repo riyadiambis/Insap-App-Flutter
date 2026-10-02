@@ -5,12 +5,14 @@ class TombolStabilo extends StatefulWidget {
   final String teks;
   final VoidCallback? onPressed;
   final bool isLoading;
+  final IconData? ikon;
 
   const TombolStabilo({
     super.key,
     required this.teks,
     this.onPressed,
     this.isLoading = false,
+    this.ikon,
   });
 
   @override
@@ -78,9 +80,25 @@ class _TombolStabiloState extends State<TombolStabilo> {
                     valueColor: AlwaysStoppedAnimation<Color>(AppColors.ink),
                   ),
                 )
-              : Text(
-                  widget.teks,
-                  style: Theme.of(context).textTheme.titleMedium,
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (widget.ikon != null) ...[
+                      Icon(
+                        widget.ikon,
+                        size: AppSizes.ikonAksi,
+                        color: AppColors.ink,
+                      ),
+                      const SizedBox(width: AppSpacing.kecil),
+                    ],
+                    Text(
+                      widget.teks,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ],
                 ),
         ),
       ),
