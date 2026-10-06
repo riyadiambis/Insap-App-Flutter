@@ -11,35 +11,65 @@ import 'package:insap/features/kategori/domain/usecases/ambil_kategori.dart';
 import 'package:insap/features/kategori/presentation/cubit/kategori_cubit.dart';
 import 'package:insap/features/transaksi/domain/entities/transaksi_entity.dart';
 import 'package:insap/features/transaksi/domain/repositories/transaksi_repository.dart';
-import 'package:insap/features/transaksi/domain/usecases/ambil_detail_transaksi.dart';
 import 'package:insap/features/transaksi/domain/usecases/ambil_ringkasan_pekan.dart';
 import 'package:insap/features/transaksi/domain/usecases/ambil_riwayat.dart';
 import 'package:insap/features/transaksi/domain/usecases/hapus_transaksi.dart';
 import 'package:insap/features/transaksi/domain/usecases/tambah_transaksi.dart';
-import 'package:insap/features/transaksi/presentation/riwayat/cubit/detail_transaksi_cubit.dart';
 import 'package:insap/features/transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
 import 'package:insap/features/transaksi/presentation/riwayat/pages/halaman_riwayat.dart';
+import 'package:insap/features/transaksi/presentation/riwayat/widgets/riwayat_helper.dart';
 
 class _FakeKategoriRepository implements KategoriRepository {
   @override
   Future<List<KategoriEntity>> ambilSemua() async => const [
         KategoriEntity(
           id: 1,
-          nama: 'Makan',
+          nama: 'makan',
           ikon: 'restaurant',
           warna: '#E8734A',
           kelompokKakeibo: 'esensial',
           bawaan: 1,
           urutan: 1,
         ),
+        KategoriEntity(
+          id: 2,
+          nama: 'jajan',
+          ikon: 'local_cafe',
+          warna: '#4A9BE8',
+          kelompokKakeibo: 'opsional',
+          bawaan: 1,
+          urutan: 2,
+        ),
       ];
 }
 
 class _FakeTransaksiRepository implements TransaksiRepository {
-  List<TransaksiEntity> daftarPalsu = [];
+  List<TransaksiEntity> daftarKembalian = [];
+  int idTerhapus = 0;
+
+  @override
+  Future<List<TransaksiEntity>> ambilDaftar({
+    String? tanggalMulai,
+    String? tanggalAkhir,
+    int? kategoriId,
+  }) async {
+    return daftarKembalian;
+  }
+
+  @override
+  Future<int> hapus(int id) async {
+    idTerhapus = id;
+    return 1;
+  }
 
   @override
   Future<int> simpan(TransaksiEntity transaksi) async => 1;
+
+  @override
+  Future<TransaksiEntity?> ambilSatu(int id) async => null;
+
+  @override
+  Future<List<TransaksiEntity>> ambilTerakhir(int batas) async => const [];
 
   @override
   Future<int> totalMingguIni(String a, String b) async => 0;
@@ -49,75 +79,48 @@ class _FakeTransaksiRepository implements TransaksiRepository {
 
   @override
   Future<int> ambilKuotaPindai() async => 10;
-
-  @override
-  Future<List<TransaksiEntity>> ambilTerakhir(int batas) async => daftarPalsu;
-
-  @override
-  Future<List<TransaksiEntity>> ambilDaftar({
-    String? tanggalMulai,
-    String? tanggalAkhir,
-    int? kategoriId,
-  }) async =>
-      daftarPalsu;
-
-  @override
-  Future<TransaksiEntity?> ambilSatu(int id) async {
-    for (final t in daftarPalsu) {
-      if (t.id == id) return t;
-    }
-    return null;
-  }
-
-  @override
-  Future<int> hapus(int id) async {
-    daftarPalsu.removeWhere((t) => t.id == id);
-    return 1;
-  }
 }
 
 void main() {
-  late _FakeTransaksiRepository transaksiRepo;
-  late _FakeKategoriRepository kategoriRepo;
+  late _FakeKategoriRepository fakeKatRepo;
+  late _FakeTransaksiRepository fakeTransRepo;
 
-  setUp(() async {
-    await GetIt.instance.reset();
+  setUp(() {
+    final getIt = GetIt.instance;
+    getIt.reset();
 
-    transaksiRepo = _FakeTransaksiRepository();
-    kategoriRepo = _FakeKategoriRepository();
+    fakeKatRepo = _FakeKategoriRepository();
+    fakeTransRepo = _FakeTransaksiRepository();
 
-    sl.registerLazySingleton<TransaksiRepository>(() => transaksiRepo);
-    sl.registerLazySingleton<KategoriRepository>(() => kategoriRepo);
+    getIt.registerLazySingleton<KategoriRepository>(() => fakeKatRepo);
+    getIt.registerLazySingleton(() => AmbilKategori(getIt()));
+    getIt.registerFactory(() => KategoriCubit(ambilKategori: getIt()));
 
-    sl.registerLazySingleton(() => AmbilKategori(sl()));
-    sl.registerLazySingleton(() => TambahTransaksi(sl()));
-    sl.registerLazySingleton(() => AmbilRingkasanPekan(sl()));
-    sl.registerLazySingleton(() => AmbilRiwayat(sl()));
-    sl.registerLazySingleton(() => HapusTransaksi(sl()));
-    sl.registerLazySingleton(() => AmbilDetailTransaksi(sl()));
+    getIt.registerLazySingleton<TransaksiRepository>(() => fakeTransRepo);
+    getIt.registerLazySingleton(() => AmbilRiwayat(getIt()));
+    getIt.registerLazySingleton(() => HapusTransaksi(getIt()));
+    getIt.registerLazySingleton(() => TambahTransaksi(getIt()));
+    getIt.registerLazySingleton(() => AmbilRingkasanPekan(getIt()));
 
-    sl.registerFactory(() => KategoriCubit(ambilKategori: sl()));
-    sl.registerFactory(() => BerandaCubit(ambilRingkasanPekan: sl()));
-    sl.registerFactory(() => RiwayatCubit(
-          ambilRiwayat: sl(),
-          hapusTransaksi: sl(),
-          tambahTransaksi: sl(),
+    getIt.registerFactory(() => RiwayatCubit(
+          ambilRiwayat: getIt(),
+          hapusTransaksi: getIt(),
+          tambahTransaksi: getIt(),
         ));
-    sl.registerFactory(() => DetailTransaksiCubit(
-          ambilDetailTransaksi: sl(),
-          hapusTransaksi: sl(),
-        ));
+    getIt.registerFactory(() => BerandaCubit(ambilRingkasanPekan: getIt()));
   });
 
-  tearDown(() async {
-    await GetIt.instance.reset();
-  });
+  tearDown(() => GetIt.instance.reset());
 
-  Widget buatWidget() {
+  Widget bangunAplikasiUji() {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => sl<KategoriCubit>()..muat()),
-        BlocProvider(create: (_) => sl<BerandaCubit>()),
+        BlocProvider(
+          create: (_) => sl<KategoriCubit>()..muat(),
+        ),
+        BlocProvider(
+          create: (_) => sl<BerandaCubit>()..muatRingkasan(),
+        ),
       ],
       child: MaterialApp(
         theme: AppTheme.lightTheme,
@@ -126,36 +129,87 @@ void main() {
     );
   }
 
-  testWidgets('menampilkan header dan empty state saat riwayat kosong',
-      (tester) async {
-    transaksiRepo.daftarPalsu = [];
+  testWidgets(
+    'menampilkan pesan ajakan mencatat jika riwayat masih kosong',
+    (tester) async {
+      tester.view.physicalSize = const Size(460, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(buatWidget());
-    await tester.pumpAndSettle();
+      fakeTransRepo.daftarKembalian = [];
 
-    expect(find.text('Riwayat Transaksi'), findsOneWidget);
-    expect(find.text('RIWAYAT'), findsOneWidget);
-    expect(find.text('Belum ada catatan boncos.'), findsOneWidget);
-    expect(find.text('Catat Pengeluaran'), findsOneWidget);
-  });
+      await tester.pumpWidget(bangunAplikasiUji());
+      await tester.pumpAndSettle();
 
-  testWidgets('menampilkan item transaksi jika ada catatan', (tester) async {
-    transaksiRepo.daftarPalsu = [
-      const TransaksiEntity(
-        id: 1,
-        jumlah: 25000,
-        kategoriId: 1,
-        tanggal: '2026-09-28',
-        catatan: 'Nasi padang siang',
-        dibuatPada: '2026-09-28T12:00:00.000',
-      ),
-    ];
+      expect(find.text('Belum Ada Catatan Boncos'), findsOneWidget);
+      expect(find.text('Catat Pengeluaran'), findsOneWidget);
+    },
+  );
 
-    await tester.pumpWidget(buatWidget());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'menampilkan daftar transaksi dikelompokkan per tanggal',
+    (tester) async {
+      tester.view.physicalSize = const Size(460, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    expect(find.text('Riwayat Transaksi'), findsOneWidget);
-    expect(find.text('Nasi padang siang'), findsOneWidget);
-    expect(find.textContaining('25.000'), findsOneWidget);
-  });
+      final tglHariIni = RiwayatHelper.toIsoDate(DateTime.now());
+      fakeTransRepo.daftarKembalian = [
+        TransaksiEntity(
+          id: 1,
+          jumlah: 25000,
+          kategoriId: 1,
+          tanggal: tglHariIni,
+          catatan: 'Nasi padang komplit',
+          dibuatPada: '${tglHariIni}T12:30:00.000',
+          tipeKebutuhan: 'butuh',
+          sumber: 'manual',
+        ),
+        TransaksiEntity(
+          id: 2,
+          jumlah: 18000,
+          kategoriId: 2,
+          tanggal: tglHariIni,
+          catatan: 'Es kopi susu',
+          dibuatPada: '${tglHariIni}T15:00:00.000',
+          tipeKebutuhan: 'pengen',
+          sumber: 'pindai',
+        ),
+      ];
+
+      await tester.pumpWidget(bangunAplikasiUji());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hari ini'), findsOneWidget);
+      expect(find.text('Nasi padang komplit'), findsOneWidget);
+      expect(find.text('Es kopi susu'), findsOneWidget);
+      // Memeriksa penanda struk untuk sumber pindai
+      expect(find.textContaining('Struk'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'membuka bottom sheet filter saat tombol filter ditekan',
+    (tester) async {
+      tester.view.physicalSize = const Size(460, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(bangunAplikasiUji());
+      await tester.pumpAndSettle();
+
+      final tombolFilter = find.byIcon(Icons.tune_rounded);
+      expect(tombolFilter, findsOneWidget);
+
+      await tester.tap(tombolFilter);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Saringan Riwayat'), findsOneWidget);
+      expect(find.text('Terapkan Saringan'), findsOneWidget);
+      expect(find.text('Reset Saringan'), findsOneWidget);
+    },
+  );
 }
