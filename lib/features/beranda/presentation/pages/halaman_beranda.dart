@@ -60,6 +60,7 @@ class HalamanBeranda extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const HeaderAplikasi(namaLayar: 'BERANDA'),
       body: PaperBackground(
         child: Center(
           child: Container(
@@ -111,9 +112,6 @@ class _BerandaContent extends StatelessWidget {
         bottom: AppSpacing.jarakGulirBawah,
       ),
       children: [
-        const SizedBox(height: AppSpacing.sangatKecil),
-        const HeaderAplikasi(namaLayar: 'BERANDA'),
-        const SizedBox(height: AppSpacing.lebihBesar),
         // Greeting Header
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

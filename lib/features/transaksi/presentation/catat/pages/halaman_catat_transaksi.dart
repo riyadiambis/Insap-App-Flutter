@@ -208,6 +208,7 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
         }
       },
       child: Scaffold(
+        appBar: const HeaderAplikasi(namaLayar: 'CATAT'),
         body: PaperBackground(
           child: Center(
             child: Container(
@@ -223,9 +224,6 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
                     bottom: AppSpacing.jarakGulirBawah,
                   ),
                   children: [
-                    const SizedBox(height: AppSpacing.sangatKecil),
-                    const HeaderAplikasi(namaLayar: 'CATAT'),
-                    const SizedBox(height: AppSpacing.lebihBesar),
                     // judul layar dengan aksen stabilo
                     _JudulCatat(),
                     const SizedBox(height: AppSpacing.besar),
