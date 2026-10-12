@@ -66,7 +66,10 @@ void setupInjectionContainer() {
 
   // beranda (Riyadi) — cuma presentation, pakai AmbilRingkasanPekan
   // dari blok transaksi di atas
-  sl.registerFactory(() => BerandaCubit(ambilRingkasanPekan: sl()));
+  sl.registerFactory(() => BerandaCubit(
+        ambilRingkasanPekan: sl(),
+        ambilRincianKategori: sl(),
+      ));
 
   // perkenalan (Luthfi) — didaftarkan di ISSUE-05
 
