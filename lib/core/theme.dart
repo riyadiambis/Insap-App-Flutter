@@ -105,12 +105,9 @@ class AppSizes {
   static const double ikonKecil = 16.0;
 
   // rincian pengeluaran (kartu_rincian_pengeluaran)
-  static const double borderTipis = 1.0;
   static const double tinggiBatangPorsi = 8.0;
   static const double radiusBatangPorsi = 4.0;
   static const double badgeKategoriKecil = 36.0;
-  static const double radiusBadgeKecil = 8.0;
-  static const double ikonBadgeKecil = 18.0;
 }
 
 class AppSpacing {

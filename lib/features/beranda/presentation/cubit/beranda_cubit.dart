@@ -8,6 +8,7 @@ import 'beranda_state.dart';
 // beranda cuma punya presentation, datanya dari use case fitur transaksi
 class BerandaCubit extends Cubit<BerandaState> {
   final AmbilRingkasanPekan ambilRingkasanPekan;
+  // dibuat opsional supaya tes lama yang membuat BerandaCubit (termasuk tes riwayat milik Dafa) tidak perlu diubah
   final AmbilRincianKategori? ambilRincianKategori;
 
   BerandaCubit({required this.ambilRingkasanPekan, this.ambilRincianKategori})

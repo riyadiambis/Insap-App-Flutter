@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme.dart';
 import '../../../../core/utils/rupiah_extension.dart';
+import '../../../../core/widgets/badge_kategori.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
 import '../../../kategori/domain/entities/kategori_entity.dart';
 import '../../../kategori/presentation/cubit/kategori_cubit.dart';
@@ -46,99 +47,123 @@ class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // baris 1: label seksi mandiri
+          Text(
+            'RINCIAN PENGELUARAN',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppColors.inkSoft,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sedang),
+
+          // baris 2: dua tombol pil rata kiri
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'RINCIAN PENGELUARAN',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.inkSoft,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
+              GestureDetector(
+                key: const Key('pilih_periode_pekan'),
+                onTap: () {
+                  if (_periode != _PeriodeRincian.pekan) {
+                    setState(() {
+                      _periode = _PeriodeRincian.pekan;
+                    });
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sedang,
+                    vertical: AppSpacing.agakKecil,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isPekan ? AppColors.stabilo : AppColors.kartu,
+                    border: Border.all(
+                      color: AppColors.ink,
+                      width: AppSizes.border,
+                    ),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+                    boxShadow: [
+                      isPekan
+                          ? AppTheme.bayanganKecilGelap
+                          : AppTheme.bayanganKecil,
+                    ],
+                  ),
+                  child: Text(
+                    'Pekan ini',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: isPekan ? FontWeight.w800 : FontWeight.w700,
+                    ),
+                  ),
                 ),
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GestureDetector(
-                    key: const Key('pilih_periode_pekan'),
-                    onTap: () {
-                      if (_periode != _PeriodeRincian.pekan) {
-                        setState(() {
-                          _periode = _PeriodeRincian.pekan;
-                        });
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.kecil,
-                        vertical: AppSpacing.mini,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isPekan ? AppColors.stabilo : AppColors.grid,
-                        border: Border.all(
-                          color: AppColors.ink,
-                          width: AppSizes.borderTipis,
-                        ),
-                        borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-                      ),
-                      child: Text(
-                        'Pekan ini',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.ink,
-                          fontWeight: isPekan
-                              ? FontWeight.w800
-                              : FontWeight.w700,
-                        ),
-                      ),
+              const SizedBox(width: AppSpacing.kecil),
+              GestureDetector(
+                key: const Key('pilih_periode_bulan'),
+                onTap: () {
+                  if (_periode != _PeriodeRincian.bulan) {
+                    setState(() {
+                      _periode = _PeriodeRincian.bulan;
+                    });
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sedang,
+                    vertical: AppSpacing.agakKecil,
+                  ),
+                  decoration: BoxDecoration(
+                    color: !isPekan ? AppColors.stabilo : AppColors.kartu,
+                    border: Border.all(
+                      color: AppColors.ink,
+                      width: AppSizes.border,
+                    ),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+                    boxShadow: [
+                      !isPekan
+                          ? AppTheme.bayanganKecilGelap
+                          : AppTheme.bayanganKecil,
+                    ],
+                  ),
+                  child: Text(
+                    'Bulan ini',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: !isPekan ? FontWeight.w800 : FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.agakKecil),
-                  GestureDetector(
-                    key: const Key('pilih_periode_bulan'),
-                    onTap: () {
-                      if (_periode != _PeriodeRincian.bulan) {
-                        setState(() {
-                          _periode = _PeriodeRincian.bulan;
-                        });
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.kecil,
-                        vertical: AppSpacing.mini,
-                      ),
-                      decoration: BoxDecoration(
-                        color: !isPekan ? AppColors.stabilo : AppColors.grid,
-                        border: Border.all(
-                          color: AppColors.ink,
-                          width: AppSizes.borderTipis,
-                        ),
-                        borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-                      ),
-                      child: Text(
-                        'Bulan ini',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.ink,
-                          fontWeight: !isPekan
-                              ? FontWeight.w800
-                              : FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.sedang),
-          Text(totalPeriode.toRupiah(), style: AppTheme.nominalUtama),
+
+          // baris 3: satu baris kecil teks keterangan dan nominal
+          Row(
+            children: [
+              Text(
+                isPekan ? 'Total pekan ini' : 'Total bulan ini',
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(color: AppColors.inkSoft),
+              ),
+              const SizedBox(width: AppSpacing.agakKecil),
+              Text(
+                totalPeriode.toRupiah(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: AppSpacing.sedang),
           Container(
             height: AppSizes.tinggiGarisPemisah,
             color: AppColors.garis,
           ),
           const SizedBox(height: AppSpacing.sedang),
+
+          // konten rincian atau tampilan kosong
           if (totalPeriode == 0 || daftarKategori.isEmpty)
             Container(
               key: const Key('rincian_kosong'),
@@ -215,22 +240,10 @@ class _BarisKategori extends StatelessWidget {
 
         return Row(
           children: [
-            Container(
-              width: AppSizes.badgeKategoriKecil,
-              height: AppSizes.badgeKategoriKecil,
-              decoration: BoxDecoration(
-                color: warna,
-                borderRadius: BorderRadius.circular(AppSizes.radiusBadgeKecil),
-                border: Border.all(
-                  color: AppColors.ink,
-                  width: AppSizes.borderTipis,
-                ),
-              ),
-              child: Icon(
-                ikon,
-                size: AppSizes.ikonBadgeKecil,
-                color: AppColors.ikonBadge,
-              ),
+            BadgeKategori(
+              ikon: ikon,
+              warna: warna,
+              ukuran: AppSizes.badgeKategoriKecil,
             ),
             const SizedBox(width: AppSpacing.sedang),
             Expanded(

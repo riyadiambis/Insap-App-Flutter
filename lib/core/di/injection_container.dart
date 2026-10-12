@@ -42,17 +42,15 @@ void setupInjectionContainer() {
   sl.registerLazySingleton(() => AmbilRiwayat(sl()));
   sl.registerLazySingleton(() => HapusTransaksi(sl()));
   sl.registerLazySingleton(() => AmbilDetailTransaksi(sl()));
-  sl.registerFactory(
-    () => RiwayatCubit(
-      ambilRiwayat: sl(),
-      hapusTransaksi: sl(),
-      tambahTransaksi: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () =>
-        DetailTransaksiCubit(ambilDetailTransaksi: sl(), hapusTransaksi: sl()),
-  );
+  sl.registerFactory(() => RiwayatCubit(
+        ambilRiwayat: sl(),
+        hapusTransaksi: sl(),
+        tambahTransaksi: sl(),
+      ));
+  sl.registerFactory(() => DetailTransaksiCubit(
+        ambilDetailTransaksi: sl(),
+        hapusTransaksi: sl(),
+      ));
 
   // kategori (Luthfi)
   sl.registerLazySingleton<KategoriLocalDataSource>(
