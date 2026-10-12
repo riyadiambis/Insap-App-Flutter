@@ -11,48 +11,14 @@ import '../../../../core/widgets/kartu_buku_tulis.dart';
 import '../../../kategori/domain/entities/kategori_entity.dart';
 import '../../../kategori/presentation/cubit/kategori_cubit.dart';
 import '../../../kategori/presentation/cubit/kategori_state.dart';
-import '../../../transaksi/domain/entities/transaksi_entity.dart';
+import '../../../transaksi/domain/entities/rincian_pengeluaran_entity.dart';
 import '../../../transaksi/domain/entities/ringkasan_pekan_entity.dart';
+import '../../../transaksi/domain/entities/transaksi_entity.dart';
 import '../../../transaksi/presentation/widgets/kartu_transaksi.dart';
 import '../cubit/beranda_cubit.dart';
 import '../cubit/beranda_state.dart';
-
-Color _parseWarna(String hexColor) {
-  hexColor = hexColor.replaceAll('#', '');
-  if (hexColor.length == 6) {
-    hexColor = 'FF$hexColor';
-  }
-  return Color(int.parse(hexColor, radix: 16));
-}
-
-IconData _parseIkon(String namaIkon) {
-  switch (namaIkon) {
-    case 'restaurant':
-      return Icons.restaurant;
-    case 'two_wheeler':
-      return Icons.two_wheeler;
-    case 'home':
-      return Icons.home;
-    case 'school':
-      return Icons.school;
-    case 'shopping_bag':
-      return Icons.shopping_bag;
-    case 'local_cafe':
-      return Icons.local_cafe;
-    case 'sports_esports':
-      return Icons.sports_esports;
-    case 'medical_services':
-      return Icons.medical_services;
-    case 'more_horiz':
-    default:
-      return Icons.more_horiz;
-  }
-}
-
-String _kapitalPertama(String teks) {
-  if (teks.isEmpty) return teks;
-  return teks[0].toUpperCase() + teks.substring(1);
-}
+import '../widgets/kartu_rincian_pengeluaran.dart';
+import '../widgets/tampilan_kategori.dart';
 
 class HalamanBeranda extends StatelessWidget {
   const HalamanBeranda({super.key});
@@ -82,7 +48,10 @@ class HalamanBeranda extends StatelessWidget {
                     ),
                   );
                 } else if (state is BerandaLoaded) {
-                  return _BerandaContent(ringkasan: state.ringkasan);
+                  return _BerandaContent(
+                    ringkasan: state.ringkasan,
+                    rincian: state.rincian,
+                  );
                 }
                 return const SizedBox();
               },
@@ -96,8 +65,12 @@ class HalamanBeranda extends StatelessWidget {
 
 class _BerandaContent extends StatelessWidget {
   final RingkasanPekanEntity ringkasan;
+  final RincianPengeluaranEntity rincian;
 
-  const _BerandaContent({required this.ringkasan});
+  const _BerandaContent({
+    required this.ringkasan,
+    required this.rincian,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -247,6 +220,12 @@ class _BerandaContent extends StatelessWidget {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: AppSpacing.besar),
+        // Kartu Rincian Pengeluaran
+        KartuRincianPengeluaran(
+          totalPekanIni: ringkasan.totalMingguIni,
+          rincian: rincian,
         ),
         const SizedBox(height: AppSpacing.besar),
         // Kartu Kuota Pindai
@@ -736,11 +715,12 @@ class _ItemTransaksi extends StatelessWidget {
       },
       builder: (context, kategori) {
         final namaKategori = kategori != null
-            ? _kapitalPertama(kategori.nama)
+            ? kapitalPertama(kategori.nama)
             : 'Tidak diketahui';
-        final ikon = kategori != null ? _parseIkon(kategori.ikon) : Icons.help;
+        final ikon =
+            kategori != null ? parseIkonKategori(kategori.ikon) : Icons.help;
         final warna = kategori != null
-            ? _parseWarna(kategori.warna)
+            ? parseWarnaKategori(kategori.warna)
             : AppColors.inkSoft;
 
         String waktu = '';
