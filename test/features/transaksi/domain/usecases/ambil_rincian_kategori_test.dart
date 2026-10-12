@@ -40,7 +40,8 @@ class _FakeTransaksiRepository implements TransaksiRepository {
   Future<List<TransaksiEntity>> ambilTerakhir(int batas) async => const [];
 
   @override
-  Future<int> totalMingguIni(String tanggalMulai, String tanggalAkhir) async => 0;
+  Future<int> totalMingguIni(String tanggalMulai, String tanggalAkhir) async =>
+      0;
 
   @override
   Future<int> totalRentang(String tanggalMulai, String tanggalAkhir) async => 0;
@@ -56,102 +57,108 @@ class _FakeTransaksiRepository implements TransaksiRepository {
 }
 
 void main() {
-  test('pengelompokan dan urutan dari terbesar, termasuk kasus total sama', () async {
-    final fake = _FakeTransaksiRepository()
-      ..dataPekan = const [
-        TransaksiEntity(
-          jumlah: 10000,
-          kategoriId: 3,
-          tanggal: '2026-10-14',
-          dibuatPada: '2026-10-14T08:00:00',
-        ),
-        TransaksiEntity(
-          jumlah: 15000,
-          kategoriId: 1,
-          tanggal: '2026-10-14',
-          dibuatPada: '2026-10-14T09:00:00',
-        ),
-        TransaksiEntity(
-          jumlah: 50000,
-          kategoriId: 2,
-          tanggal: '2026-10-15',
-          dibuatPada: '2026-10-15T10:00:00',
-        ),
-        TransaksiEntity(
-          jumlah: 15000,
-          kategoriId: 3,
-          tanggal: '2026-10-16',
-          dibuatPada: '2026-10-16T11:00:00',
-        ),
-        TransaksiEntity(
-          jumlah: 10000,
-          kategoriId: 1,
-          tanggal: '2026-10-16',
-          dibuatPada: '2026-10-16T12:00:00',
-        ),
-        TransaksiEntity(
-          jumlah: 5000,
-          kategoriId: 4,
-          tanggal: '2026-10-17',
-          dibuatPada: '2026-10-17T13:00:00',
-        ),
-      ];
+  test(
+    'pengelompokan dan urutan dari terbesar, termasuk kasus total sama',
+    () async {
+      final fake = _FakeTransaksiRepository()
+        ..dataPekan = const [
+          TransaksiEntity(
+            jumlah: 10000,
+            kategoriId: 3,
+            tanggal: '2026-10-14',
+            dibuatPada: '2026-10-14T08:00:00',
+          ),
+          TransaksiEntity(
+            jumlah: 15000,
+            kategoriId: 1,
+            tanggal: '2026-10-14',
+            dibuatPada: '2026-10-14T09:00:00',
+          ),
+          TransaksiEntity(
+            jumlah: 50000,
+            kategoriId: 2,
+            tanggal: '2026-10-15',
+            dibuatPada: '2026-10-15T10:00:00',
+          ),
+          TransaksiEntity(
+            jumlah: 15000,
+            kategoriId: 3,
+            tanggal: '2026-10-16',
+            dibuatPada: '2026-10-16T11:00:00',
+          ),
+          TransaksiEntity(
+            jumlah: 10000,
+            kategoriId: 1,
+            tanggal: '2026-10-16',
+            dibuatPada: '2026-10-16T12:00:00',
+          ),
+          TransaksiEntity(
+            jumlah: 5000,
+            kategoriId: 4,
+            tanggal: '2026-10-17',
+            dibuatPada: '2026-10-17T13:00:00',
+          ),
+        ];
 
-    final usecase = AmbilRincianKategori(fake);
-    final hasil = await usecase();
+      final usecase = AmbilRincianKategori(fake);
+      final hasil = await usecase();
 
-    expect(
-      hasil.kategoriPekanIni,
-      const [
+      expect(hasil.kategoriPekanIni, const [
         TotalKategoriEntity(kategoriId: 2, total: 50000),
         TotalKategoriEntity(kategoriId: 1, total: 25000),
         TotalKategoriEntity(kategoriId: 3, total: 25000),
         TotalKategoriEntity(kategoriId: 4, total: 5000),
-      ],
-    );
-  });
+      ]);
+    },
+  );
 
-  test('totalBulanIni sama dengan jumlah seluruh transaksi bulan ini', () async {
-    final fake = _FakeTransaksiRepository()
-      ..dataBulan = const [
-        TransaksiEntity(
-          jumlah: 30000,
-          kategoriId: 1,
-          tanggal: '2026-10-02',
-          dibuatPada: '2026-10-02T08:00:00',
-        ),
-        TransaksiEntity(
-          jumlah: 45000,
-          kategoriId: 2,
-          tanggal: '2026-10-10',
-          dibuatPada: '2026-10-10T09:00:00',
-        ),
-        TransaksiEntity(
-          jumlah: 25000,
-          kategoriId: 1,
-          tanggal: '2026-10-20',
-          dibuatPada: '2026-10-20T10:00:00',
-        ),
-      ];
+  test(
+    'totalBulanIni sama dengan jumlah seluruh transaksi bulan ini',
+    () async {
+      final fake = _FakeTransaksiRepository()
+        ..dataBulan = const [
+          TransaksiEntity(
+            jumlah: 30000,
+            kategoriId: 1,
+            tanggal: '2026-10-02',
+            dibuatPada: '2026-10-02T08:00:00',
+          ),
+          TransaksiEntity(
+            jumlah: 45000,
+            kategoriId: 2,
+            tanggal: '2026-10-10',
+            dibuatPada: '2026-10-10T09:00:00',
+          ),
+          TransaksiEntity(
+            jumlah: 25000,
+            kategoriId: 1,
+            tanggal: '2026-10-20',
+            dibuatPada: '2026-10-20T10:00:00',
+          ),
+        ];
 
-    final usecase = AmbilRincianKategori(fake);
-    final hasil = await usecase();
+      final usecase = AmbilRincianKategori(fake);
+      final hasil = await usecase();
 
-    expect(hasil.totalBulanIni, 100000);
-  });
+      expect(hasil.totalBulanIni, 100000);
+    },
+  );
 
-  test('rentang bulan untuk 15 Oktober 2026: 2026-10-01 sampai 2026-10-31', () async {
-    final fake = _FakeTransaksiRepository();
-    final usecase = AmbilRincianKategori(
-      fake,
-      sekarang: () => DateTime(2026, 10, 15),
-    );
+  test(
+    'rentang bulan untuk 15 Oktober 2026: 2026-10-01 sampai 2026-10-31',
+    () async {
+      final fake = _FakeTransaksiRepository();
+      final usecase = AmbilRincianKategori(
+        fake,
+        sekarang: () => DateTime(2026, 10, 15),
+      );
 
-    await usecase();
+      await usecase();
 
-    expect(fake.tanggalMulaiBulan, '2026-10-01');
-    expect(fake.tanggalAkhirBulan, '2026-10-31');
-  });
+      expect(fake.tanggalMulaiBulan, '2026-10-01');
+      expect(fake.tanggalAkhirBulan, '2026-10-31');
+    },
+  );
 
   test('rentang bulan Desember: 2026-12-01 sampai 2026-12-31', () async {
     final fake = _FakeTransaksiRepository();

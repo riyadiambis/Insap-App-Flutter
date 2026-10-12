@@ -66,7 +66,7 @@ class AppSizes {
   static const int kolomKategori = 3;
   static const double lebarChipKategori =
       (batasLebarKonten - AppSpacing.besar * 2 - AppSpacing.kecil * 2) /
-          kolomKategori;
+      kolomKategori;
   static const double ikonChipKategori = badgeKategori * 0.6;
 
   // grid buku tulis pada latar (paper_background)
@@ -324,11 +324,7 @@ class AppTheme {
       border: Border.all(color: AppColors.ink, width: 2.0),
       borderRadius: BorderRadius.circular(radius),
       boxShadow: const [
-        BoxShadow(
-          color: AppColors.garis,
-          offset: Offset(4, 4),
-          blurRadius: 0,
-        ),
+        BoxShadow(color: AppColors.garis, offset: Offset(4, 4), blurRadius: 0),
       ],
     );
   }

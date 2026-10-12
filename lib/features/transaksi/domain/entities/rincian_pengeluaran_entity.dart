@@ -16,8 +16,8 @@ class RincianPengeluaranEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        totalBulanIni,
-        kategoriPekanIni,
-        kategoriBulanIni,
-      ];
+    totalBulanIni,
+    kategoriPekanIni,
+    kategoriBulanIni,
+  ];
 }

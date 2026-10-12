@@ -10,10 +10,8 @@ class BerandaCubit extends Cubit<BerandaState> {
   final AmbilRingkasanPekan ambilRingkasanPekan;
   final AmbilRincianKategori? ambilRincianKategori;
 
-  BerandaCubit({
-    required this.ambilRingkasanPekan,
-    this.ambilRincianKategori,
-  }) : super(const BerandaInitial());
+  BerandaCubit({required this.ambilRingkasanPekan, this.ambilRincianKategori})
+    : super(const BerandaInitial());
 
   Future<void> muatRingkasan() async {
     emit(const BerandaLoading());

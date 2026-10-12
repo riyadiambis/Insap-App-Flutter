@@ -5,10 +5,7 @@ class TotalKategoriEntity extends Equatable {
   final int kategoriId;
   final int total;
 
-  const TotalKategoriEntity({
-    required this.kategoriId,
-    required this.total,
-  });
+  const TotalKategoriEntity({required this.kategoriId, required this.total});
 
   @override
   List<Object?> get props => [kategoriId, total];

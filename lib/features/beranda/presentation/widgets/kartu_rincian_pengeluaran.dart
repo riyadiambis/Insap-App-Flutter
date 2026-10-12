@@ -34,10 +34,12 @@ class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
   @override
   Widget build(BuildContext context) {
     final bool isPekan = _periode == _PeriodeRincian.pekan;
-    final int totalPeriode =
-        isPekan ? widget.totalPekanIni : widget.rincian.totalBulanIni;
-    final List<TotalKategoriEntity> daftarKategori =
-        isPekan ? widget.rincian.kategoriPekanIni : widget.rincian.kategoriBulanIni;
+    final int totalPeriode = isPekan
+        ? widget.totalPekanIni
+        : widget.rincian.totalBulanIni;
+    final List<TotalKategoriEntity> daftarKategori = isPekan
+        ? widget.rincian.kategoriPekanIni
+        : widget.rincian.kategoriBulanIni;
 
     return KartuBukuTulis(
       radius: AppSizes.radiusTombol,
@@ -50,10 +52,10 @@ class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
               Text(
                 'RINCIAN PENGELUARAN',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.inkSoft,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
-                    ),
+                  color: AppColors.inkSoft,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -78,18 +80,16 @@ class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
                           color: AppColors.ink,
                           width: AppSizes.borderTipis,
                         ),
-                        borderRadius:
-                            BorderRadius.circular(AppSizes.radiusPil),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusPil),
                       ),
                       child: Text(
                         'Pekan ini',
-                        style:
-                            Theme.of(context).textTheme.labelSmall?.copyWith(
-                                  color: AppColors.ink,
-                                  fontWeight: isPekan
-                                      ? FontWeight.w800
-                                      : FontWeight.w700,
-                                ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.ink,
+                          fontWeight: isPekan
+                              ? FontWeight.w800
+                              : FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
@@ -114,18 +114,16 @@ class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
                           color: AppColors.ink,
                           width: AppSizes.borderTipis,
                         ),
-                        borderRadius:
-                            BorderRadius.circular(AppSizes.radiusPil),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusPil),
                       ),
                       child: Text(
                         'Bulan ini',
-                        style:
-                            Theme.of(context).textTheme.labelSmall?.copyWith(
-                                  color: AppColors.ink,
-                                  fontWeight: !isPekan
-                                      ? FontWeight.w800
-                                      : FontWeight.w700,
-                                ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.ink,
+                          fontWeight: !isPekan
+                              ? FontWeight.w800
+                              : FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
@@ -134,10 +132,7 @@ class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
             ],
           ),
           const SizedBox(height: AppSpacing.sedang),
-          Text(
-            totalPeriode.toRupiah(),
-            style: AppTheme.nominalUtama,
-          ),
+          Text(totalPeriode.toRupiah(), style: AppTheme.nominalUtama),
           const SizedBox(height: AppSpacing.sedang),
           Container(
             height: AppSizes.tinggiGarisPemisah,
@@ -155,16 +150,15 @@ class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
                         ? 'Belum ada pengeluaran pekan ini.'
                         : 'Belum ada pengeluaran bulan ini.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.ink,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.sangatKecil),
                   Text(
                     'Catat pengeluaran pertamamu, rinciannya muncul di sini.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.inkSoft,
-                        ),
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: AppColors.inkSoft),
                   ),
                 ],
               ),
@@ -179,10 +173,7 @@ class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
                       ? AppSpacing.sedang
                       : 0,
                 ),
-                child: _BarisKategori(
-                  item: item,
-                  totalPeriode: totalPeriode,
-                ),
+                child: _BarisKategori(item: item, totalPeriode: totalPeriode),
               );
             }),
         ],
@@ -195,10 +186,7 @@ class _BarisKategori extends StatelessWidget {
   final TotalKategoriEntity item;
   final int totalPeriode;
 
-  const _BarisKategori({
-    required this.item,
-    required this.totalPeriode,
-  });
+  const _BarisKategori({required this.item, required this.totalPeriode});
 
   @override
   Widget build(BuildContext context) {
@@ -215,8 +203,9 @@ class _BarisKategori extends StatelessWidget {
         final namaKategori = kategori != null
             ? kapitalPertama(kategori.nama)
             : 'Tidak diketahui';
-        final ikon =
-            kategori != null ? parseIkonKategori(kategori.ikon) : Icons.more_horiz;
+        final ikon = kategori != null
+            ? parseIkonKategori(kategori.ikon)
+            : Icons.more_horiz;
         final warna = kategori != null
             ? parseWarnaKategori(kategori.warna)
             : AppColors.inkSoft;
@@ -231,8 +220,7 @@ class _BarisKategori extends StatelessWidget {
               height: AppSizes.badgeKategoriKecil,
               decoration: BoxDecoration(
                 color: warna,
-                borderRadius:
-                    BorderRadius.circular(AppSizes.radiusBadgeKecil),
+                borderRadius: BorderRadius.circular(AppSizes.radiusBadgeKecil),
                 border: Border.all(
                   color: AppColors.ink,
                   width: AppSizes.borderTipis,
@@ -256,29 +244,28 @@ class _BarisKategori extends StatelessWidget {
                           namaKategori,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.ink,
-                                  ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.ink,
+                              ),
                         ),
                       ),
                       const SizedBox(width: AppSpacing.kecil),
                       Text(
                         item.total.toRupiah(),
-                        style:
-                            Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.ink,
-                                ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
                       ),
                       const SizedBox(width: AppSpacing.agakKecil),
                       Text(
                         '$persen%',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.inkSoft,
-                            ),
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.inkSoft,
+                        ),
                       ),
                     ],
                   ),
@@ -287,8 +274,9 @@ class _BarisKategori extends StatelessWidget {
                     height: AppSizes.tinggiBatangPorsi,
                     decoration: BoxDecoration(
                       color: AppColors.grid,
-                      borderRadius:
-                          BorderRadius.circular(AppSizes.radiusBatangPorsi),
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.radiusBatangPorsi,
+                      ),
                     ),
                     alignment: Alignment.centerLeft,
                     child: FractionallySizedBox(
@@ -296,8 +284,9 @@ class _BarisKategori extends StatelessWidget {
                       child: Container(
                         decoration: BoxDecoration(
                           color: warna,
-                          borderRadius:
-                              BorderRadius.circular(AppSizes.radiusBatangPorsi),
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.radiusBatangPorsi,
+                          ),
                         ),
                       ),
                     ),

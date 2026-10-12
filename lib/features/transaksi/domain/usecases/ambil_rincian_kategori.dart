@@ -10,7 +10,7 @@ class AmbilRincianKategori {
   final DateTime Function() sekarang;
 
   AmbilRincianKategori(this.repository, {DateTime Function()? sekarang})
-      : sekarang = sekarang ?? DateTime.now;
+    : sekarang = sekarang ?? DateTime.now;
 
   Future<RincianPengeluaranEntity> call() async {
     final DateTime hariIni = sekarang();
@@ -28,10 +28,12 @@ class AmbilRincianKategori {
       tanggalAkhir: formatTanggalIso(akhirBulan),
     );
 
-    final List<TotalKategoriEntity> kategoriPekanIni =
-        _kelompokkanDanUrut(daftarPekan);
-    final List<TotalKategoriEntity> kategoriBulanIni =
-        _kelompokkanDanUrut(daftarBulan);
+    final List<TotalKategoriEntity> kategoriPekanIni = _kelompokkanDanUrut(
+      daftarPekan,
+    );
+    final List<TotalKategoriEntity> kategoriBulanIni = _kelompokkanDanUrut(
+      daftarBulan,
+    );
 
     final int totalBulanIni = kategoriBulanIni.fold<int>(
       0,
