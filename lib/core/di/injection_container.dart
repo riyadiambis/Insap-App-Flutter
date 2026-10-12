@@ -10,6 +10,7 @@ import '../../features/transaksi/data/datasources/transaksi_local_datasource.dar
 import '../../features/transaksi/data/repositories/transaksi_repository_impl.dart';
 import '../../features/transaksi/domain/repositories/transaksi_repository.dart';
 import '../../features/transaksi/domain/usecases/ambil_detail_transaksi.dart';
+import '../../features/transaksi/domain/usecases/ambil_rincian_kategori.dart';
 import '../../features/transaksi/domain/usecases/ambil_ringkasan_pekan.dart';
 import '../../features/transaksi/domain/usecases/ambil_riwayat.dart';
 import '../../features/transaksi/domain/usecases/hapus_transaksi.dart';
@@ -33,6 +34,7 @@ void setupInjectionContainer() {
   );
   sl.registerLazySingleton(() => TambahTransaksi(sl()));
   sl.registerLazySingleton(() => AmbilRingkasanPekan(sl()));
+  sl.registerLazySingleton(() => AmbilRincianKategori(sl()));
   sl.registerFactory(() => CatatTransaksiCubit(tambahTransaksi: sl()));
 
   // riwayat (Dafa) — AmbilRiwayat, HapusTransaksi, RiwayatCubit di ISSUE-03
@@ -64,7 +66,9 @@ void setupInjectionContainer() {
 
   // beranda (Riyadi) — cuma presentation, pakai AmbilRingkasanPekan
   // dari blok transaksi di atas
-  sl.registerFactory(() => BerandaCubit(ambilRingkasanPekan: sl()));
+  sl.registerFactory(
+    () => BerandaCubit(ambilRingkasanPekan: sl(), ambilRincianKategori: sl()),
+  );
 
   // perkenalan (Luthfi) — didaftarkan di ISSUE-05
 
