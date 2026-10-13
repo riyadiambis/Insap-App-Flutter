@@ -21,11 +21,7 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final destinations = [
-      (
-        icon: Icons.home_outlined,
-        activeIcon: Icons.home,
-        label: 'Beranda',
-      ),
+      (icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Beranda'),
       (
         icon: Icons.edit_note_outlined,
         activeIcon: Icons.edit_note,
@@ -58,54 +54,58 @@ class AppShell extends StatelessWidget {
           child: SizedBox(
             height: AppSizes.tinggiNavigasiBawah,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: List.generate(destinations.length, (index) {
                 final aktif = navigationShell.currentIndex == index;
                 final dest = destinations[index];
 
-                return GestureDetector(
-                  onTap: () => _pindahTab(index),
-                  behavior: HitTestBehavior.opaque,
-                  child: AnimatedContainer(
-                    duration: AppDurations.animasiTekan,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sedang,
-                      vertical: AppSpacing.agakKecil,
-                    ),
-                    decoration: BoxDecoration(
-                      color: aktif ? AppColors.stabilo : Colors.transparent,
-                      border: Border.all(
-                        color: aktif ? AppColors.ink : Colors.transparent,
-                        width: AppSizes.border,
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => _pindahTab(index),
+                    behavior: HitTestBehavior.opaque,
+                    child: Center(
+                      child: AnimatedContainer(
+                        duration: AppDurations.animasiTekan,
+                        width: AppSizes.lebarPillNavigasi,
+                        height: AppSizes.tinggiPillNavigasi,
+                        decoration: BoxDecoration(
+                          color: aktif ? AppColors.stabilo : Colors.transparent,
+                          border: Border.all(
+                            color: aktif ? AppColors.ink : Colors.transparent,
+                            width: AppSizes.border,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.radiusItemNavigasi,
+                          ),
+                          boxShadow: aktif
+                              ? const [AppTheme.bayanganKecilGelap]
+                              : [],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              aktif ? dest.activeIcon : dest.icon,
+                              size: AppSizes.ikonNavigasi,
+                              color: aktif ? AppColors.ink : AppColors.inkSoft,
+                            ),
+                            const SizedBox(height: AppSpacing.mini),
+                            Text(
+                              dest.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: aktif
+                                        ? AppColors.ink
+                                        : AppColors.inkSoft,
+                                    fontWeight: aktif
+                                        ? FontWeight.w800
+                                        : FontWeight.w600,
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
-                      borderRadius:
-                          BorderRadius.circular(AppSizes.radiusItemNavigasi),
-                      boxShadow:
-                          aktif ? const [AppTheme.bayanganKecilGelap] : [],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          aktif ? dest.activeIcon : dest.icon,
-                          size: AppSizes.ikonNavigasi,
-                          color: aktif ? AppColors.ink : AppColors.inkSoft,
-                        ),
-                        const SizedBox(height: AppSpacing.mini),
-                        Text(
-                          dest.label,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelSmall
-                              ?.copyWith(
-                                color:
-                                    aktif ? AppColors.ink : AppColors.inkSoft,
-                                fontWeight:
-                                    aktif ? FontWeight.w800 : FontWeight.w600,
-                              ),
-                        ),
-                      ],
                     ),
                   ),
                 );
