@@ -408,18 +408,12 @@ class _HalamanMasukState extends State<HalamanMasuk> {
                           const SizedBox(height: AppSpacing.sedang),
                           // Tombol Google
                           OutlinedButton.icon(
+                            key: const Key('tombol_masuk_google'),
                             onPressed: sedangMemuat
                                 ? null
-                                : () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Masuk dengan Google segera hadir.',
-                                        ),
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                  },
+                                : () => context
+                                      .read<AkunCubit>()
+                                      .masukDenganGoogle(),
                             icon: const Icon(Icons.g_mobiledata, size: 24),
                             label: const Text(
                               'Masuk dengan Google',

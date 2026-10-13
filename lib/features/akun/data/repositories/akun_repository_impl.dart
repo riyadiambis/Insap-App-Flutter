@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../../core/database/database_helper.dart';
@@ -8,12 +9,15 @@ import '../../domain/repositories/akun_repository.dart';
 class AkunRepositoryImpl implements AkunRepository {
   final FirebaseAuth _firebaseAuth;
   final DatabaseHelper _databaseHelper;
+  final GoogleSignIn _googleSignIn;
 
   AkunRepositoryImpl({
     FirebaseAuth? firebaseAuth,
     DatabaseHelper? databaseHelper,
+    GoogleSignIn? googleSignIn,
   }) : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-       _databaseHelper = databaseHelper ?? DatabaseHelper();
+       _databaseHelper = databaseHelper ?? DatabaseHelper(),
+       _googleSignIn = googleSignIn ?? GoogleSignIn();
 
   @override
   Stream<PenggunaEntity?> pantauPengguna() {
@@ -68,6 +72,11 @@ class AkunRepositoryImpl implements AkunRepository {
 
   @override
   Future<void> keluar() async {
+    try {
+      await _googleSignIn.signOut();
+    } catch (_) {
+      // Abaikan jika tidak login via Google
+    }
     await _firebaseAuth.signOut();
     await _hapusUidDariLokal();
   }
@@ -83,8 +92,30 @@ class AkunRepositoryImpl implements AkunRepository {
 
   @override
   Future<PenggunaEntity?> masukDenganGoogle() async {
-    // Diimplementasikan secara penuh pada Tahap 6
-    throw UnimplementedError('Google Sign-In diintegrasikan pada Tahap 6');
+    try {
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        return null;
+      }
+      final googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      final userCredential = await _firebaseAuth.signInWithCredential(
+        credential,
+      );
+      final user = userCredential.user;
+      if (user != null) {
+        await _simpanUidKeLokal(user.uid);
+        return PenggunaEntity(uid: user.uid, email: user.email);
+      }
+      return null;
+    } on FirebaseAuthException catch (e) {
+      throw _terjemahkanPesanGalat(e);
+    } catch (e) {
+      throw 'Gagal masuk dengan Google: ${e.toString()}';
+    }
   }
 
   Future<void> _simpanUidKeLokal(String uid) async {
