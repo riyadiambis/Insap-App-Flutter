@@ -114,7 +114,7 @@ Jika ingin mereset basis data ke kondisi awal instalasi:
 
 ### Alasan Memilih SQLite Lokal
 
-Insap memilih SQLite lokal alih-alih layanan awan seperti Firebase agar data keuangan pengguna tersimpan seutuhnya di perangkat fisik pengguna tanpa risiko kebocoran privasi ke pihak ketiga (KNF-01), serta menjamin aplikasi tetap dapat digunakan kapan saja secara luring (*offline*) tanpa bergantung pada koneksi internet (KNF-04).
+Insap memilih SQLite lokal alih-alih layanan awan seperti Firebase agar data keuangan pengguna tersimpan seutuhnya di perangkat fisik pengguna tanpa risiko kebocoran privasi ke pihak ketiga (KNF-04), serta menjamin aplikasi tetap dapat digunakan kapan saja secara luring (*offline*) tanpa bergantung pada koneksi internet (KNF-01).
 
 ## Fitur dan Status
 
