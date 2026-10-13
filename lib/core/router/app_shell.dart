@@ -63,47 +63,58 @@ class AppShell extends StatelessWidget {
                     onTap: () => _pindahTab(index),
                     behavior: HitTestBehavior.opaque,
                     child: Center(
-                      child: AnimatedContainer(
-                        duration: AppDurations.animasiTekan,
-                        width: AppSizes.lebarPillNavigasi,
-                        height: AppSizes.tinggiPillNavigasi,
-                        decoration: BoxDecoration(
-                          color: aktif ? AppColors.stabilo : Colors.transparent,
-                          border: Border.all(
-                            color: aktif ? AppColors.ink : Colors.transparent,
-                            width: AppSizes.border,
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            AppSizes.radiusItemNavigasi,
-                          ),
-                          boxShadow: aktif
-                              ? const [AppTheme.bayanganKecilGelap]
-                              : [],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.mini,
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              aktif ? dest.activeIcon : dest.icon,
-                              size: AppSizes.ikonNavigasi,
-                              color: aktif ? AppColors.ink : AppColors.inkSoft,
+                        child: AnimatedContainer(
+                          duration: AppDurations.animasiTekan,
+                          width: double.infinity,
+                          height: AppSizes.tinggiPillNavigasi,
+                          decoration: BoxDecoration(
+                            color: aktif
+                                ? AppColors.stabilo
+                                : Colors.transparent,
+                            border: Border.all(
+                              color: aktif ? AppColors.ink : Colors.transparent,
+                              width: AppSizes.border,
                             ),
-                            const SizedBox(height: AppSpacing.mini),
-                            Text(
-                              dest.label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: aktif
-                                        ? AppColors.ink
-                                        : AppColors.inkSoft,
-                                    fontWeight: aktif
-                                        ? FontWeight.w800
-                                        : FontWeight.w600,
-                                  ),
+                            borderRadius: BorderRadius.circular(
+                              AppSizes.radiusItemNavigasi,
                             ),
-                          ],
+                            boxShadow: aktif
+                                ? const [AppTheme.bayanganKecilGelap]
+                                : [],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                aktif ? dest.activeIcon : dest.icon,
+                                size: AppSizes.ikonNavigasi,
+                                color: aktif
+                                    ? AppColors.ink
+                                    : AppColors.inkSoft,
+                              ),
+                              const SizedBox(height: AppSpacing.mini),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  dest.label,
+                                  maxLines: 1,
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        color: aktif
+                                            ? AppColors.ink
+                                            : AppColors.inkSoft,
+                                        fontWeight: aktif
+                                            ? FontWeight.w800
+                                            : FontWeight.w600,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
