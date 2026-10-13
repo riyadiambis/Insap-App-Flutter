@@ -6,9 +6,9 @@ Aplikasi pencatat keuangan pribadi berbasis AI untuk mahasiswa.
 
 | Nama | NIM | Peran |
 |---|---|---|
-| Riyadi | 2409106074 | Project Manager, pemegang fondasi |
-| Daffa | 2309106063 | Pemegang fitur |
-| Luthfi | (NIM menyusul) | Pemegang fitur |
+| Rahmat Riyadi | 2409106074 | Project Manager, pemegang fondasi |
+| Muh Ghazy Daffa Sampe | 2309106063 | Pemegang fitur |
+| Luthfi Farros Athailah | 2309106073 | Pemegang fitur |
 
 Mata kuliah Pemrograman Piranti Bergerak, Informatika, Universitas Mulawarman.
 
@@ -75,7 +75,7 @@ Insap menggunakan basis data relasional SQLite lokal melalui pustaka `sqflite`. 
 ### Berkas dan Lokasi Basis Data
 
 - **Nama berkas:** `insap.db`
-- **Lokasi berkas:** Ditentukan otomatis oleh sistem operasi Android melalui `getDatabasesPath()`, biasanya berada di jalur direktori privat aplikasi `/data/user/0/com.example.insap/databases/insap.db`.
+- **Lokasi berkas:** Ditentukan otomatis oleh sistem operasi Android melalui `getDatabasesPath()`, biasanya berada di jalur direktori privat aplikasi `/data/user/0/com.riyadiambis.insap/databases/insap.db`.
 - **Versi skema:** Versi 1.
 
 ### Inisialisasi Otomatis dan Seeding

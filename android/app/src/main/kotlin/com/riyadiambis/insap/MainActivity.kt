@@ -1,4 +1,4 @@
-package com.example.insap
+package com.riyadiambis.insap
 
 import io.flutter.embedding.android.FlutterActivity
 
