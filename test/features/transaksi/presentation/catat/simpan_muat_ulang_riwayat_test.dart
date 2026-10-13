@@ -209,16 +209,6 @@ void main() {
       await tester.tap(tombolSimpan);
       await tester.pumpAndSettle();
 
-      // bug lama di luar ISSUE-16: KolomInputNominal.didUpdateWidget ngubah
-      // controller pas build waktu form direset. ditelan di sini biar tes ini
-      // fokus ke riwayat, galat lain tetap bikin gagal
-      final galat = tester.takeException();
-      expect(
-        galat == null || '$galat'.contains('called during build'),
-        isTrue,
-        reason: 'galat tak terduga: $galat',
-      );
-
       // buka tab riwayat lagi, transaksi baru harus sudah ada
       await tester.tap(find.text('Riwayat'));
       await tester.pumpAndSettle();
