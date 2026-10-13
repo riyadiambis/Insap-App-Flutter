@@ -128,31 +128,26 @@ void main() {
               AppShell(navigationShell: navigationShell),
           branches: [
             StatefulShellBranch(
-              routes: [
-                GoRoute(path: '/', builder: (_, __) => const SizedBox()),
-              ],
+              routes: [GoRoute(path: '/', builder: (_, _) => const SizedBox())],
             ),
             StatefulShellBranch(
               routes: [
                 GoRoute(
                   path: '/catat',
-                  builder: (_, __) => const HalamanCatatTransaksi(),
+                  builder: (_, _) => const HalamanCatatTransaksi(),
                 ),
               ],
             ),
             StatefulShellBranch(
               routes: [
-                GoRoute(
-                  path: '/refleksi',
-                  builder: (_, __) => const SizedBox(),
-                ),
+                GoRoute(path: '/refleksi', builder: (_, _) => const SizedBox()),
               ],
             ),
             StatefulShellBranch(
               routes: [
                 GoRoute(
                   path: '/riwayat',
-                  builder: (_, __) => const HalamanRiwayat(),
+                  builder: (_, _) => const HalamanRiwayat(),
                 ),
               ],
             ),
