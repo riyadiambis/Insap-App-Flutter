@@ -12,7 +12,20 @@
           "package_name": "com.riyadiambis.insap"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "462432178922-qmbjnr1t6cokvo2uq869qa279esrnv8j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.riyadiambis.insap",
+            "certificate_hash": "bd9624335328f152f95ec7525ae24d9c0788a07d"
+          }
+        },
+        {
+          "client_id": "462432178922-t3gl50ost5irfjuv1pdv6ns59vvumi7q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCcM6-95kLhgR7k6BXHvcs8aP94g_IVARE"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "462432178922-t3gl50ost5irfjuv1pdv6ns59vvumi7q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
