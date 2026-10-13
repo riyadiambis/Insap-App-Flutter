@@ -39,10 +39,14 @@ class _KolomInputNominalState extends State<KolomInputNominal> {
       final teksBaru = widget.nominal > 0 ? widget.nominal.toRupiah() : '';
       final nilaiSaatIni = _parseAngka(_controller.text);
       if (nilaiSaatIni != widget.nominal) {
-        _controller.value = TextEditingValue(
-          text: teksBaru,
-          selection: TextSelection.collapsed(offset: teksBaru.length),
-        );
+        // tunda ke akhir frame biar tidak memicu setState/markNeedsBuild di tengah build (ISSUE-18)
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _controller.value = TextEditingValue(
+            text: teksBaru,
+            selection: TextSelection.collapsed(offset: teksBaru.length),
+          );
+        });
       }
     }
   }
