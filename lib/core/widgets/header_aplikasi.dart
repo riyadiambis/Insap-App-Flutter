@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../features/beranda/presentation/pages/halaman_tentang.dart';
 import '../theme.dart';
 
 /// Header aplikasi bersama sesuai mockup layar 1 dan 2.
@@ -12,19 +13,15 @@ import '../theme.dart';
 class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
   final String namaLayar;
 
-  const HeaderAplikasi({
-    super.key,
-    required this.namaLayar,
-  });
+  const HeaderAplikasi({super.key, required this.namaLayar});
 
   @override
   Size get preferredSize => const Size.fromHeight(AppSizes.tinggiHeader);
 
   void _tampilkanPesanSegeraHadir(BuildContext context) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Segera hadir')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Segera hadir')));
   }
 
   @override
@@ -33,14 +30,9 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
       decoration: const BoxDecoration(
         color: AppColors.paper,
         border: Border(
-          bottom: BorderSide(
-            color: AppColors.ink,
-            width: AppSizes.border,
-          ),
+          bottom: BorderSide(color: AppColors.ink, width: AppSizes.border),
         ),
-        boxShadow: [
-          AppTheme.bayanganBawah,
-        ],
+        boxShadow: [AppTheme.bayanganBawah],
       ),
       child: SafeArea(
         bottom: false,
@@ -50,9 +42,7 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
               maxWidth: AppSizes.batasLebarKonten,
             ),
             height: AppSizes.tinggiHeader,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.besar,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.besar),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -81,13 +71,11 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          'Insap',
-                          style: AppTheme.judulHeaderLogo,
-                        ),
+                        Text('Insap', style: AppTheme.judulHeaderLogo),
                         Text(
                           namaLayar.toUpperCase(),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
                                 color: AppColors.inkSoft,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 1.2,
@@ -124,7 +112,13 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
                     ),
                     const SizedBox(width: AppSpacing.kecil),
                     GestureDetector(
-                      onTap: () => _tampilkanPesanSegeraHadir(context),
+                      key: const Key('tombol_profil_header'),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const HalamanTentang(),
+                        ),
+                      ),
                       child: Container(
                         width: 34.0,
                         height: 34.0,
