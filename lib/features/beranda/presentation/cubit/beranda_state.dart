@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../transaksi/domain/entities/ringkasan_pekan_entity.dart';
+import '../../../transaksi/domain/entities/rincian_pengeluaran_entity.dart';
 
 // sealed class 4 status (P06-Cubit), ikut contoh dosen: Initial, Loading,
 // Loaded, Error
@@ -21,11 +22,12 @@ class BerandaLoading extends BerandaState {
 
 class BerandaLoaded extends BerandaState {
   final RingkasanPekanEntity ringkasan;
+  final RincianPengeluaranEntity rincian;
 
-  const BerandaLoaded(this.ringkasan);
+  const BerandaLoaded(this.ringkasan, this.rincian);
 
   @override
-  List<Object?> get props => [ringkasan];
+  List<Object?> get props => [ringkasan, rincian];
 }
 
 class BerandaError extends BerandaState {

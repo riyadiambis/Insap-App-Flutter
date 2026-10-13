@@ -11,48 +11,14 @@ import '../../../../core/widgets/kartu_buku_tulis.dart';
 import '../../../kategori/domain/entities/kategori_entity.dart';
 import '../../../kategori/presentation/cubit/kategori_cubit.dart';
 import '../../../kategori/presentation/cubit/kategori_state.dart';
-import '../../../transaksi/domain/entities/transaksi_entity.dart';
+import '../../../transaksi/domain/entities/rincian_pengeluaran_entity.dart';
 import '../../../transaksi/domain/entities/ringkasan_pekan_entity.dart';
+import '../../../transaksi/domain/entities/transaksi_entity.dart';
 import '../../../transaksi/presentation/widgets/kartu_transaksi.dart';
 import '../cubit/beranda_cubit.dart';
 import '../cubit/beranda_state.dart';
-
-Color _parseWarna(String hexColor) {
-  hexColor = hexColor.replaceAll('#', '');
-  if (hexColor.length == 6) {
-    hexColor = 'FF$hexColor';
-  }
-  return Color(int.parse(hexColor, radix: 16));
-}
-
-IconData _parseIkon(String namaIkon) {
-  switch (namaIkon) {
-    case 'restaurant':
-      return Icons.restaurant;
-    case 'two_wheeler':
-      return Icons.two_wheeler;
-    case 'home':
-      return Icons.home;
-    case 'school':
-      return Icons.school;
-    case 'shopping_bag':
-      return Icons.shopping_bag;
-    case 'local_cafe':
-      return Icons.local_cafe;
-    case 'sports_esports':
-      return Icons.sports_esports;
-    case 'medical_services':
-      return Icons.medical_services;
-    case 'more_horiz':
-    default:
-      return Icons.more_horiz;
-  }
-}
-
-String _kapitalPertama(String teks) {
-  if (teks.isEmpty) return teks;
-  return teks[0].toUpperCase() + teks.substring(1);
-}
+import '../widgets/kartu_rincian_pengeluaran.dart';
+import '../widgets/tampilan_kategori.dart';
 
 class HalamanBeranda extends StatelessWidget {
   const HalamanBeranda({super.key});
@@ -64,7 +30,9 @@ class HalamanBeranda extends StatelessWidget {
       body: PaperBackground(
         child: Center(
           child: Container(
-            constraints: const BoxConstraints(maxWidth: AppSizes.batasLebarKonten),
+            constraints: const BoxConstraints(
+              maxWidth: AppSizes.batasLebarKonten,
+            ),
             child: BlocBuilder<BerandaCubit, BerandaState>(
               builder: (context, state) {
                 if (state is BerandaLoading || state is BerandaInitial) {
@@ -82,7 +50,10 @@ class HalamanBeranda extends StatelessWidget {
                     ),
                   );
                 } else if (state is BerandaLoaded) {
-                  return _BerandaContent(ringkasan: state.ringkasan);
+                  return _BerandaContent(
+                    ringkasan: state.ringkasan,
+                    rincian: state.rincian,
+                  );
                 }
                 return const SizedBox();
               },
@@ -96,8 +67,9 @@ class HalamanBeranda extends StatelessWidget {
 
 class _BerandaContent extends StatelessWidget {
   final RingkasanPekanEntity ringkasan;
+  final RincianPengeluaranEntity rincian;
 
-  const _BerandaContent({required this.ringkasan});
+  const _BerandaContent({required this.ringkasan, required this.rincian});
 
   @override
   Widget build(BuildContext context) {
@@ -123,10 +95,8 @@ class _BerandaContent extends StatelessWidget {
                   children: [
                     Text(
                       'Halo, Kawan!',
-                      style:
-                          Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                              ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(width: AppSpacing.agakKecil),
                     const Text(
@@ -139,9 +109,9 @@ class _BerandaContent extends StatelessWidget {
                 Text(
                   'Yuk sadar boncos hari ini.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.inkSoft,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: AppColors.inkSoft,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -168,19 +138,16 @@ class _BerandaContent extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.stabilo,
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.ink,
-                        width: 1.0,
-                      ),
+                      border: Border.all(color: AppColors.ink, width: 1.0),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sangatKecil),
                   Text(
                     teksRentang,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.ink,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ],
               ),
@@ -208,10 +175,10 @@ class _BerandaContent extends StatelessWidget {
                       Text(
                         'PENGELUARAN PEKAN INI',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: AppColors.inkSoft,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.8,
-                            ),
+                          color: AppColors.inkSoft,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                        ),
                       ),
                     ],
                   ),
@@ -228,9 +195,9 @@ class _BerandaContent extends StatelessWidget {
                     child: Text(
                       'PEKAN INI',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.ink,
-                            fontWeight: FontWeight.w800,
-                          ),
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ],
@@ -247,6 +214,12 @@ class _BerandaContent extends StatelessWidget {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: AppSpacing.besar),
+        // Kartu Rincian Pengeluaran
+        KartuRincianPengeluaran(
+          totalPekanIni: ringkasan.totalMingguIni,
+          rincian: rincian,
         ),
         const SizedBox(height: AppSpacing.besar),
         // Kartu Kuota Pindai
@@ -334,9 +307,7 @@ class _BerandaContent extends StatelessWidget {
                               const SizedBox(height: AppSpacing.mini),
                               Text(
                                 'Reset tiap hari Senin jam 00:00',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(color: AppColors.inkSoft),
                               ),
                             ],
@@ -354,9 +325,7 @@ class _BerandaContent extends StatelessWidget {
                           children: [
                             TextSpan(
                               text: '${ringkasan.kuotaPindai} ',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
+                              style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(
                                     fontWeight: FontWeight.w800,
                                     color: AppColors.ink,
@@ -364,9 +333,7 @@ class _BerandaContent extends StatelessWidget {
                             ),
                             TextSpan(
                               text: '/ 10',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.inkSoft,
@@ -378,9 +345,9 @@ class _BerandaContent extends StatelessWidget {
                       Text(
                         'struk sisa',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.ink,
-                            ),
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
                       ),
                     ],
                   ),
@@ -398,10 +365,7 @@ class _BerandaContent extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: terisi ? AppColors.ink : AppColors.grid,
-                        border: Border.all(
-                          color: AppColors.ink,
-                          width: 1.0,
-                        ),
+                        border: Border.all(color: AppColors.ink, width: 1.0),
                         borderRadius: BorderRadius.circular(
                           AppSizes.radiusSegmenKuota,
                         ),
@@ -437,8 +401,9 @@ class _BerandaContent extends StatelessWidget {
                           color: AppColors.ink,
                           width: AppSizes.border,
                         ),
-                        borderRadius:
-                            BorderRadius.circular(AppSizes.radiusKotakIkonAksi),
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.radiusKotakIkonAksi,
+                        ),
                         boxShadow: const [AppTheme.bayanganKecilGelap],
                       ),
                       child: const Icon(
@@ -451,17 +416,17 @@ class _BerandaContent extends StatelessWidget {
                     Text(
                       'Catat Cepat',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.ink,
-                          ),
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.mini),
                     Text(
                       'Ketik manual instan',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.ink,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -471,9 +436,9 @@ class _BerandaContent extends StatelessWidget {
             Expanded(
               child: KartuBukuTulis(
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Segera hadir')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Segera hadir')));
                 },
                 backgroundColor: AppColors.kartu,
                 shadow: AppTheme.bayanganDefault,
@@ -492,8 +457,9 @@ class _BerandaContent extends StatelessWidget {
                           color: AppColors.ink,
                           width: AppSizes.border,
                         ),
-                        borderRadius:
-                            BorderRadius.circular(AppSizes.radiusKotakIkonAksi),
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.radiusKotakIkonAksi,
+                        ),
                         boxShadow: const [AppTheme.bayanganKecilGelap],
                       ),
                       child: const Icon(
@@ -506,17 +472,17 @@ class _BerandaContent extends StatelessWidget {
                     Text(
                       'Pindai Struk',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.ink,
-                          ),
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.mini),
                     Text(
                       'OCR otomatis AI',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.inkSoft,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: AppColors.inkSoft,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -533,9 +499,8 @@ class _BerandaContent extends StatelessWidget {
               children: [
                 Text(
                   'Catatan Terakhir',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                  style: Theme.of(context).textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(width: AppSpacing.kecil),
                 Container(
@@ -551,9 +516,9 @@ class _BerandaContent extends StatelessWidget {
                   child: Text(
                     '${ringkasan.transaksiTerakhir.length}',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.ink,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],
@@ -566,9 +531,9 @@ class _BerandaContent extends StatelessWidget {
                   Text(
                     'Lihat Semua',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.ink,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.sangatKecil),
                   const Icon(
@@ -596,10 +561,12 @@ class _BerandaContent extends StatelessWidget {
             ),
           )
         else
-          ...ringkasan.transaksiTerakhir.map((t) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sedang),
-                child: _ItemTransaksi(transaksi: t),
-              )),
+          ...ringkasan.transaksiTerakhir.map(
+            (t) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sedang),
+              child: _ItemTransaksi(transaksi: t),
+            ),
+          ),
       ],
     );
   }
@@ -640,9 +607,9 @@ class _IndikatorSelisih extends StatelessWidget {
               child: Text(
                 'Belum ada data pekan lalu',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.inkSoft,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: AppColors.inkSoft,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),
@@ -667,10 +634,7 @@ class _IndikatorSelisih extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          height: AppSizes.tinggiGarisPemisah,
-          color: AppColors.garis,
-        ),
+        Container(height: AppSizes.tinggiGarisPemisah, color: AppColors.garis),
         const SizedBox(height: AppSpacing.sedang),
         Row(
           children: [
@@ -690,18 +654,22 @@ class _IndikatorSelisih extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(ikon, size: AppSizes.ikonSelisih, color: AppColors.ink),
+                      Icon(
+                        ikon,
+                        size: AppSizes.ikonSelisih,
+                        color: AppColors.ink,
+                      ),
                       const SizedBox(width: AppSpacing.sangatKecil),
                       Flexible(
                         child: Text(
                           selisih == 0
                               ? 'Sama persis dengan pekan lalu'
                               : '$nominalAbsolut $teksStatus dibanding pekan lalu',
-                          style:
-                              Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: AppColors.ink,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: AppColors.ink,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                       ),
                     ],
@@ -736,11 +704,13 @@ class _ItemTransaksi extends StatelessWidget {
       },
       builder: (context, kategori) {
         final namaKategori = kategori != null
-            ? _kapitalPertama(kategori.nama)
+            ? kapitalPertama(kategori.nama)
             : 'Tidak diketahui';
-        final ikon = kategori != null ? _parseIkon(kategori.ikon) : Icons.help;
+        final ikon = kategori != null
+            ? parseIkonKategori(kategori.ikon)
+            : Icons.help;
         final warna = kategori != null
-            ? _parseWarna(kategori.warna)
+            ? parseWarnaKategori(kategori.warna)
             : AppColors.inkSoft;
 
         String waktu = '';

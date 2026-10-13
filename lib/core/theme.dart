@@ -66,7 +66,7 @@ class AppSizes {
   static const int kolomKategori = 3;
   static const double lebarChipKategori =
       (batasLebarKonten - AppSpacing.besar * 2 - AppSpacing.kecil * 2) /
-          kolomKategori;
+      kolomKategori;
   static const double ikonChipKategori = badgeKategori * 0.6;
 
   // grid buku tulis pada latar (paper_background)
@@ -103,6 +103,11 @@ class AppSizes {
   static const double tinggiPilihanTanggal = 44.0;
   static const double tinggiPilihanKebutuhan = 48.0;
   static const double ikonKecil = 16.0;
+
+  // rincian pengeluaran (kartu_rincian_pengeluaran)
+  static const double tinggiBatangPorsi = 8.0;
+  static const double radiusBatangPorsi = 4.0;
+  static const double badgeKategoriKecil = 36.0;
 }
 
 class AppSpacing {
@@ -316,11 +321,7 @@ class AppTheme {
       border: Border.all(color: AppColors.ink, width: 2.0),
       borderRadius: BorderRadius.circular(radius),
       boxShadow: const [
-        BoxShadow(
-          color: AppColors.garis,
-          offset: Offset(4, 4),
-          blurRadius: 0,
-        ),
+        BoxShadow(color: AppColors.garis, offset: Offset(4, 4), blurRadius: 0),
       ],
     );
   }
