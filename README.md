@@ -6,9 +6,9 @@ Aplikasi pencatat keuangan pribadi berbasis AI untuk mahasiswa.
 
 | Nama | NIM | Peran |
 |---|---|---|
-| Riyadi | 2409106074 | Project Manager, pemegang fondasi |
-| Daffa | 2309106063 | Pemegang fitur |
-| Luthfi | (NIM menyusul) | Pemegang fitur |
+| Rahmat Riyadi | 2409106074 | Project Manager, pemegang fondasi |
+| Muh Ghazy Daffa Sampe | 2309106063 | Pemegang fitur |
+| Luthfi Farros Athailah | 2309106073 | Pemegang fitur |
 
 Mata kuliah Pemrograman Piranti Bergerak, Informatika, Universitas Mulawarman.
 
