@@ -28,6 +28,94 @@ Insap adalah aplikasi pencatat keuangan pribadi yang dirancang khusus untuk maha
 - **Target utama:** Mahasiswa (rentang usia 18 sampai 25 tahun), baik mahasiswa yang menerima uang kiriman bulanan dari orang tua maupun mahasiswa indekos yang memiliki penghasilan tambahan dan mengelola pengeluaran bersama atau patungan.
 - **Bukan target pengguna:** Pelaku usaha yang membutuhkan sistem akuntansi ganda atau perpajakan, karyawan yang memerlukan sistem penggantian biaya kantor (reimbursement), serta pengguna yang menginginkan integrasi otomatis dengan rekening perbankan.
 
+## Cara Kerja Aplikasi
+
+### Alur Pengguna
+
+1. **Perkenalan (F-16, dalam pengerjaan):** Pengguna baru disambut dengan alur perkenalan tiga langkah untuk memahami esensi pencatatan Kakeibo dan filosofi sadar boncos.
+2. **Beranda:** Menampilkan ringkasan pengeluaran sepekan dibanding pekan lalu, sisa kuota pindai struk AI mingguan, kartu rincian pengeluaran per kategori (dapat beralih antara pekan ini dan bulan ini), tombol aksi cepat, serta daftar transaksi terakhir.
+3. **Catat Transaksi Manual (F-01 & F-07):** Memasukkan nominal pengeluaran, memilih tanggal, dan memilih salah satu dari sembilan kategori mahasiswa. Untuk kategori opsional dan hiburan, aplikasi menanyakan pertimbangan niat belanja: "butuh atau pengen".
+4. **Pindai Struk dengan AI (F-09 s.d. F-11, dalam pengerjaan):** Mengambil foto struk belanja untuk diekstraksi toko, tanggal, dan total belanjanya secara otomatis menggunakan Gemini AI, lalu dikonfirmasi pengguna sebelum disimpan. Kuota gratis sepuluh struk per pekan direset setiap Senin.
+5. **Riwayat Transaksi (F-02):** Melihat seluruh catatan pengeluaran yang dikelompokkan per tanggal. Dilengkapi filter rentang tanggal dan kategori, halaman detail transaksi, serta tombol hapus transaksi dengan dialog konfirmasi.
+6. **Refleksi Mingguan (F-08, dalam pengerjaan):** Ritual evaluasi akhir pekan untuk membandingkan realisasi pengeluaran dengan target mingguan, disertai catatan evaluasi diri untuk pekan berikutnya.
+
+### Arsitektur Aplikasi
+
+Insap menerapkan arsitektur bersih (*Clean Architecture*) ringan dengan pendekatan *feature-first*. Kode aplikasi terbagi menjadi tiga lapisan utama:
+- **Presentation:** Mengelola widget antarmuka dan status tampilan. Menggunakan `flutter_bloc` dengan pola Cubit agar perubahan state terprediksi dan mudah diuji tanpa boilerplate event.
+- **Domain:** Lapisan inti logika bisnis yang independen dari kerangka kerja. Memuat *entity* data dan *use case* (misalnya `TambahTransaksi`, `AmbilRingkasanPekan`, `AmbilRincianKategori`, `AmbilRiwayat`, `HapusTransaksi`, `AmbilDetailTransaksi`).
+- **Data:** Mengelola persistensi data. Memuat *model* data, implementasi *repository*, dan *data source* lokal yang berinteraksi langsung dengan SQLite.
+
+Dependensi antarkomponen dihubungkan menggunakan `get_it` sebagai penyedia layanan (*service locator*). Navigasi aplikasi diatur secara deklaratif menggunakan `go_router` dengan `StatefulShellRoute`, sehingga bilah navigasi bawah tetap mempertahankan state masing-masing tab saat pengguna berpindah menu.
+
+### Alur Data
+
+Diagram berikut menggambarkan alur data dari antarmuka pengguna hingga penyimpanan SQLite:
+
+```mermaid
+flowchart LR
+    Layar[Layar Antarmuka] -->|Panggil aksi| Cubit[Cubit State]
+    Cubit -->|Jalankan| UseCase[Use Case Domain]
+    UseCase -->|Minta data| Repo[Repository]
+    Repo -->|Akses data| DataSource[Data Source]
+    DataSource -->|Query SQL| SQLite[(SQLite insap.db)]
+    SQLite -->|Baris data| DataSource
+    DataSource -->|Kembalikan model| Repo
+    Repo -->|Kembalikan entity| UseCase
+    UseCase -->|Kembalikan hasil| Cubit
+    Cubit -->|Emit state baru| Layar
+```
+
+## Cara Menghubungkan Database
+
+### Konfigurasi Lokal Tanpa Server
+
+Insap menggunakan basis data relasional SQLite lokal melalui pustaka `sqflite`. Seluruh data keuangan disimpan langsung di penyimpanan privat perangkat pengguna. Aplikasi tidak memerlukan koneksi server eksternal, tidak membutuhkan akun pengguna, dan tidak memerlukan konfigurasi koneksi jaringan.
+
+### Berkas dan Lokasi Basis Data
+
+- **Nama berkas:** `insap.db`
+- **Lokasi berkas:** Ditentukan otomatis oleh sistem operasi Android melalui `getDatabasesPath()`, biasanya berada di jalur direktori privat aplikasi `/data/user/0/com.example.insap/databases/insap.db`.
+- **Versi skema:** Versi 1.
+
+### Inisialisasi Otomatis dan Seeding
+
+Basis data dibuat secara otomatis saat aplikasi pertama kali dijalankan melalui kelas `DatabaseHelper`:
+1. Dukungan integritas foreign key diaktifkan melalui perintah `PRAGMA foreign_keys = ON`.
+2. Empat tabel dibuat sesuai acuan `docs/SCHEMA.sql`:
+   - `kategori`: Menyimpan daftar kategori pengeluaran dan kelompok Kakeibo.
+   - `transaksi`: Menyimpan catatan pengeluaran dengan nominal integer Rupiah penuh.
+   - `refleksi_mingguan`: Menyimpan riwayat refleksi dan target mingguan.
+   - `pengaturan`: Menyimpan pasangan kunci-nilai preferensi aplikasi.
+3. Data awal (*seeding*) diisi otomatis satu kali: sembilan kategori bawaan mahasiswa (`seedKategori`) dan nilai awal preferensi aplikasi (`buatSeedPengaturan`).
+
+### Kode yang Terlibat
+
+- `lib/core/database/database_helper.dart`: Mengelola siklus hidup basis data SQLite secara singleton, mencakup pembuatan tabel, pengaktifan foreign key, dan penyemaian data awal.
+- `lib/features/*/data/datasources/*_local_datasource.dart`: Menjalankan query SQL langsung ke tabel SQLite untuk operasi baca dan tulis data mentah.
+- `lib/features/*/data/repositories/*_repository_impl.dart`: Menerapkan kontrak repository lapisan domain dengan memanggil data source dan mengonversi model basis data menjadi entity domain.
+
+### Cara Melihat Isi Basis Data
+
+Untuk memeriksa dan melihat isi tabel basis data secara langsung saat aplikasi berjalan:
+1. Buka proyek ini di Android Studio.
+2. Jalankan aplikasi pada emulator Android atau perangkat fisik dalam mode debug.
+3. Buka jendela **App Inspection** melalui menu **View > Tool Windows > App Inspection**.
+4. Pilih tab **Database Inspector**.
+5. Pilih proses aplikasi `insap`. Seluruh tabel (`kategori`, `transaksi`, `refleksi_mingguan`, `pengaturan`) akan tampil dan datanya dapat diperiksa secara langsung (*live inspection*).
+
+### Cara Mengulang Basis Data dari Awal
+
+Jika ingin mereset basis data ke kondisi awal instalasi:
+1. Buka menu **Pengaturan** (*Settings*) pada perangkat Android atau emulator.
+2. Buka menu **Aplikasi** (*Apps*) > **Insap**.
+3. Pilih **Penyimpanan & Cache** (*Storage & Cache*), lalu tekan **Hapus Penyimpanan** (*Clear Storage* / *Clear Data*).
+4. Saat aplikasi dibuka kembali, `DatabaseHelper` akan membuat ulang berkas `insap.db` lengkap dengan tabel dan data awal.
+
+### Alasan Memilih SQLite Lokal
+
+Insap memilih SQLite lokal alih-alih layanan awan seperti Firebase agar data keuangan pengguna tersimpan seutuhnya di perangkat fisik pengguna tanpa risiko kebocoran privasi ke pihak ketiga (KNF-04), serta menjamin aplikasi tetap dapat digunakan kapan saja secara luring (*offline*) tanpa bergantung pada koneksi internet (KNF-01).
+
 ## Fitur dan Status
 
 Pengembangan aplikasi Insap dilakukan secara bertahap per versi sesuai dengan jadwal dan kriteria selesai pada dokumen ROADMAP.
@@ -37,27 +125,27 @@ Pengembangan aplikasi Insap dilakukan secara bertahap per versi sesuai dengan ja
 | Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
 |---|---|---|---|---|
 | F-01 | Input transaksi manual | Form isian jumlah, kategori, tanggal, catatan singkat | Riyadi | selesai |
-| F-02 | Riwayat transaksi | Daftar transaksi yang dapat disaring per tanggal dan kategori | Dafa | sedang dikerjakan |
+| F-02 | Riwayat transaksi | Daftar transaksi yang dapat disaring per tanggal dan kategori | Dafa | selesai |
 | F-03 | Kategori khas mahasiswa | Sembilan kategori bawaan, lihat KATEGORI.md | Luthfi | sebagian |
 | F-04 | Penyimpanan lokal | Seluruh data tersimpan di perangkat menggunakan SQLite | Riyadi | selesai |
-| F-05 | Ringkasan periodik | Total pengeluaran per kategori untuk rentang mingguan dan bulanan | Riyadi | sebagian |
+| F-05 | Ringkasan periodik | Total pengeluaran per kategori untuk rentang mingguan dan bulanan | Riyadi | selesai |
 | F-06 | Format Rupiah | Penulisan mata uang yang benar, misalnya Rp15.000 | Riyadi | selesai |
+| F-07 | Tanya niat belanja | Pertanyaan "butuh atau pengen" untuk kategori opsional dan hiburan | Riyadi | selesai |
 | F-16 | Perkenalan dan keadaan kosong | Layar sambutan tiga langkah dan tampilan saat belum ada data | Luthfi | sebagian |
 
 ### v0.2 Pembeda
 
 | Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
 |---|---|---|---|---|
-| F-07 | Tanya niat belanja | Pertanyaan "butuh atau pengen" untuk kategori opsional dan hiburan | Luthfi | sebagian |
-| F-08 | Refleksi mingguan | Ritual akhir pekan: rencana versus realisasi, plus catatan perbaikan | Luthfi | belum dimulai |
+| F-08 | Refleksi mingguan | Ritual akhir pekan: rencana versus realisasi, plus catatan perbaikan | Luthfi | dalam pengerjaan |
 
 ### v0.3 Kecerdasan
 
 | Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
 |---|---|---|---|---|
-| F-09 | Pindai struk | Foto struk dikirim ke Gemini untuk diekstrak toko, tanggal, total | Dafa | belum dimulai |
-| F-10 | Konfirmasi hasil pindai | Hasil AI ditampilkan sebagai draf yang wajib disetujui pengguna | Dafa | belum dimulai |
-| F-11 | Kuota pindai gratis | Pembatasan sepuluh pemindaian per minggu untuk pengguna gratis | Dafa | belum dimulai |
+| F-09 | Pindai struk | Foto struk dikirim ke Gemini untuk diekstrak toko, tanggal, total | Dafa | dalam pengerjaan |
+| F-10 | Konfirmasi hasil pindai | Hasil AI ditampilkan sebagai draf yang wajib disetujui pengguna | Dafa | dalam pengerjaan |
+| F-11 | Kuota pindai gratis | Pembatasan sepuluh pemindaian per minggu untuk pengguna gratis | Dafa | sebagian |
 
 ### v0.4 Pemantapan
 
