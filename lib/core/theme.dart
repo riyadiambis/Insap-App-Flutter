@@ -39,6 +39,7 @@ class AppSizes {
   static const double tinggiTombol = 56.0;
   static const double radiusKartu = 16.0;
   static const double border = 2.0;
+  static const double borderTipis = 1.0;
   static const double batasLebarKonten = 460.0;
 
   // jarak geser kartu/tombol pas ditekan, = selisih offset bayangan
@@ -87,6 +88,11 @@ class AppSizes {
   static const double ikonKuota = 24.0;
   static const double tinggiSegmenKuota = 8.0;
   static const double radiusSegmenKuota = 2.0;
+
+  // bar kuota tipis pada kartu pindai struk (beranda)
+  static const double tinggiBarKuotaPindai = 6.0;
+  static const double radiusBarKuotaPindai = 3.0;
+  static const double ukuranTeksStatusKuota = 10.0;
 
   static const double ukuranTitikIndikator = 8.0;
   static const double tinggiGarisPemisah = 2.0;
