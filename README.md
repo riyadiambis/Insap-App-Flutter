@@ -75,7 +75,7 @@ Insap menggunakan basis data relasional SQLite lokal melalui pustaka `sqflite`. 
 ### Berkas dan Lokasi Basis Data
 
 - **Nama berkas:** `insap.db`
-- **Lokasi berkas:** Ditentukan otomatis oleh sistem operasi Android melalui `getDatabasesPath()`, biasanya berada di jalur direktori privat aplikasi `/data/user/0/com.example.insap/databases/insap.db`.
+- **Lokasi berkas:** Ditentukan otomatis oleh sistem operasi Android melalui `getDatabasesPath()`, biasanya berada di jalur direktori privat aplikasi `/data/user/0/com.riyadiambis.insap/databases/insap.db`.
 - **Versi skema:** Versi 1.
 
 ### Inisialisasi Otomatis dan Seeding
