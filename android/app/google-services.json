@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "462432178922",
+    "project_id": "insap-riyadiambis",
+    "storage_bucket": "insap-riyadiambis.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:462432178922:android:835d03946af004e1ecfd93",
+        "android_client_info": {
+          "package_name": "com.riyadiambis.insap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcM6-95kLhgR7k6BXHvcs8aP94g_IVARE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
