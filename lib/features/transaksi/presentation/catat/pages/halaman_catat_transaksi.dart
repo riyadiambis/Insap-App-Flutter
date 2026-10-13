@@ -17,6 +17,7 @@ import '../../../../kategori/presentation/cubit/kategori_cubit.dart';
 import '../../../../kategori/presentation/cubit/kategori_state.dart';
 import '../cubit/catat_transaksi_cubit.dart';
 import '../cubit/catat_transaksi_state.dart';
+import '../widgets/kolom_input_nominal.dart';
 
 // helper parse warna hex dari basis data
 Color _parseWarna(String hexColor) {
@@ -77,9 +78,11 @@ class _CatatTransaksiView extends StatefulWidget {
 
 class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
   final _formKey = GlobalKey<FormState>();
-  final _nominalController = TextEditingController();
   final _catatanController = TextEditingController();
   final _nominalFocusNode = FocusNode();
+
+  // nominal disimpan di state lokal untuk sinkronisasi ke KolomInputNominal
+  int _nominal = 0;
 
   // chip tanggal: 0 = Hari ini, 1 = Kemarin, 2 = Pilih
   int _chipTanggalAktif = 0;
@@ -95,36 +98,14 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
 
   @override
   void dispose() {
-    _nominalController.dispose();
     _catatanController.dispose();
     _nominalFocusNode.dispose();
     super.dispose();
   }
 
-  // parse angka dari teks yang sudah diformat Rp
-  int _parseNominal(String teks) {
-    final cleaned = teks.replaceAll(RegExp(r'[^0-9]'), '');
-    return int.tryParse(cleaned) ?? 0;
-  }
-
-  // format angka sambil diketik jadi Rp
-  void _onNominalChanged(String value) {
-    final angka = _parseNominal(value);
+  void _onNominalChanged(int angka) {
+    setState(() => _nominal = angka);
     context.read<CatatTransaksiCubit>().ubahNominal(angka);
-
-    // update tampilan format rupiah
-    if (angka > 0) {
-      final formatted = angka.toRupiah();
-      _nominalController.value = TextEditingValue(
-        text: formatted,
-        selection: TextSelection.collapsed(offset: formatted.length),
-      );
-    } else if (value.isNotEmpty) {
-      _nominalController.value = const TextEditingValue(
-        text: '',
-        selection: TextSelection.collapsed(offset: 0),
-      );
-    }
   }
 
   void _pilihTanggal(BuildContext context, int chipIndex) async {
@@ -193,10 +174,10 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
           context.read<BerandaCubit>().muatRingkasan();
           // kembali ke tab beranda
           context.go('/');
-          _nominalController.clear();
           _catatanController.clear();
           setState(() {
             _chipTanggalAktif = 0;
+            _nominal = 0;
           });
           context.read<CatatTransaksiCubit>().reset();
         } else if (state.status == StatusCatatTransaksi.gagal) {
@@ -228,9 +209,10 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
                     const SizedBox(height: AppSpacing.besar),
                     // kolom nominal
                     _BagianNominal(
-                      controller: _nominalController,
+                      nominal: _nominal,
                       focusNode: _nominalFocusNode,
                       onChanged: _onNominalChanged,
+                      onHapus: () => _onNominalChanged(0),
                     ),
                     const SizedBox(height: AppSpacing.besar),
                     // chip tanggal
@@ -351,14 +333,16 @@ class _JudulCatat extends StatelessWidget {
 
 // input nominal dengan format rupiah sambil diketik
 class _BagianNominal extends StatelessWidget {
-  final TextEditingController controller;
+  final int nominal;
   final FocusNode focusNode;
-  final ValueChanged<String> onChanged;
+  final ValueChanged<int> onChanged;
+  final VoidCallback onHapus;
 
   const _BagianNominal({
-    required this.controller,
+    required this.nominal,
     required this.focusNode,
     required this.onChanged,
+    required this.onHapus,
   });
 
   @override
@@ -380,10 +364,7 @@ class _BagianNominal extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: () {
-                  controller.clear();
-                  onChanged('');
-                },
+                onTap: onHapus,
                 behavior: HitTestBehavior.opaque,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -407,27 +388,9 @@ class _BagianNominal extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.kecil),
-          TextFormField(
-            controller: controller,
+          KolomInputNominal(
+            nominal: nominal,
             focusNode: focusNode,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            style: AppTheme.nominalUtama,
-            decoration: InputDecoration(
-              hintText: 'Rp0',
-              hintStyle: AppTheme.nominalUtama.copyWith(color: AppColors.garis),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-            ),
-            validator: (value) {
-              final angka =
-                  int.tryParse(
-                    (value ?? '').replaceAll(RegExp(r'[^0-9]'), ''),
-                  ) ??
-                  0;
-              if (angka <= 0) return 'Nominal wajib diisi.';
-              return null;
-            },
             onChanged: onChanged,
           ),
         ],
