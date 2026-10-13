@@ -1,10 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:insap/core/router/app_shell.dart';
 import 'package:insap/core/theme.dart';
 
+Future<void> _muatFont(String keluarga, List<String> berkas) async {
+  final loader = FontLoader(keluarga);
+  for (final b in berkas) {
+    loader.addFont(rootBundle.load('assets/fonts/$b'));
+  }
+  await loader.load();
+}
+
 void main() {
+  setUpAll(() async {
+    await _muatFont('Nunito', [
+      'Nunito-Regular.ttf',
+      'Nunito-SemiBold.ttf',
+      'Nunito-Bold.ttf',
+      'Nunito-ExtraBold.ttf',
+    ]);
+    await _muatFont('Baloo2', [
+      'Baloo2-SemiBold.ttf',
+      'Baloo2-Bold.ttf',
+      'Baloo2-ExtraBold.ttf',
+    ]);
+  });
+
   Widget buatAplikasiUji() {
     final router = GoRouter(
       initialLocation: '/',
@@ -66,54 +89,106 @@ void main() {
     });
   }
 
-  testWidgets('keempat tab navigasi memiliki ukuran pill aktif yang sama', (
-    tester,
-  ) async {
-    await tester.pumpWidget(buatAplikasiUji());
-    await tester.pumpAndSettle();
+  void ujiPillNavigasiPadaLebarLayar(double lebarLayar) {
+    testWidgets(
+      'pada lebar layar $lebarLayar: keempat pill aktif sama besar dan label tidak terpotong (font Nunito)',
+      (tester) async {
+        tester.view.physicalSize = Size(lebarLayar, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-    // 1. Tab Beranda (aktif saat inisialisasi)
-    final pillBeranda = cariPillAktif();
-    expect(pillBeranda, findsOneWidget);
-    final sizeBeranda = tester.getSize(pillBeranda);
+        await tester.pumpWidget(buatAplikasiUji());
+        await tester.pumpAndSettle();
 
-    // 2. Ketuk tab Catat
-    await tester.tap(find.text('Catat'));
-    await tester.pumpAndSettle();
-    final pillCatat = cariPillAktif();
-    expect(pillCatat, findsOneWidget);
-    final sizeCatat = tester.getSize(pillCatat);
+        final expectedWidth = (lebarLayar / 4) - (AppSpacing.mini * 2);
+        final expectedHeight = AppSizes.tinggiPillNavigasi;
+        final expectedSize = Size(expectedWidth, expectedHeight);
 
-    // 3. Ketuk tab Refleksi
-    await tester.tap(find.text('Refleksi'));
-    await tester.pumpAndSettle();
-    final pillRefleksi = cariPillAktif();
-    expect(pillRefleksi, findsOneWidget);
-    final sizeRefleksi = tester.getSize(pillRefleksi);
+        final tabs = ['Beranda', 'Catat', 'Refleksi', 'Riwayat'];
+        final List<Size> ukuranPills = [];
 
-    // 4. Ketuk tab Riwayat
-    await tester.tap(find.text('Riwayat'));
-    await tester.pumpAndSettle();
-    final pillRiwayat = cariPillAktif();
-    expect(pillRiwayat, findsOneWidget);
-    final sizeRiwayat = tester.getSize(pillRiwayat);
+        for (final tab in tabs) {
+          // Ketuk tab jika belum aktif
+          await tester.tap(find.text(tab));
+          await tester.pumpAndSettle();
 
-    debugPrint('Ukuran pill Beranda : $sizeBeranda');
-    debugPrint('Ukuran pill Catat   : $sizeCatat');
-    debugPrint('Ukuran pill Refleksi: $sizeRefleksi');
-    debugPrint('Ukuran pill Riwayat : $sizeRiwayat');
+          final pillAktif = cariPillAktif();
+          expect(pillAktif, findsOneWidget);
 
-    // Pastikan ukuran pill sesuai konstan tema
-    expect(
-      sizeBeranda,
-      equals(
-        const Size(AppSizes.lebarPillNavigasi, AppSizes.tinggiPillNavigasi),
-      ),
+          final sizePill = tester.getSize(pillAktif);
+          ukuranPills.add(sizePill);
+
+          // 1. Ukuran pill sesuai perhitungan responsif slot Expanded
+          expect(
+            sizePill,
+            equals(expectedSize),
+            reason:
+                'Ukuran pill tab $tab harus $expectedSize, ditemukan $sizePill',
+          );
+
+          // 2. Verifikasi FittedBox membungkus label
+          final fittedBoxFinder = find.descendant(
+            of: pillAktif,
+            matching: find.byType(FittedBox),
+          );
+          expect(
+            fittedBoxFinder,
+            findsOneWidget,
+            reason: 'Label $tab harus dibungkus FittedBox',
+          );
+
+          // 3. Verifikasi teks label tidak memakai TextOverflow.ellipsis
+          final textFinder = find.descendant(
+            of: pillAktif,
+            matching: find.byType(Text),
+          );
+          expect(textFinder, findsOneWidget);
+          final textWidget = tester.widget<Text>(textFinder);
+          expect(textWidget.data, equals(tab));
+          expect(
+            textWidget.overflow,
+            isNot(TextOverflow.ellipsis),
+            reason: 'Teks $tab tidak boleh menggunakan TextOverflow.ellipsis',
+          );
+
+          // 4. Verifikasi teks tidak melebihi batas (didExceedMaxLines == false)
+          // Tersedia lebar penuh pill dikurangi border 2.0 di kiri dan kanan
+          final lebarTersedia = sizePill.width - (AppSizes.border * 2);
+          final textPainter = TextPainter(
+            text: TextSpan(text: textWidget.data, style: textWidget.style),
+            textDirection: TextDirection.ltr,
+            maxLines: 1,
+          )..layout(maxWidth: lebarTersedia);
+
+          expect(
+            textPainter.didExceedMaxLines,
+            isFalse,
+            reason:
+                'Label "$tab" terpotong pada lebar tersedia $lebarTersedia px '
+                '(panjang teks asli: ${textPainter.size.width} px)',
+          );
+
+          // 5. Tidak ada exception
+          expect(tester.takeException(), isNull);
+        }
+
+        // 6. Seluruh 4 tab memiliki ukuran pill yang persis sama
+        expect(ukuranPills.length, equals(4));
+        for (int i = 1; i < ukuranPills.length; i++) {
+          expect(
+            ukuranPills[i],
+            equals(ukuranPills[0]),
+            reason:
+                'Ukuran pill ${tabs[i]} (${ukuranPills[i]}) harus sama dengan ${tabs[0]} (${ukuranPills[0]})',
+          );
+        }
+      },
     );
+  }
 
-    // Pastikan keempat ukuran pill sama persis
-    expect(sizeCatat, equals(sizeBeranda));
-    expect(sizeRefleksi, equals(sizeBeranda));
-    expect(sizeRiwayat, equals(sizeBeranda));
+  group('AppShell - Keseragaman Pill Navigasi & Label Utuh', () {
+    ujiPillNavigasiPadaLebarLayar(360.0);
+    ujiPillNavigasiPadaLebarLayar(411.0);
   });
 }
