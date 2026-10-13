@@ -1,1 +1,24 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"insap-riyadiambis","appId":"1:462432178922:android:835d03946af004e1ecfd93","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"insap-riyadiambis","configurations":{"android":"1:462432178922:android:835d03946af004e1ecfd93"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "insap-riyadiambis",
+          "appId": "1:462432178922:android:835d03946af004e1ecfd93",
+          "fileOutput": "android/app/google-services.json"
+        }
+      }
+    },
+    "dart": {
+      "lib/firebase_options.dart": {
+        "projectId": "insap-riyadiambis",
+        "configurations": {
+          "android": "1:462432178922:android:835d03946af004e1ecfd93"
+        }
+      }
+    }
+  }
+}
