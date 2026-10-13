@@ -672,7 +672,8 @@ class _ItemTransaksi extends StatelessWidget {
           final dt = DateTime.parse(transaksi.dibuatPada).toLocal();
           final jam = dt.hour.toString().padLeft(2, '0');
           final menit = dt.minute.toString().padLeft(2, '0');
-          waktu = '$jam:$menit WIB';
+          // jam saja, samain sama riwayat_helper (ISSUE-16)
+          waktu = '$jam:$menit';
         } catch (_) {
           waktu = '-';
         }

@@ -6,6 +6,7 @@ import 'core/router/app_router.dart';
 import 'core/theme.dart';
 import 'features/beranda/presentation/cubit/beranda_cubit.dart';
 import 'features/kategori/presentation/cubit/kategori_cubit.dart';
+import 'features/transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,8 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => sl<KategoriCubit>()..muat()),
         BlocProvider(create: (_) => sl<BerandaCubit>()..muatRingkasan()),
+        // riwayat ditaruh di root biar bisa disegarkan dari halaman catat (ISSUE-16)
+        BlocProvider(create: (_) => sl<RiwayatCubit>()..muatRiwayat()),
       ],
       child: MaterialApp.router(
         title: 'Insap: Yuk Sadar Boncos',

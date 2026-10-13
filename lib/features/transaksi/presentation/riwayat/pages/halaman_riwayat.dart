@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/paper_background.dart';
 import '../../../../../core/theme.dart';
 import '../../../../../core/widgets/header_aplikasi.dart';
@@ -27,10 +26,8 @@ class HalamanRiwayat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<RiwayatCubit>()..muatRiwayat(),
-      child: const _RiwayatView(),
-    );
+    // RiwayatCubit diambil dari provider root di main.dart (ISSUE-16)
+    return const _RiwayatView();
   }
 }
 
