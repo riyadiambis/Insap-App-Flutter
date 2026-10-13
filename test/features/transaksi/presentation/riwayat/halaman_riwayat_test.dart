@@ -121,6 +121,10 @@ void main() {
         BlocProvider(
           create: (_) => sl<BerandaCubit>()..muatRingkasan(),
         ),
+        // sejak ISSUE-16 halaman riwayat ambil cubit dari atas
+        BlocProvider(
+          create: (_) => sl<RiwayatCubit>()..muatRiwayat(),
+        ),
       ],
       child: MaterialApp(
         theme: AppTheme.lightTheme,
