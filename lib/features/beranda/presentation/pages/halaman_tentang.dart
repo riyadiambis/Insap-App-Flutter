@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
@@ -139,6 +140,51 @@ class HalamanTentang extends StatelessWidget {
                         const _BarisAnggota(
                           peran: 'Anggota C (Kategori & Refleksi)',
                           nama: 'Luthfi',
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.besar),
+
+                  // kartu akun dan cadangan awan (F-17 & F-13, ISSUE-14)
+                  KartuBukuTulis(
+                    radius: AppSizes.radiusTombol,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'AKUN & CADANGAN AWAN',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: AppColors.inkSoft,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.8,
+                              ),
+                        ),
+                        const SizedBox(height: AppSpacing.sedang),
+                        Text(
+                          'Cadangkan data transaksi Anda ke awan atau pulihkan ke perangkat lain menggunakan akun Firebase.',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: AppColors.inkSoft,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                        const SizedBox(height: AppSpacing.sedang),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            key: const Key('tombol_kelola_akun'),
+                            onPressed: () => context.push('/akun'),
+                            icon: const Icon(
+                              Icons.cloud_sync_outlined,
+                              size: 20,
+                            ),
+                            label: const Text(
+                              'Kelola Akun & Cadangan',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
                         ),
                       ],
                     ),
