@@ -8,6 +8,7 @@ import '../../../beranda/presentation/cubit/beranda_cubit.dart';
 import '../../../transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
 import '../../domain/entities/cadangan_info.dart';
 import '../../domain/entities/pengguna_entity.dart';
+import '../../domain/entities/rencana_cadangan.dart';
 import '../cubit/akun_cubit.dart';
 import '../cubit/akun_state.dart';
 import '../cubit/cadangan_cubit.dart';
@@ -157,6 +158,173 @@ class HalamanAkun extends StatelessWidget {
               },
               child: const Text(
                 'Pulihkan',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _mulaiCadangkan(BuildContext context, CadanganInfo? info) async {
+    final cubit = context.read<CadanganCubit>();
+    final rencana = await cubit.siapkanCadangan(pengguna.uid);
+    if (rencana == null || !context.mounted) return;
+
+    if (rencana.ditolak) {
+      _tampilkanPerangkatKosong(context, rencana, info);
+    } else if (rencana.perluKonfirmasi) {
+      _konfirmasiCadangkan(context, rencana);
+    } else {
+      cubit.cadangkanData(pengguna.uid);
+    }
+  }
+
+  static List<String> _ringkasSelisih(RencanaCadangan rencana) {
+    final koleksi = {
+      'Transaksi': rencana.transaksi,
+      'Kategori': rencana.kategori,
+      'Refleksi': rencana.refleksi,
+    };
+    final baris = <String>[];
+    koleksi.forEach((nama, selisih) {
+      final perubahan = [
+        if (selisih.akanDihapus > 0) '${selisih.akanDihapus} dihapus',
+        if (selisih.akanDitimpa > 0) '${selisih.akanDitimpa} ditimpa',
+      ];
+      if (perubahan.isNotEmpty) baris.add('$nama: ${perubahan.join(', ')}');
+    });
+    return baris;
+  }
+
+  void _konfirmasiCadangkan(BuildContext context, RencanaCadangan rencana) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          key: const Key('dialog_konfirmasi_cadangkan'),
+          backgroundColor: AppColors.kartu,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSizes.radiusKartu),
+            side: const BorderSide(
+              color: AppColors.ink,
+              width: AppSizes.border,
+            ),
+          ),
+          title: Text(
+            'Timpa Cadangan di Awan?',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Cadangan awan akan disamakan dengan data di perangkat ini. Dokumen awan berikut akan berubah:',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: AppSpacing.sedang),
+              for (final baris in _ringkasSelisih(rencana))
+                Text(
+                  baris,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.salah,
+                  ),
+                ),
+              const SizedBox(height: AppSpacing.sedang),
+              const Text(
+                'Baru memasang ulang aplikasi? Pulihkan data dulu supaya cadangan lama tidak hilang.',
+                style: TextStyle(
+                  fontStyle: FontStyle.italic,
+                  color: AppColors.inkSoft,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                context.read<CadanganCubit>().cadangkanData(pengguna.uid);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.salahLatar,
+                foregroundColor: AppColors.salah,
+                elevation: 0,
+                side: const BorderSide(
+                  color: AppColors.salah,
+                  width: AppSizes.borderTipis,
+                ),
+              ),
+              child: const Text(
+                'Tetap Cadangkan',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _tampilkanPerangkatKosong(
+    BuildContext context,
+    RencanaCadangan rencana,
+    CadanganInfo? info,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          key: const Key('dialog_perangkat_kosong'),
+          backgroundColor: AppColors.kartu,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSizes.radiusKartu),
+            side: const BorderSide(
+              color: AppColors.ink,
+              width: AppSizes.border,
+            ),
+          ),
+          title: Text(
+            'Perangkat Ini Masih Kosong',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Belum ada transaksi maupun refleksi di perangkat ini. Mencadangkan sekarang akan menghapus cadangan di awan, jadi pencadangan dibatalkan.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: AppSpacing.sedang),
+              Text(
+                'Awan menyimpan ${rencana.transaksi.jumlahAwan} transaksi dan ${rencana.refleksi.jumlahAwan} refleksi.',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _konfirmasiPulihkan(context, info);
+              },
+              child: const Text(
+                'Pulihkan Data',
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
@@ -485,11 +653,10 @@ class HalamanAkun extends StatelessWidget {
                                                 ),
                                                 onPressed: sedangMemuat
                                                     ? null
-                                                    : () => context
-                                                          .read<CadanganCubit>()
-                                                          .cadangkanData(
-                                                            pengguna.uid,
-                                                          ),
+                                                    : () => _mulaiCadangkan(
+                                                        context,
+                                                        info,
+                                                      ),
                                                 icon: sedangMemuat
                                                     ? const SizedBox(
                                                         width: 18,

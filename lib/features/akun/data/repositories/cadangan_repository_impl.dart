@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../../../../core/database/database_helper.dart';
 import '../../domain/entities/cadangan_info.dart';
+import '../../domain/entities/rencana_cadangan.dart';
 import '../../domain/repositories/cadangan_repository.dart';
 
 class CadanganRepositoryImpl implements CadanganRepository {
@@ -46,6 +47,10 @@ class CadanganRepositoryImpl implements CadanganRepository {
     );
   }
 
+  static const pesanPerangkatKosong =
+      'Perangkat ini belum berisi transaksi maupun refleksi, sedangkan awan '
+      'masih menyimpan cadangan. Pulihkan data dulu agar cadangan tidak terhapus.';
+
   /// Menghitung ID dokumen di awan yang sudah tidak ada di lokal (mencegah data hantu).
   static Set<String> cariDokumenUsang({
     required Iterable<String> idAwan,
@@ -55,21 +60,93 @@ class CadanganRepositoryImpl implements CadanganRepository {
     return idAwan.where((id) => !setLokal.contains(id)).toSet();
   }
 
+  /// Membandingkan isi dokumen awan dengan baris lokal ber-ID sama.
+  static bool isiSama(Map<String, dynamic> awan, Map<String, Object?> lokal) {
+    if (awan.length != lokal.length) return false;
+    for (final kolom in lokal.entries) {
+      if (!awan.containsKey(kolom.key) || awan[kolom.key] != kolom.value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static SelisihKoleksi hitungSelisih({
+    required List<Map<String, Object?>> lokal,
+    required Map<String, Map<String, dynamic>> awan,
+  }) {
+    final lokalPerId = {
+      for (final baris in lokal) baris['id'].toString(): baris,
+    };
+    final usang = cariDokumenUsang(idAwan: awan.keys, idLokal: lokalPerId.keys);
+    var ditimpa = 0;
+    awan.forEach((id, isi) {
+      final baris = lokalPerId[id];
+      if (baris != null && !isiSama(isi, baris)) ditimpa++;
+    });
+    return SelisihKoleksi(
+      jumlahLokal: lokal.length,
+      jumlahAwan: awan.length,
+      akanDihapus: usang.length,
+      akanDitimpa: ditimpa,
+    );
+  }
+
+  Future<_DataCadangan> _muatData(String uid) async {
+    final db = await _databaseHelper.database;
+    final docPengguna = _firestore.collection('pengguna').doc(uid);
+    return _DataCadangan(
+      kategori: await db.query('kategori'),
+      transaksi: await db.query('transaksi'),
+      refleksi: await db.query('refleksi_mingguan'),
+      kategoriAwan: await docPengguna.collection('kategori').get(),
+      transaksiAwan: await docPengguna.collection('transaksi').get(),
+      refleksiAwan: await docPengguna.collection('refleksi').get(),
+    );
+  }
+
+  RencanaCadangan _susunRencana(_DataCadangan data) {
+    Map<String, Map<String, dynamic>> isiAwan(
+      QuerySnapshot<Map<String, dynamic>> snapshot,
+    ) => {for (final doc in snapshot.docs) doc.id: doc.data()};
+
+    return RencanaCadangan(
+      transaksi: hitungSelisih(
+        lokal: data.transaksi,
+        awan: isiAwan(data.transaksiAwan),
+      ),
+      kategori: hitungSelisih(
+        lokal: data.kategori,
+        awan: isiAwan(data.kategoriAwan),
+      ),
+      refleksi: hitungSelisih(
+        lokal: data.refleksi,
+        awan: isiAwan(data.refleksiAwan),
+      ),
+    );
+  }
+
+  @override
+  Future<RencanaCadangan> siapkanCadangan(String uid) async {
+    return _susunRencana(await _muatData(uid));
+  }
+
   @override
   Future<void> cadangkanData(String uid) async {
-    final db = await _databaseHelper.database;
-    final daftarKategori = await db.query('kategori');
-    final daftarTransaksi = await db.query('transaksi');
-    final daftarRefleksi = await db.query('refleksi_mingguan');
+    final data = await _muatData(uid);
+    // Pengaman di lapisan data: perangkat kosong tidak boleh mengosongkan awan
+    if (_susunRencana(data).ditolak) {
+      throw Exception(pesanPerangkatKosong);
+    }
+
+    final daftarKategori = data.kategori;
+    final daftarTransaksi = data.transaksi;
+    final daftarRefleksi = data.refleksi;
+    final snapshotKategoriAwan = data.kategoriAwan;
+    final snapshotTransaksiAwan = data.transaksiAwan;
+    final snapshotRefleksiAwan = data.refleksiAwan;
 
     final docPengguna = _firestore.collection('pengguna').doc(uid);
-
-    // Ambil dokumen yang saat ini ada di subkoleksi awan untuk mendeteksi data hantu
-    final snapshotKategoriAwan = await docPengguna.collection('kategori').get();
-    final snapshotTransaksiAwan = await docPengguna
-        .collection('transaksi')
-        .get();
-    final snapshotRefleksiAwan = await docPengguna.collection('refleksi').get();
 
     final localKategoriIds = daftarKategori
         .map((k) => k['id'].toString())
@@ -238,4 +315,22 @@ class CadanganRepositoryImpl implements CadanganRepository {
 
     return infoCadangan;
   }
+}
+
+class _DataCadangan {
+  final List<Map<String, Object?>> kategori;
+  final List<Map<String, Object?>> transaksi;
+  final List<Map<String, Object?>> refleksi;
+  final QuerySnapshot<Map<String, dynamic>> kategoriAwan;
+  final QuerySnapshot<Map<String, dynamic>> transaksiAwan;
+  final QuerySnapshot<Map<String, dynamic>> refleksiAwan;
+
+  const _DataCadangan({
+    required this.kategori,
+    required this.transaksi,
+    required this.refleksi,
+    required this.kategoriAwan,
+    required this.transaksiAwan,
+    required this.refleksiAwan,
+  });
 }

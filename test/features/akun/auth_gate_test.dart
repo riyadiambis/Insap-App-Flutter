@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:insap/core/theme.dart';
 import 'package:insap/features/akun/domain/entities/cadangan_info.dart';
 import 'package:insap/features/akun/domain/entities/pengguna_entity.dart';
+import 'package:insap/features/akun/domain/entities/rencana_cadangan.dart';
 import 'package:insap/features/akun/domain/repositories/akun_repository.dart';
 import 'package:insap/features/akun/domain/repositories/cadangan_repository.dart';
 import 'package:insap/features/akun/presentation/cubit/akun_cubit.dart';
@@ -62,6 +63,10 @@ class _FakeCadanganRepository implements CadanganRepository {
 
   @override
   Future<CadanganInfo?> ambilCadanganTerakhir(String uid) async => null;
+
+  @override
+  Future<RencanaCadangan> siapkanCadangan(String uid) async =>
+      const RencanaCadangan();
 
   @override
   Future<void> cadangkanData(String uid) async {}

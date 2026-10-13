@@ -56,6 +56,14 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
+  fake_cloud_firestore: ^3.1.0
+  sqflite_common_ffi: ^2.3.6
+
+# fake_cloud_firestore (khusus tes) masih mendeklarasikan equatable ^2,
+# sedangkan aplikasi memakai equatable ^3. Override ini tidak mengubah versi
+# equatable milik aplikasi, hanya mengizinkan paket tes ikut memakainya.
+dependency_overrides:
+  equatable: ^3.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insap/features/akun/domain/entities/cadangan_info.dart';
+import 'package:insap/features/akun/domain/entities/rencana_cadangan.dart';
 import 'package:insap/features/akun/domain/repositories/cadangan_repository.dart';
 import 'package:insap/features/akun/presentation/cubit/cadangan_cubit.dart';
 import 'package:insap/features/akun/presentation/cubit/cadangan_state.dart';
@@ -11,6 +12,7 @@ class _FakeCadanganRepository implements CadanganRepository {
   bool lemparGalat = false;
   String pesanGalat = 'Gagal memproses cadangan';
   CadanganInfo? mockInfo;
+  RencanaCadangan mockRencana = const RencanaCadangan();
 
   @override
   Stream<CadanganInfo?> pantauCadanganTerakhir(String uid) =>
@@ -20,6 +22,12 @@ class _FakeCadanganRepository implements CadanganRepository {
   Future<CadanganInfo?> ambilCadanganTerakhir(String uid) async {
     if (lemparGalat) throw Exception(pesanGalat);
     return mockInfo;
+  }
+
+  @override
+  Future<RencanaCadangan> siapkanCadangan(String uid) async {
+    if (lemparGalat) throw Exception(pesanGalat);
+    return mockRencana;
   }
 
   @override
@@ -146,6 +154,48 @@ void main() {
         expectLater(cubit.stream, emitsInOrder(expected));
 
         await cubit.pulihkanData('uid-user-1');
+      },
+    );
+
+    test('siapkanCadangan sukses mengembalikan rencana lalu kembali ke CadanganAwal', () async {
+      repo.mockRencana = const RencanaCadangan(
+        transaksi: SelisihKoleksi(
+          jumlahLokal: 1,
+          jumlahAwan: 3,
+          akanDihapus: 2,
+          akanDitimpa: 1,
+        ),
+      );
+
+      expectLater(
+        cubit.stream,
+        emitsInOrder([isA<CadanganMemuat>(), isA<CadanganAwal>()]),
+      );
+
+      final rencana = await cubit.siapkanCadangan('uid-user-1');
+      expect(rencana?.totalDihapus, 2);
+      expect(rencana?.totalDitimpa, 1);
+    });
+
+    test(
+      'siapkanCadangan gagal mengembalikan null dan memancarkan CadanganGalat',
+      () async {
+        repo.lemparGalat = true;
+        repo.pesanGalat = 'Koneksi jaringan terputus';
+
+        expectLater(
+          cubit.stream,
+          emitsInOrder([
+            isA<CadanganMemuat>(),
+            isA<CadanganGalat>().having(
+              (s) => s.pesan,
+              'pesan',
+              contains('Koneksi jaringan terputus'),
+            ),
+          ]),
+        );
+
+        expect(await cubit.siapkanCadangan('uid-user-1'), isNull);
       },
     );
 
