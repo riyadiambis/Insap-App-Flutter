@@ -98,7 +98,6 @@ class AppSizes {
   static const double tinggiNavigasiBawah = 72.0;
   static const double radiusItemNavigasi = 12.0;
   static const double ikonNavigasi = 24.0;
-  static const double lebarPillNavigasi = 64.0;
   static const double tinggiPillNavigasi = 56.0;
 
   // layar catat transaksi
