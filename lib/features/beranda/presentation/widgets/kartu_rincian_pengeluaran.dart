@@ -61,78 +61,30 @@ class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
           // baris 2: dua tombol pil rata kiri
           Row(
             children: [
-              GestureDetector(
+              _TombolPilPeriode(
                 key: const Key('pilih_periode_pekan'),
-                onTap: () {
-                  if (_periode != _PeriodeRincian.pekan) {
-                    setState(() {
-                      _periode = _PeriodeRincian.pekan;
-                    });
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sedang,
-                    vertical: AppSpacing.agakKecil,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isPekan ? AppColors.stabilo : AppColors.kartu,
-                    border: Border.all(
-                      color: AppColors.ink,
-                      width: AppSizes.border,
-                    ),
-                    borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-                    boxShadow: [
-                      isPekan
-                          ? AppTheme.bayanganKecilGelap
-                          : AppTheme.bayanganKecil,
-                    ],
-                  ),
-                  child: Text(
-                    'Pekan ini',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.ink,
-                      fontWeight: isPekan ? FontWeight.w800 : FontWeight.w700,
-                    ),
-                  ),
-                ),
+                label: 'Pekan ini',
+                aktif: isPekan,
+                onPressed: isPekan
+                    ? null
+                    : () {
+                        setState(() {
+                          _periode = _PeriodeRincian.pekan;
+                        });
+                      },
               ),
               const SizedBox(width: AppSpacing.kecil),
-              GestureDetector(
+              _TombolPilPeriode(
                 key: const Key('pilih_periode_bulan'),
-                onTap: () {
-                  if (_periode != _PeriodeRincian.bulan) {
-                    setState(() {
-                      _periode = _PeriodeRincian.bulan;
-                    });
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sedang,
-                    vertical: AppSpacing.agakKecil,
-                  ),
-                  decoration: BoxDecoration(
-                    color: !isPekan ? AppColors.stabilo : AppColors.kartu,
-                    border: Border.all(
-                      color: AppColors.ink,
-                      width: AppSizes.border,
-                    ),
-                    borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-                    boxShadow: [
-                      !isPekan
-                          ? AppTheme.bayanganKecilGelap
-                          : AppTheme.bayanganKecil,
-                    ],
-                  ),
-                  child: Text(
-                    'Bulan ini',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.ink,
-                      fontWeight: !isPekan ? FontWeight.w800 : FontWeight.w700,
-                    ),
-                  ),
-                ),
+                label: 'Bulan ini',
+                aktif: !isPekan,
+                onPressed: !isPekan
+                    ? null
+                    : () {
+                        setState(() {
+                          _periode = _PeriodeRincian.bulan;
+                        });
+                      },
               ),
             ],
           ),
@@ -215,101 +167,142 @@ class _BarisKategori extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<KategoriCubit, KategoriState, KategoriEntity?>(
-      selector: (state) {
-        if (state is KategoriLoaded) {
-          for (final k in state.kategoriList) {
-            if (k.id == item.kategoriId) return k;
-          }
+    // membaca state KategoriCubit secara reaktif dengan context.watch (Modul 5 Provider)
+    final kategoriState = context.watch<KategoriCubit>().state;
+    KategoriEntity? kategori;
+    if (kategoriState is KategoriLoaded) {
+      for (final k in kategoriState.kategoriList) {
+        if (k.id == item.kategoriId) {
+          kategori = k;
+          break;
         }
-        return null;
-      },
-      builder: (context, kategori) {
-        final namaKategori = kategori != null
-            ? kapitalPertama(kategori.nama)
-            : 'Tidak diketahui';
-        final ikon = kategori != null
-            ? parseIkonKategori(kategori.ikon)
-            : Icons.more_horiz;
-        final warna = kategori != null
-            ? parseWarnaKategori(kategori.warna)
-            : AppColors.inkSoft;
+      }
+    }
 
-        final double porsi = totalPeriode > 0 ? item.total / totalPeriode : 0.0;
-        final int persen = (porsi * 100).round();
+    final namaKategori = kategori != null
+        ? kapitalPertama(kategori.nama)
+        : 'Tidak diketahui';
+    final ikon = kategori != null
+        ? parseIkonKategori(kategori.ikon)
+        : Icons.more_horiz;
+    final warna = kategori != null
+        ? parseWarnaKategori(kategori.warna)
+        : AppColors.inkSoft;
 
-        return Row(
-          children: [
-            BadgeKategori(
-              ikon: ikon,
-              warna: warna,
-              ukuran: AppSizes.badgeKategoriKecil,
-            ),
-            const SizedBox(width: AppSpacing.sedang),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    final double porsi = totalPeriode > 0 ? item.total / totalPeriode : 0.0;
+    final int persen = (porsi * 100).round();
+
+    return Row(
+      children: [
+        BadgeKategori(
+          ikon: ikon,
+          warna: warna,
+          ukuran: AppSizes.badgeKategoriKecil,
+        ),
+        const SizedBox(width: AppSpacing.sedang),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          namaKategori,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.ink,
-                              ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.kecil),
-                      Text(
-                        item.total.toRupiah(),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.agakKecil),
-                      Text(
-                        '$persen%',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.inkSoft,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.agakKecil),
-                  Container(
-                    height: AppSizes.tinggiBatangPorsi,
-                    decoration: BoxDecoration(
-                      color: AppColors.grid,
-                      borderRadius: BorderRadius.circular(
-                        AppSizes.radiusBatangPorsi,
+                  Expanded(
+                    child: Text(
+                      namaKategori,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
                       ),
                     ),
-                    alignment: Alignment.centerLeft,
-                    child: FractionallySizedBox(
-                      widthFactor: porsi.clamp(0.0, 1.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: warna,
-                          borderRadius: BorderRadius.circular(
-                            AppSizes.radiusBatangPorsi,
-                          ),
-                        ),
-                      ),
+                  ),
+                  const SizedBox(width: AppSpacing.kecil),
+                  Text(
+                    item.total.toRupiah(),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.agakKecil),
+                  Text(
+                    '$persen%',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.inkSoft,
                     ),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: AppSpacing.agakKecil),
+              Container(
+                height: AppSizes.tinggiBatangPorsi,
+                decoration: BoxDecoration(
+                  color: AppColors.grid,
+                  borderRadius: BorderRadius.circular(
+                    AppSizes.radiusBatangPorsi,
+                  ),
+                ),
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: porsi.clamp(0.0, 1.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: warna,
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.radiusBatangPorsi,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// tombol pil periode dengan dukungan onPressed null saat aktif (Modul 4)
+class _TombolPilPeriode extends StatelessWidget {
+  final String label;
+  final bool aktif;
+  final VoidCallback? onPressed;
+
+  const _TombolPilPeriode({
+    super.key,
+    required this.label,
+    required this.aktif,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sedang,
+          vertical: AppSpacing.agakKecil,
+        ),
+        decoration: BoxDecoration(
+          color: aktif ? AppColors.stabilo : AppColors.kartu,
+          border: Border.all(color: AppColors.ink, width: AppSizes.border),
+          borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+          boxShadow: [
+            aktif ? AppTheme.bayanganKecilGelap : AppTheme.bayanganKecil,
           ],
-        );
-      },
+        ),
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: AppColors.ink,
+            fontWeight: aktif ? FontWeight.w800 : FontWeight.w700,
+          ),
+        ),
+      ),
     );
   }
 }
