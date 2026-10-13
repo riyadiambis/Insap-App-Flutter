@@ -219,6 +219,45 @@ Struktur folder utama di dalam direktori `lib/` disusun sebagai berikut:
   - `lib/features/kategori/`: Lapisan data, domain, dan presentasi untuk pengelolaan kategori pengeluaran.
   - `lib/features/perkenalan/`: Antarmuka alur perkenalan awal (*onboarding*) untuk pengguna baru.
   - `lib/features/refleksi/`: Antarmuka dan alur evaluasi pengeluaran mingguan berbasis metode Kakeibo.
+  - `lib/features/akun/`: Lapisan data, domain, dan presentasi untuk autentikasi akun Firebase Auth dan pencadangan awan Cloud Firestore (F-17 & F-13).
+
+## Cara Menghubungkan Firebase (Auth & Cloud Firestore)
+
+Insap mendukung fitur autentikasi akun (F-17) dan pencadangan awan (F-13) menggunakan Firebase Auth dan Cloud Firestore. Pengguna dapat mencadangkan transaksi, kategori, dan refleksi lokal ke awan, serta memulihkannya kembali secara transaksional.
+
+### 1. Prasyarat Alat
+Pastikan Firebase CLI dan FlutterFire CLI terpasang dan terautentikasi di lingkungan pengembangan:
+```bash
+npm install -g firebase-tools
+firebase login
+dart pub global activate flutterfire_cli
+```
+
+### 2. Konfigurasi Proyek Firebase
+Jalankan FlutterFire CLI untuk mengonfigurasi platform Android:
+```bash
+flutterfire configure --project=insap-riyadiambis --platforms=android --android-package-name=com.riyadiambis.insap -y
+```
+Perintah ini akan memperbarui `android/app/google-services.json` dan menghasilkan konfigurasi bootstrap di `lib/firebase_options.dart`.
+
+### 3. Pendaftaran SHA-1 untuk Google Sign-In
+Untuk mengaktifkan autentikasi Google Sign-In di perangkat Android atau emulator:
+1. Ambil sidik jari sertifikat SHA-1 debug:
+   ```bash
+   cd android
+   ./gradlew signingReport
+   ```
+2. Daftarkan fingerprint SHA-1 ke Firebase Console atau melalui CLI:
+   ```bash
+   firebase apps:android:sha:create 1:462432178922:android:835d03946af004e1ecfd93 <FINGERPRINT-SHA-1> --project=insap-riyadiambis
+   ```
+3. Unduh ulang konfigurasi terbaru dengan menjalankan kembali `flutterfire configure`.
+
+### 4. Aturan Keamanan Cloud Firestore
+Aturan keamanan Firestore (`firestore.rules`) mengisolasi seluruh data pengguna sehingga hanya dapat diakses oleh pemilik dokumen yang sah (`request.auth.uid == uid`). Publikasikan aturan keamanan via CLI:
+```bash
+firebase deploy --only firestore:rules --project=insap-riyadiambis
+```
 
 ## Alur Kerja Tim
 

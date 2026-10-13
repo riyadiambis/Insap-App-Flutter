@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "462432178922",
+    "project_id": "insap-riyadiambis",
+    "storage_bucket": "insap-riyadiambis.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:462432178922:android:835d03946af004e1ecfd93",
+        "android_client_info": {
+          "package_name": "com.riyadiambis.insap"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "462432178922-qmbjnr1t6cokvo2uq869qa279esrnv8j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.riyadiambis.insap",
+            "certificate_hash": "bd9624335328f152f95ec7525ae24d9c0788a07d"
+          }
+        },
+        {
+          "client_id": "462432178922-t3gl50ost5irfjuv1pdv6ns59vvumi7q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcM6-95kLhgR7k6BXHvcs8aP94g_IVARE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "462432178922-t3gl50ost5irfjuv1pdv6ns59vvumi7q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

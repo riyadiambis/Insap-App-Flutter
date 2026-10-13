@@ -18,6 +18,12 @@ import '../../features/transaksi/domain/usecases/tambah_transaksi.dart';
 import '../../features/transaksi/presentation/catat/cubit/catat_transaksi_cubit.dart';
 import '../../features/transaksi/presentation/riwayat/cubit/detail_transaksi_cubit.dart';
 import '../../features/transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
+import '../../features/akun/data/repositories/akun_repository_impl.dart';
+import '../../features/akun/data/repositories/cadangan_repository_impl.dart';
+import '../../features/akun/domain/repositories/akun_repository.dart';
+import '../../features/akun/domain/repositories/cadangan_repository.dart';
+import '../../features/akun/presentation/cubit/akun_cubit.dart';
+import '../../features/akun/presentation/cubit/cadangan_cubit.dart';
 
 // service locator get_it (P07-Clean). satu blok komentar per fitur,
 // urutannya ikut ATURAN-GIT.md. tambah baris cuma di blok fiturmu sendiri
@@ -42,15 +48,17 @@ void setupInjectionContainer() {
   sl.registerLazySingleton(() => AmbilRiwayat(sl()));
   sl.registerLazySingleton(() => HapusTransaksi(sl()));
   sl.registerLazySingleton(() => AmbilDetailTransaksi(sl()));
-  sl.registerFactory(() => RiwayatCubit(
-        ambilRiwayat: sl(),
-        hapusTransaksi: sl(),
-        tambahTransaksi: sl(),
-      ));
-  sl.registerFactory(() => DetailTransaksiCubit(
-        ambilDetailTransaksi: sl(),
-        hapusTransaksi: sl(),
-      ));
+  sl.registerFactory(
+    () => RiwayatCubit(
+      ambilRiwayat: sl(),
+      hapusTransaksi: sl(),
+      tambahTransaksi: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () =>
+        DetailTransaksiCubit(ambilDetailTransaksi: sl(), hapusTransaksi: sl()),
+  );
 
   // kategori (Luthfi)
   sl.registerLazySingleton<KategoriLocalDataSource>(
@@ -75,4 +83,10 @@ void setupInjectionContainer() {
   // refleksi (Luthfi) — SimpanRefleksi, AmbilRefleksiPekan di v0.2
 
   // pindai (Dafa) — PindaiStruk, AmbilKuotaPindai di v0.3
+
+  // akun & cadangan (Riyadi) — ISSUE-14
+  sl.registerLazySingleton<AkunRepository>(() => AkunRepositoryImpl());
+  sl.registerFactory(() => AkunCubit(akunRepository: sl()));
+  sl.registerLazySingleton<CadanganRepository>(() => CadanganRepositoryImpl());
+  sl.registerFactory(() => CadanganCubit(cadanganRepository: sl()));
 }
