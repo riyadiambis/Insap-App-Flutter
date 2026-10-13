@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:insap/features/akun/data/repositories/cadangan_repository_impl.dart';
 import 'package:insap/features/akun/domain/entities/cadangan_info.dart';
 
 void main() {
@@ -94,6 +95,116 @@ void main() {
       expect(infoLengkap.jumlahTransaksi, equals(25));
       expect(infoLengkap.jumlahKategori, equals(5));
       expect(infoLengkap.jumlahRefleksi, equals(2));
+    });
+  });
+
+  group('Pencegahan Risiko Data Hantu (Ghost Data)', () {
+    test('transaksi yang dihapus di lokal terdeteksi sebagai dokumen usang yang harus dihapus di awan', () {
+      final idTransaksiAwan = ['101', '102', '103'];
+      // Transaksi 102 dihapus di lokal
+      final idTransaksiLokal = ['101', '103'];
+
+      final idUsang = CadanganRepositoryImpl.cariDokumenUsang(
+        idAwan: idTransaksiAwan,
+        idLokal: idTransaksiLokal,
+      );
+
+      expect(idUsang, equals({'102'}));
+    });
+
+    test(
+      'kategori kustom yang dihapus di lokal terdeteksi untuk dihapus di awan',
+      () {
+        final idKategoriAwan = ['1', '2', '3', '99'];
+        // Kategori 99 dihapus di lokal
+        final idKategoriLokal = ['1', '2', '3'];
+
+        final idUsang = CadanganRepositoryImpl.cariDokumenUsang(
+          idAwan: idKategoriAwan,
+          idLokal: idKategoriLokal,
+        );
+
+        expect(idUsang, equals({'99'}));
+      },
+    );
+
+    test('refleksi yang dihapus di lokal terdeteksi untuk dihapus di awan', () {
+      final idRefleksiAwan = ['1', '2'];
+      // Refleksi 1 dihapus di lokal
+      final idRefleksiLokal = ['2'];
+
+      final idUsang = CadanganRepositoryImpl.cariDokumenUsang(
+        idAwan: idRefleksiAwan,
+        idLokal: idRefleksiLokal,
+      );
+
+      expect(idUsang, equals({'1'}));
+    });
+
+    test('jika data lokal kosong sama sekali, seluruh dokumen awan ditandai untuk dihapus', () {
+      final idTransaksiAwan = ['101', '102'];
+      final idTransaksiLokal = <String>[];
+
+      final idUsang = CadanganRepositoryImpl.cariDokumenUsang(
+        idAwan: idTransaksiAwan,
+        idLokal: idTransaksiLokal,
+      );
+
+      expect(idUsang, equals({'101', '102'}));
+    });
+
+    test('tidak ada dokumen awan yang dihapus jika semua data lokal tetap ada atau bertambah', () {
+      final idTransaksiAwan = ['101', '102'];
+      final idTransaksiLokal = ['101', '102', '103'];
+
+      final idUsang = CadanganRepositoryImpl.cariDokumenUsang(
+        idAwan: idTransaksiAwan,
+        idLokal: idTransaksiLokal,
+      );
+
+      expect(idUsang, isEmpty);
+    });
+
+    test('simulasi rekonsiliasi cadangan: penghapusan lokal tidak menimbulkan data hantu saat pulihkan', () {
+      // Simulasi database awan sebelum pencadangan ulang
+      final subkoleksiAwan = <String, Map<String, dynamic>>{
+        '101': {'id': 101, 'jumlah': 20000},
+        '102': {'id': 102, 'jumlah': 35000}, // dihapus lokal
+        '103': {'id': 103, 'jumlah': 50000},
+      };
+
+      // Data lokal saat ini
+      final daftarLokal = <Map<String, dynamic>>[
+        {'id': 101, 'jumlah': 25000}, // diperbarui
+        {'id': 103, 'jumlah': 50000},
+        {'id': 104, 'jumlah': 15000}, // transaksi baru
+      ];
+
+      // 1. Identifikasi dokumen usang di awan
+      final usang = CadanganRepositoryImpl.cariDokumenUsang(
+        idAwan: subkoleksiAwan.keys,
+        idLokal: daftarLokal.map((d) => d['id'].toString()),
+      );
+
+      // 2. Hapus dokumen usang dari awan
+      for (final id in usang) {
+        subkoleksiAwan.remove(id);
+      }
+
+      // 3. Tulis ulang/perbarui data lokal ke awan
+      for (final item in daftarLokal) {
+        subkoleksiAwan[item['id'].toString()] = item;
+      }
+
+      // 4. Verifikasi isi awan setelah pencadangan ulang
+      expect(subkoleksiAwan.containsKey('102'), isFalse);
+      expect(subkoleksiAwan.length, equals(3));
+      expect(subkoleksiAwan['101']?['jumlah'], equals(25000));
+      expect(subkoleksiAwan['104']?['jumlah'], equals(15000));
+
+      // 5. Simulasi pemulihan dari awan ke lokal: data hantu 102 tidak akan muncul
+      final hasilPulihkan = subkoleksiAwan.values.toList();
+      expect(hasilPulihkan.any((item) => item['id'] == 102), isFalse);
     });
   });
 }

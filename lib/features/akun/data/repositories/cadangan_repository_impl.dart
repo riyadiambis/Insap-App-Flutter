@@ -46,6 +46,15 @@ class CadanganRepositoryImpl implements CadanganRepository {
     );
   }
 
+  /// Menghitung ID dokumen di awan yang sudah tidak ada di lokal (mencegah data hantu).
+  static Set<String> cariDokumenUsang({
+    required Iterable<String> idAwan,
+    required Iterable<String> idLokal,
+  }) {
+    final setLokal = idLokal.toSet();
+    return idAwan.where((id) => !setLokal.contains(id)).toSet();
+  }
+
   @override
   Future<void> cadangkanData(String uid) async {
     final db = await _databaseHelper.database;
@@ -54,6 +63,23 @@ class CadanganRepositoryImpl implements CadanganRepository {
     final daftarRefleksi = await db.query('refleksi_mingguan');
 
     final docPengguna = _firestore.collection('pengguna').doc(uid);
+
+    // Ambil dokumen yang saat ini ada di subkoleksi awan untuk mendeteksi data hantu
+    final snapshotKategoriAwan = await docPengguna.collection('kategori').get();
+    final snapshotTransaksiAwan = await docPengguna
+        .collection('transaksi')
+        .get();
+    final snapshotRefleksiAwan = await docPengguna.collection('refleksi').get();
+
+    final localKategoriIds = daftarKategori
+        .map((k) => k['id'].toString())
+        .toSet();
+    final localTransaksiIds = daftarTransaksi
+        .map((t) => t['id'].toString())
+        .toSet();
+    final localRefleksiIds = daftarRefleksi
+        .map((r) => r['id'].toString())
+        .toSet();
 
     WriteBatch batch = _firestore.batch();
     int count = 0;
@@ -66,17 +92,44 @@ class CadanganRepositoryImpl implements CadanganRepository {
       }
     }
 
-    // Dokumen induk pengguna
-    batch.set(docPengguna, {
-      'cadangan_terakhir': FieldValue.serverTimestamp(),
-      'jumlah_transaksi': daftarTransaksi.length,
-      'jumlah_kategori': daftarKategori.length,
-      'jumlah_refleksi': daftarRefleksi.length,
-    }, SetOptions(merge: true));
-    count++;
-    await commitJikaPenuh();
+    // 1. Hapus dokumen di awan yang sudah tidak ada lagi di lokal (cegah data hantu)
+    final idKategoriUsang = cariDokumenUsang(
+      idAwan: snapshotKategoriAwan.docs.map((d) => d.id),
+      idLokal: localKategoriIds,
+    );
+    for (final doc in snapshotKategoriAwan.docs) {
+      if (idKategoriUsang.contains(doc.id)) {
+        batch.delete(doc.reference);
+        count++;
+        await commitJikaPenuh();
+      }
+    }
 
-    // Subkoleksi kategori
+    final idTransaksiUsang = cariDokumenUsang(
+      idAwan: snapshotTransaksiAwan.docs.map((d) => d.id),
+      idLokal: localTransaksiIds,
+    );
+    for (final doc in snapshotTransaksiAwan.docs) {
+      if (idTransaksiUsang.contains(doc.id)) {
+        batch.delete(doc.reference);
+        count++;
+        await commitJikaPenuh();
+      }
+    }
+
+    final idRefleksiUsang = cariDokumenUsang(
+      idAwan: snapshotRefleksiAwan.docs.map((d) => d.id),
+      idLokal: localRefleksiIds,
+    );
+    for (final doc in snapshotRefleksiAwan.docs) {
+      if (idRefleksiUsang.contains(doc.id)) {
+        batch.delete(doc.reference);
+        count++;
+        await commitJikaPenuh();
+      }
+    }
+
+    // 2. Subkoleksi kategori
     for (final kat in daftarKategori) {
       final ref = docPengguna.collection('kategori').doc(kat['id'].toString());
       batch.set(ref, Map<String, dynamic>.from(kat), SetOptions(merge: true));
@@ -84,7 +137,7 @@ class CadanganRepositoryImpl implements CadanganRepository {
       await commitJikaPenuh();
     }
 
-    // Subkoleksi transaksi
+    // 3. Subkoleksi transaksi
     for (final trx in daftarTransaksi) {
       final ref = docPengguna.collection('transaksi').doc(trx['id'].toString());
       batch.set(ref, Map<String, dynamic>.from(trx), SetOptions(merge: true));
@@ -92,7 +145,7 @@ class CadanganRepositoryImpl implements CadanganRepository {
       await commitJikaPenuh();
     }
 
-    // Subkoleksi refleksi
+    // 4. Subkoleksi refleksi
     for (final refData in daftarRefleksi) {
       final ref = docPengguna
           .collection('refleksi')
@@ -105,6 +158,16 @@ class CadanganRepositoryImpl implements CadanganRepository {
       count++;
       await commitJikaPenuh();
     }
+
+    // 5. Dokumen induk pengguna
+    batch.set(docPengguna, {
+      'cadangan_terakhir': FieldValue.serverTimestamp(),
+      'jumlah_transaksi': daftarTransaksi.length,
+      'jumlah_kategori': daftarKategori.length,
+      'jumlah_refleksi': daftarRefleksi.length,
+    }, SetOptions(merge: true));
+    count++;
+    await commitJikaPenuh();
 
     if (count > 0) {
       await batch.commit();

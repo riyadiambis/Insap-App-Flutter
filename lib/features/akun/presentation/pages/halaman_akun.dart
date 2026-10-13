@@ -374,15 +374,17 @@ class HalamanAkun extends StatelessWidget {
                                         const SizedBox(
                                           width: AppSpacing.sedang,
                                         ),
-                                        Text(
-                                          'Cadangan Awan (Firestore)',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w700,
-                                                color: AppColors.ink,
-                                              ),
+                                        Expanded(
+                                          child: Text(
+                                            'Cadangan Awan (Firestore)',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppColors.ink,
+                                                ),
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -431,16 +433,22 @@ class HalamanAkun extends StatelessWidget {
                                                           FontWeight.w700,
                                                     ),
                                               ),
-                                              Text(
-                                                waktuStr,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall
-                                                    ?.copyWith(
-                                                      color: AppColors.ink,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
+                                              const SizedBox(
+                                                width: AppSpacing.kecil,
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  waktuStr,
+                                                  textAlign: TextAlign.end,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color: AppColors.ink,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                ),
                                               ),
                                             ],
                                           ),
