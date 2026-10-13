@@ -13,6 +13,7 @@ import '../../../../beranda/presentation/cubit/beranda_cubit.dart';
 import '../../../../kategori/domain/entities/kategori_entity.dart';
 import '../../../../kategori/presentation/cubit/kategori_cubit.dart';
 import '../../../../kategori/presentation/cubit/kategori_state.dart';
+import '../../riwayat/cubit/riwayat_cubit.dart';
 import '../cubit/catat_transaksi_cubit.dart';
 import '../cubit/catat_transaksi_state.dart';
 import '../widgets/kolom_input_nominal.dart';
@@ -170,6 +171,8 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
           );
           // muat ulang ringkasan beranda biar langsung update (F-05)
           context.read<BerandaCubit>().muatRingkasan();
+          // riwayat juga, soalnya tab-nya nggak dibangun ulang (ISSUE-16)
+          context.read<RiwayatCubit>().muatRiwayat();
           // kembali ke tab beranda
           context.go('/');
           _catatanController.clear();
