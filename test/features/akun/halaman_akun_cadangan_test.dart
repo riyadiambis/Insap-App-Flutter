@@ -48,6 +48,8 @@ class _FakeCadanganRepository implements CadanganRepository {
   RencanaCadangan rencana = const RencanaCadangan();
   int jumlahCadangkan = 0;
 
+  bool lemparGalatPulihkan = false;
+
   @override
   Stream<CadanganInfo?> pantauCadanganTerakhir(String uid) =>
       _controller.stream;
@@ -62,7 +64,12 @@ class _FakeCadanganRepository implements CadanganRepository {
   Future<void> cadangkanData(String uid) async => jumlahCadangkan++;
 
   @override
-  Future<CadanganInfo> pulihkanData(String uid) async => const CadanganInfo();
+  Future<CadanganInfo> pulihkanData(String uid) async {
+    if (lemparGalatPulihkan) {
+      throw const PerangkatTidakKosongException();
+    }
+    return const CadanganInfo();
+  }
 
   void dispose() => _controller.close();
 }
@@ -185,5 +192,31 @@ void main() {
       expect(find.byType(AlertDialog), findsNothing);
       expect(repo.jumlahCadangkan, 1);
     });
+  });
+
+  group('Tombol Pulihkan pada HalamanAkun', () {
+    testWidgets(
+      'menampilkan pesan ramah penolakan bila perangkat tidak kosong',
+      (tester) async {
+        repo.lemparGalatPulihkan = true;
+        await bukaHalamanAkun(tester);
+
+        await tester.ensureVisible(find.byKey(const Key('tombol_pulihkan')));
+        await tester.tap(find.byKey(const Key('tombol_pulihkan')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Pulihkan Data dari Awan?'), findsOneWidget);
+
+        await tester.tap(find.text('Pulihkan'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            'Data di perangkat ini masih ada. Pemulihan hanya untuk perangkat kosong, supaya data barumu tidak tertimpa.',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }
