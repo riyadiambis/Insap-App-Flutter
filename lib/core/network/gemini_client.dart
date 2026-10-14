@@ -21,7 +21,7 @@ class GeminiClient {
   /// Nama model Flash stabil default, dapat diubah via --dart-define=GEMINI_MODEL=...
   static const String namaModelDefault = String.fromEnvironment(
     'GEMINI_MODEL',
-    defaultValue: 'gemini-2.0-flash-lite',
+    defaultValue: 'gemini-3.5-flash-lite',
   );
 
   /// Kunci API Gemini dari environment (--dart-define=GEMINI_API_KEY=...)
