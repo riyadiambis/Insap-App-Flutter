@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:insap/core/database/database_helper.dart';
 import 'package:insap/core/database/seed_kategori.dart';
 import 'package:insap/features/akun/data/repositories/cadangan_repository_impl.dart';
+import 'package:insap/features/akun/domain/entities/rencana_cadangan.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Menguji alur cadangkanData, siapkanCadangan, dan pulihkanData yang asli:
@@ -163,6 +164,57 @@ void main() {
 
         await repo.cadangkanData(uid);
         expect(await idAwan('kategori'), hasLength(seedKategori.length));
+      },
+    );
+
+    test('pulihkanData ditolak dan data lokal tetap utuh bila tabel transaksi lokal berisi data', () async {
+      await tambahTransaksi(jumlah: 25000, catatan: 'transaksi awan');
+      await tambahRefleksi(40);
+      await repo.cadangkanData(uid);
+      expect(await idAwan('transaksi'), {'1'});
+
+      await pasangUlangAplikasi();
+      final idBaru = await tambahTransaksi(
+        jumlah: 50000,
+        catatan: 'transaksi lokal baru',
+      );
+      final dataLokalSebelum = await db.query('transaksi');
+      expect(dataLokalSebelum, isNotEmpty);
+
+      await expectLater(
+        repo.pulihkanData(uid),
+        throwsA(
+          isA<PerangkatTidakKosongException>().having(
+            (e) => e.pesan,
+            'pesan',
+            contains('Data di perangkat ini masih ada'),
+          ),
+        ),
+      );
+
+      final dataLokalSesudah = await db.query('transaksi');
+      expect(dataLokalSesudah, equals(dataLokalSebelum));
+      expect(dataLokalSesudah.first['id'], idBaru);
+      expect(dataLokalSesudah.first['catatan'], 'transaksi lokal baru');
+    });
+
+    test(
+      'pulihkanData berhasil saat transaksi lokal kosong dan awan berisi data',
+      () async {
+        await tambahTransaksi(jumlah: 35000, catatan: 'transaksi awan');
+        await tambahRefleksi(40);
+        await repo.cadangkanData(uid);
+
+        await db.delete('transaksi');
+        expect(await db.query('transaksi'), isEmpty);
+
+        final info = await repo.pulihkanData(uid);
+        expect(info.jumlahTransaksi, 1);
+        expect(info.jumlahRefleksi, 1);
+
+        final dataLokal = await db.query('transaksi');
+        expect(dataLokal, hasLength(1));
+        expect(dataLokal.first['catatan'], 'transaksi awan');
       },
     );
   });

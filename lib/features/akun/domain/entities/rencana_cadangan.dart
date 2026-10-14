@@ -46,3 +46,16 @@ class RencanaCadangan {
 
   bool get perluKonfirmasi => totalDihapus > 0 || totalDitimpa > 0;
 }
+
+const String pesanPerangkatTidakKosong =
+    'Data di perangkat ini masih ada. Pemulihan hanya untuk perangkat kosong, supaya data barumu tidak tertimpa.';
+
+/// Galat khusus saat pemulihan ditolak karena tabel transaksi lokal masih berisi data.
+class PerangkatTidakKosongException implements Exception {
+  final String pesan;
+
+  const PerangkatTidakKosongException([this.pesan = pesanPerangkatTidakKosong]);
+
+  @override
+  String toString() => pesan;
+}

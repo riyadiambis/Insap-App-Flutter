@@ -51,6 +51,9 @@ class CadanganRepositoryImpl implements CadanganRepository {
       'Perangkat ini belum berisi transaksi maupun refleksi, sedangkan awan '
       'masih menyimpan cadangan. Pulihkan data dulu agar cadangan tidak terhapus.';
 
+  static const pesanPerangkatTidakKosong =
+      'Data di perangkat ini masih ada. Pemulihan hanya untuk perangkat kosong, supaya data barumu tidak tertimpa.';
+
   /// Menghitung ID dokumen di awan yang sudah tidak ada di lokal (mencegah data hantu).
   static Set<String> cariDokumenUsang({
     required Iterable<String> idAwan,
@@ -253,6 +256,12 @@ class CadanganRepositoryImpl implements CadanganRepository {
 
   @override
   Future<CadanganInfo> pulihkanData(String uid) async {
+    final db = await _databaseHelper.database;
+    final transaksiLokal = await db.query('transaksi');
+    if (transaksiLokal.isNotEmpty) {
+      throw const PerangkatTidakKosongException();
+    }
+
     final docPengguna = _firestore.collection('pengguna').doc(uid);
     final snapshotPengguna = await docPengguna.get();
 
@@ -273,8 +282,6 @@ class CadanganRepositoryImpl implements CadanganRepository {
     final snapshotKategori = await docPengguna.collection('kategori').get();
     final snapshotTransaksi = await docPengguna.collection('transaksi').get();
     final snapshotRefleksi = await docPengguna.collection('refleksi').get();
-
-    final db = await _databaseHelper.database;
 
     // Transaksi pemulihan lokal (atomik dan referensial)
     await db.transaction((txn) async {
