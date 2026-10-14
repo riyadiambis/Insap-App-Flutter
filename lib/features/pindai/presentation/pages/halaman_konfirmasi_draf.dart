@@ -154,7 +154,13 @@ class _HalamanKonfirmasiDrafState extends State<HalamanKonfirmasiDraf> {
       );
 
       // Kembali ke beranda
-      context.go('/');
+      try {
+        context.go('/');
+      } catch (_) {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      }
     }
   }
 
@@ -182,7 +188,15 @@ class _HalamanKonfirmasiDrafState extends State<HalamanKonfirmasiDraf> {
                   child: Row(
                     children: [
                       GestureDetector(
-                        onTap: () => context.pop(),
+                        onTap: () {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          } else {
+                            try {
+                              context.pop();
+                            } catch (_) {}
+                          }
+                        },
                         child: Container(
                           width: AppSizes.kotakIkonAksi,
                           height: AppSizes.kotakIkonAksi,
@@ -205,11 +219,14 @@ class _HalamanKonfirmasiDrafState extends State<HalamanKonfirmasiDraf> {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sedang),
-                      Text(
-                        'Konfirmasi Draf Struk',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
+                      Expanded(
+                        child: Text(
+                          'Konfirmasi Draf Struk',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.ink,
+                              ),
                         ),
                       ),
                     ],

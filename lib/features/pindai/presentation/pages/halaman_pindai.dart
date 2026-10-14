@@ -130,7 +130,13 @@ class _HalamanPindaiState extends State<HalamanPindai> {
                           GestureDetector(
                             onTap: () {
                               context.read<PindaiCubit>().reset();
-                              context.pop();
+                              if (Navigator.of(context).canPop()) {
+                                Navigator.of(context).pop();
+                              } else {
+                                try {
+                                  context.pop();
+                                } catch (_) {}
+                              }
                             },
                             child: Container(
                               width: AppSizes.kotakIkonAksi,
@@ -154,13 +160,15 @@ class _HalamanPindaiState extends State<HalamanPindai> {
                             ),
                           ),
                           const SizedBox(width: AppSpacing.sedang),
-                          Text(
-                            'Pindai Struk',
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.ink,
-                                ),
+                          Expanded(
+                            child: Text(
+                              'Pindai Struk',
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.ink,
+                                  ),
+                            ),
                           ),
                         ],
                       ),
