@@ -166,7 +166,7 @@ Fitur autentikasi dan pencadangan awan telah berhasil diselesaikan pada modul v0
 
 | Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
 |---|---|---|---|---|
-| F-17 | Masuk dengan akun Google | Firebase Auth, profil nama dan foto Google (ISSUE-19) | Riyadi | selesai |
+| F-17 | Masuk dengan akun (Email & Google) | Firebase Auth, profil nama dan foto Google (ISSUE-19) | Riyadi | selesai |
 | F-13 | Cadangan awan | Sinkronisasi ke Cloud Firestore dengan proteksi perangkat kosong (ISSUE-14) | Riyadi | selesai |
 | F-18 | Langganan premium | Penagihan lewat Google Play Billing, bergantung pada F-17 | - | belum dimulai |
 | F-15 | Pindai tanpa batas | Menghapus kuota mingguan bagi pelanggan, bergantung pada F-18 | - | belum dimulai |
@@ -182,9 +182,10 @@ Aplikasi ini dibangun menggunakan tumpukan teknologi berikut:
 - **Navigasi:** `go_router` (`^18.0.1`) dengan dukungan `StatefulShellRoute`
 - **Basis Data Lokal:** SQLite melalui pustaka `sqflite` (`^2.4.4`) dan `path` (`^1.9.1`)
 - **Layanan Awan & Autentikasi:**
-  - Firebase Core (`^3.15.2`)
-  - Firebase Authentication (`^5.7.0`) & Google Sign-In (`^6.3.0`)
-  - Cloud Firestore (`^5.6.12`) untuk pencadangan data awan
+  - `firebase_core` (`^3.12.1`)
+  - `firebase_auth` (`^5.5.1`)
+  - `cloud_firestore` (`^5.6.5`)
+  - `google_sign_in` (`^6.3.0`)
 - **Pustaka Pendukung:** `equatable` (`^3.0.0`) untuk perbandingan objek state dan `google_fonts` (`^8.2.1`) untuk tipografi
 
 ## Cara Menjalankan
