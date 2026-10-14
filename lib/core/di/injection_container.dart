@@ -32,6 +32,7 @@ import '../../features/pindai/data/repositories/pindai_repository_impl.dart';
 import '../../features/pindai/domain/repositories/pindai_repository.dart';
 import '../../features/pindai/domain/usecases/ambil_kuota_pindai.dart';
 import '../../features/pindai/domain/usecases/pindai_struk.dart';
+import '../../features/pindai/presentation/cubit/pindai_cubit.dart';
 
 // service locator get_it (P07-Clean). satu blok komentar per fitur,
 // urutannya ikut ATURAN-GIT.md. tambah baris cuma di blok fiturmu sendiri
@@ -99,13 +100,17 @@ void setupInjectionContainer() {
     () => KuotaLocalDataSourceImpl(DatabaseHelper()),
   );
   sl.registerLazySingleton<PindaiRepository>(
-    () => PindaiRepositoryImpl(
-      remoteDataSource: sl(),
-      localDataSource: sl(),
-    ),
+    () => PindaiRepositoryImpl(remoteDataSource: sl(), localDataSource: sl()),
   );
   sl.registerLazySingleton(() => PindaiStruk(sl()));
   sl.registerLazySingleton(() => AmbilKuotaPindai(sl()));
+  sl.registerFactory(
+    () => PindaiCubit(
+      pindaiStruk: sl(),
+      ambilKuotaPindai: sl(),
+      tambahTransaksi: sl(),
+    ),
+  );
 
   // akun & cadangan (Riyadi) — ISSUE-14
   sl.registerLazySingleton<AkunRepository>(() => AkunRepositoryImpl());

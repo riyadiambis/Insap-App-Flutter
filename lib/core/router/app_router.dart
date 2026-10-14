@@ -8,7 +8,13 @@ import '../../features/refleksi/presentation/pages/halaman_refleksi.dart';
 import '../../features/transaksi/presentation/catat/pages/halaman_catat_transaksi.dart';
 import '../../features/transaksi/presentation/riwayat/pages/halaman_detail_transaksi.dart';
 import '../../features/transaksi/presentation/riwayat/pages/halaman_riwayat.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../di/injection_container.dart';
 import '../../features/akun/presentation/pages/auth_gate.dart';
+import '../../features/pindai/presentation/cubit/pindai_cubit.dart';
+import '../../features/pindai/presentation/pages/halaman_pindai.dart';
 import 'app_shell.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -71,5 +77,12 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const HalamanPerkenalan(),
     ),
     GoRoute(path: '/akun', builder: (context, state) => const AuthGate()),
+    GoRoute(
+      path: '/pindai',
+      builder: (context, state) => BlocProvider(
+        create: (_) => sl<PindaiCubit>(),
+        child: const HalamanPindai(),
+      ),
+    ),
   ],
 );
