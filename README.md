@@ -38,6 +38,7 @@ Insap adalah aplikasi pencatat keuangan pribadi yang dirancang khusus untuk maha
 4. **Pindai Struk dengan AI (F-09 s.d. F-11, dalam pengerjaan):** Mengambil foto struk belanja untuk diekstraksi toko, tanggal, dan total belanjanya secara otomatis menggunakan Gemini AI, lalu dikonfirmasi pengguna sebelum disimpan. Kuota gratis sepuluh struk per pekan direset setiap Senin.
 5. **Riwayat Transaksi (F-02):** Melihat seluruh catatan pengeluaran yang dikelompokkan per tanggal. Dilengkapi filter rentang tanggal dan kategori, halaman detail transaksi, serta tombol hapus transaksi dengan dialog konfirmasi.
 6. **Refleksi Mingguan (F-08, dalam pengerjaan):** Ritual evaluasi akhir pekan untuk membandingkan realisasi pengeluaran dengan target mingguan, disertai catatan evaluasi diri untuk pekan berikutnya.
+7. **Akun & Cadangan Awan (F-17 & F-13):** Masuk menggunakan akun Google untuk menampilkan nama dan foto profil di Halaman Akun dan Beranda (ISSUE-19). Data lokal (transaksi, kategori, refleksi) dapat dicadangkan dengan aman ke Cloud Firestore, serta dipulihkan kembali secara cerdas dengan perlindungan agar data baru di perangkat tidak tertimpa (ISSUE-14). Autentikasi bersifat sepenuhnya opsional sehingga aplikasi tetap berfungsi penuh secara luring (KNF-04).
 
 ### Arsitektur Aplikasi
 
@@ -159,14 +160,14 @@ Pengembangan aplikasi Insap dilakukan secara bertahap per versi sesuai dengan ja
 |---|---|---|---|---|
 | F-12 | Laporan AI bulanan | Ringkasan naratif berbahasa santai tentang pola belanja sebulan | - | belum dimulai |
 
-### Fitur Bersyarat
+### Fitur Akun, Cadangan, dan Premium
 
-Fitur-fitur ini baru akan dikerjakan apabila gerbang mutu pada akhir Pertemuan 13 terpenuhi; jika tidak terpenuhi, fitur F-17 dan F-13 diganti dengan mekanisme ekspor dan impor cadangan berkas manual tanpa akun, sedangkan fitur F-18 dan F-15 tidak diimplementasikan dengan kuota gratis sepuluh pindaian per minggu berlaku untuk semua pengguna.
+Fitur autentikasi dan pencadangan awan telah berhasil diselesaikan pada modul v0.4 / pemantapan dengan integrasi Firebase Auth dan Cloud Firestore. Fitur langganan premium dan kuota tanpa batas direncanakan pada tahap berikutnya sesuai pemenuhan gerbang mutu.
 
 | Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
 |---|---|---|---|---|
-| F-17 | Masuk dengan akun Google | Firebase Auth, prasyarat wajib bagi F-13 | - | belum dimulai |
-| F-13 | Cadangan awan | Sinkronisasi ke Firestore, bergantung pada F-17 | - | belum dimulai |
+| F-17 | Masuk dengan akun Google | Firebase Auth, profil nama dan foto Google (ISSUE-19) | Riyadi | selesai |
+| F-13 | Cadangan awan | Sinkronisasi ke Cloud Firestore dengan proteksi perangkat kosong (ISSUE-14) | Riyadi | selesai |
 | F-18 | Langganan premium | Penagihan lewat Google Play Billing, bergantung pada F-17 | - | belum dimulai |
 | F-15 | Pindai tanpa batas | Menghapus kuota mingguan bagi pelanggan, bergantung pada F-18 | - | belum dimulai |
 
@@ -180,6 +181,10 @@ Aplikasi ini dibangun menggunakan tumpukan teknologi berikut:
 - **Injeksi Dependensi:** `get_it` (`^9.3.0`) sebagai penyedia layanan (*service locator*)
 - **Navigasi:** `go_router` (`^18.0.1`) dengan dukungan `StatefulShellRoute`
 - **Basis Data Lokal:** SQLite melalui pustaka `sqflite` (`^2.4.4`) dan `path` (`^1.9.1`)
+- **Layanan Awan & Autentikasi:**
+  - Firebase Core (`^3.15.2`)
+  - Firebase Authentication (`^5.7.0`) & Google Sign-In (`^6.3.0`)
+  - Cloud Firestore (`^5.6.12`) untuk pencadangan data awan
 - **Pustaka Pendukung:** `equatable` (`^3.0.0`) untuk perbandingan objek state dan `google_fonts` (`^8.2.1`) untuk tipografi
 
 ## Cara Menjalankan
