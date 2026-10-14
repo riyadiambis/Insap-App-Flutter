@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/widgets/avatar_profil.dart';
 import '../../../beranda/presentation/cubit/beranda_cubit.dart';
 import '../../../transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
 import '../../domain/entities/cadangan_info.dart';
@@ -415,24 +416,12 @@ class HalamanAkun extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                Container(
-                                  width: 52,
-                                  height: 52,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.stabilo,
-                                    border: Border.all(
-                                      color: AppColors.ink,
-                                      width: AppSizes.border,
-                                    ),
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusBadge,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: AppColors.ink,
-                                    size: 28,
-                                  ),
+                                AvatarProfil(
+                                  fotoUrl: pengguna.fotoUrl,
+                                  ukuran: 52,
+                                  ukuranIkon: 28,
+                                  warnaLatar: AppColors.stabilo,
+                                  warnaIkon: AppColors.ink,
                                 ),
                                 const SizedBox(width: AppSpacing.sedang),
                                 Expanded(
@@ -440,15 +429,43 @@ class HalamanAkun extends StatelessWidget {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        pengguna.email ?? 'Pengguna Anonim',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                      ),
+                                      if (pengguna.namaTampilan != null &&
+                                          pengguna.namaTampilan!
+                                              .trim()
+                                              .isNotEmpty) ...[
+                                        Text(
+                                          pengguna.namaTampilan!,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                        if (pengguna.email != null) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            pengguna.email!,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  color: AppColors.inkSoft,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          ),
+                                        ],
+                                      ] else ...[
+                                        Text(
+                                          pengguna.email ?? 'Pengguna Anonim',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                      ],
                                       const SizedBox(height: 2),
                                       Container(
                                         padding: const EdgeInsets.symmetric(

@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
+import '../../../akun/domain/entities/pengguna_entity.dart';
+import '../../../akun/domain/repositories/akun_repository.dart';
 import '../../../../core/utils/iso_week.dart';
 import '../../../../core/utils/rupiah_extension.dart';
 import '../../../../core/widgets/header_aplikasi.dart';
@@ -21,46 +24,83 @@ import '../widgets/kartu_rincian_pengeluaran.dart';
 import '../widgets/tampilan_kategori.dart';
 
 class HalamanBeranda extends StatelessWidget {
-  const HalamanBeranda({super.key});
+  final Stream<PenggunaEntity?>? streamPengguna;
+  final PenggunaEntity? penggunaAwal;
+
+  const HalamanBeranda({super.key, this.streamPengguna, this.penggunaAwal});
+
+  static String ambilNamaDepan(String? namaTampilan) {
+    if (namaTampilan == null) return 'Kawan';
+    final bersih = namaTampilan.trim();
+    if (bersih.isEmpty) return 'Kawan';
+    final bagian = bersih.split(RegExp(r'\s+'));
+    return bagian.isNotEmpty && bagian.first.isNotEmpty
+        ? bagian.first
+        : 'Kawan';
+  }
+
+  Stream<PenggunaEntity?>? _dapatkanStreamPengguna() {
+    if (streamPengguna != null) return streamPengguna;
+    if (sl.isRegistered<AkunRepository>()) {
+      try {
+        return sl<AkunRepository>().pantauPengguna();
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const HeaderAplikasi(namaLayar: 'BERANDA'),
-      body: PaperBackground(
-        child: Center(
-          child: Container(
-            constraints: const BoxConstraints(
-              maxWidth: AppSizes.batasLebarKonten,
-            ),
-            child: BlocBuilder<BerandaCubit, BerandaState>(
-              builder: (context, state) {
-                if (state is BerandaLoading || state is BerandaInitial) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.ink),
-                    ),
-                  );
-                } else if (state is BerandaError) {
-                  return Center(
-                    child: Text(
-                      'Ups, ada masalah:\n${state.pesan}',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  );
-                } else if (state is BerandaLoaded) {
-                  return _BerandaContent(
-                    ringkasan: state.ringkasan,
-                    rincian: state.rincian,
-                  );
-                }
-                return const SizedBox();
-              },
+    return StreamBuilder<PenggunaEntity?>(
+      initialData: penggunaAwal,
+      stream: _dapatkanStreamPengguna(),
+      builder: (context, authSnapshot) {
+        final pengguna = authSnapshot.hasError
+            ? penggunaAwal
+            : (authSnapshot.data ?? penggunaAwal);
+        return Scaffold(
+          appBar: HeaderAplikasi(namaLayar: 'BERANDA', pengguna: pengguna),
+          body: PaperBackground(
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(
+                  maxWidth: AppSizes.batasLebarKonten,
+                ),
+                child: BlocBuilder<BerandaCubit, BerandaState>(
+                  builder: (context, state) {
+                    if (state is BerandaLoading || state is BerandaInitial) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.ink,
+                          ),
+                        ),
+                      );
+                    } else if (state is BerandaError) {
+                      return Center(
+                        child: Text(
+                          'Ups, ada masalah:\n${state.pesan}',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      );
+                    } else if (state is BerandaLoaded) {
+                      return _BerandaContent(
+                        ringkasan: state.ringkasan,
+                        rincian: state.rincian,
+                        pengguna: pengguna,
+                      );
+                    }
+                    return const SizedBox();
+                  },
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -68,8 +108,13 @@ class HalamanBeranda extends StatelessWidget {
 class _BerandaContent extends StatelessWidget {
   final RingkasanPekanEntity ringkasan;
   final RincianPengeluaranEntity rincian;
+  final PenggunaEntity? pengguna;
 
-  const _BerandaContent({required this.ringkasan, required this.rincian});
+  const _BerandaContent({
+    required this.ringkasan,
+    required this.rincian,
+    this.pengguna,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +141,7 @@ class _BerandaContent extends StatelessWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          'Halo, Kawan!',
+                          'Halo, ${HalamanBeranda.ambilNamaDepan(pengguna?.namaTampilan)}!',
                           style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(fontWeight: FontWeight.w800),
                           overflow: TextOverflow.ellipsis,
