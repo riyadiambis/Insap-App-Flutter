@@ -15,6 +15,7 @@ import '../../../../kategori/presentation/cubit/kategori_cubit.dart';
 import '../../../../kategori/presentation/cubit/kategori_state.dart';
 import '../cubit/detail_transaksi_cubit.dart';
 import '../cubit/detail_transaksi_state.dart';
+import '../cubit/riwayat_cubit.dart';
 import '../widgets/riwayat_helper.dart';
 
 /// Layar Detail Transaksi (/transaksi/:id, P04-Router, P06-Cubit).
@@ -101,6 +102,9 @@ class _DetailTransaksiView extends StatelessWidget {
       if (sukses && context.mounted) {
         try {
           context.read<BerandaCubit>().muatRingkasan();
+        } catch (_) {}
+        try {
+          context.read<RiwayatCubit>().muatRiwayat();
         } catch (_) {}
         // Kembalikan objek transaksi ke halaman riwayat
         context.pop(state.transaksi);
