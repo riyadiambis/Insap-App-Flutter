@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:insap/core/widgets/avatar_profil.dart';
 import 'package:insap/core/widgets/header_aplikasi.dart';
 import 'package:insap/features/akun/domain/entities/pengguna_entity.dart';
@@ -67,5 +68,31 @@ void main() {
         expect(find.byIcon(Icons.person), findsOneWidget);
       },
     );
+
+    testWidgets('ketuk ikon profil menavigasi ke route /akun', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) =>
+                const Scaffold(appBar: HeaderAplikasi(namaLayar: 'BERANDA')),
+          ),
+          GoRoute(
+            path: '/akun',
+            builder: (context, state) =>
+                const Scaffold(body: Center(child: Text('Layar Akun Target'))),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+
+      expect(find.byKey(const Key('tombol_profil_header')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('tombol_profil_header')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Layar Akun Target'), findsOneWidget);
+    });
   });
 }
