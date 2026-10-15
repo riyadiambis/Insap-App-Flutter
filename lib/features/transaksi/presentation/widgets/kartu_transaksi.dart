@@ -63,32 +63,32 @@ class KartuTransaksi extends StatelessWidget {
                   runSpacing: AppSpacing.mini,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    if (adaCatatan)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.kecil,
-                          vertical: AppSpacing.mini,
-                        ),
-                        decoration: BoxDecoration(
-                          color: warnaKategori,
-                          borderRadius:
-                              BorderRadius.circular(AppSizes.radiusPil),
-                          border: Border.all(
-                            color: AppColors.ink,
-                            width: 1.0,
-                          ),
-                        ),
-                        child: Text(
-                          namaKategori,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelSmall
-                              ?.copyWith(
-                                color: AppColors.kartu,
-                                fontWeight: FontWeight.w800,
-                              ),
+                    // Badge Kategori selalu tampil (FITUR-01 baris 63)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.kecil,
+                        vertical: AppSpacing.mini,
+                      ),
+                      decoration: BoxDecoration(
+                        color: warnaKategori,
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.radiusPil),
+                        border: Border.all(
+                          color: AppColors.ink,
+                          width: 1.0,
                         ),
                       ),
+                      child: Text(
+                        namaKategori,
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelSmall
+                            ?.copyWith(
+                              color: AppColors.kartu,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ),
                     if (tipeKebutuhan != null &&
                         tipeKebutuhan!.trim().isNotEmpty)
                       Container(

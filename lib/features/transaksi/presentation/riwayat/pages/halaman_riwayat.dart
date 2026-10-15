@@ -53,13 +53,17 @@ class _RiwayatView extends StatelessWidget {
     );
   }
 
-  void _hapusTransaksi(BuildContext context, TransaksiEntity trx) {
+  Future<void> _hapusTransaksi(BuildContext context, TransaksiEntity trx) async {
     final cubit = context.read<RiwayatCubit>();
-    cubit.hapus(trx);
+    await cubit.hapus(trx);
 
-    try {
-      context.read<BerandaCubit>().muatRingkasan();
-    } catch (_) {}
+    if (!context.mounted) return;
+
+    if (cubit.state.status != RiwayatStatus.error) {
+      try {
+        context.read<BerandaCubit>().muatRingkasan();
+      } catch (_) {}
+    }
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -70,7 +74,7 @@ class _RiwayatView extends StatelessWidget {
           textColor: AppColors.stabilo,
           onPressed: () async {
             await cubit.batalHapus(trx);
-            if (context.mounted) {
+            if (context.mounted && cubit.state.status != RiwayatStatus.error) {
               try {
                 context.read<BerandaCubit>().muatRingkasan();
               } catch (_) {}
@@ -171,7 +175,7 @@ class _RiwayatView extends StatelessWidget {
 
                 return Column(
                   children: [
-                    // Bagian Kepala Atas (Padding tetap di atas)
+                    // Bagian Kepala Atas (Judul & Filter)
                     Padding(
                       padding: const EdgeInsets.only(
                         left: AppSpacing.besar,

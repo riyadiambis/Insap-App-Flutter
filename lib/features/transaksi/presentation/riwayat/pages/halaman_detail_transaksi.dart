@@ -15,6 +15,7 @@ import '../../../../kategori/presentation/cubit/kategori_cubit.dart';
 import '../../../../kategori/presentation/cubit/kategori_state.dart';
 import '../cubit/detail_transaksi_cubit.dart';
 import '../cubit/detail_transaksi_state.dart';
+import '../cubit/riwayat_cubit.dart';
 import '../widgets/riwayat_helper.dart';
 
 /// Layar Detail Transaksi (/transaksi/:id, P04-Router, P06-Cubit).
@@ -102,6 +103,9 @@ class _DetailTransaksiView extends StatelessWidget {
         try {
           context.read<BerandaCubit>().muatRingkasan();
         } catch (_) {}
+        try {
+          context.read<RiwayatCubit>().muatRiwayat();
+        } catch (_) {}
         // Kembalikan objek transaksi ke halaman riwayat
         context.pop(state.transaksi);
       }
@@ -112,68 +116,73 @@ class _DetailTransaksiView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: PaperBackground(
-        child: Center(
-          child: Container(
-            constraints:
-                const BoxConstraints(maxWidth: AppSizes.batasLebarKonten),
-            child: BlocBuilder<DetailTransaksiCubit, DetailTransaksiState>(
-              builder: (context, state) {
-                return Column(
-                  children: [
-                    // Header Navigasi Atas
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: AppSpacing.besar,
-                        top: AppSpacing.besar,
-                        right: AppSpacing.besar,
-                        bottom: AppSpacing.sedang,
-                      ),
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => context.pop(),
-                            child: Container(
-                              width: AppSizes.kotakIkonAksi,
-                              height: AppSizes.kotakIkonAksi,
-                              decoration: BoxDecoration(
-                                color: AppColors.kartu,
-                                border: Border.all(
-                                  color: AppColors.ink,
-                                  width: AppSizes.border,
+        child: SafeArea(
+          bottom: false,
+          child: Center(
+            child: Container(
+              constraints:
+                  const BoxConstraints(maxWidth: AppSizes.batasLebarKonten),
+              child: BlocBuilder<DetailTransaksiCubit, DetailTransaksiState>(
+                builder: (context, state) {
+                  return Column(
+                    children: [
+                      // Header Navigasi Atas
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: AppSpacing.besar,
+                          top: AppSpacing.besar,
+                          right: AppSpacing.besar,
+                          bottom: AppSpacing.sedang,
+                        ),
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () => context.pop(),
+                              child: Container(
+                                width: AppSizes.kotakIkonAksi,
+                                height: AppSizes.kotakIkonAksi,
+                                decoration: BoxDecoration(
+                                  color: AppColors.kartu,
+                                  border: Border.all(
+                                    color: AppColors.ink,
+                                    width: AppSizes.border,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  boxShadow: const [
+                                    AppTheme.bayanganKecilGelap,
+                                  ],
                                 ),
-                                borderRadius: BorderRadius.circular(10.0),
-                                boxShadow: const [
-                                  AppTheme.bayanganKecilGelap,
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.arrow_back_rounded,
-                                size: AppSizes.ikonAksi,
-                                color: AppColors.ink,
+                                child: const Icon(
+                                  Icons.arrow_back_rounded,
+                                  size: AppSizes.ikonAksi,
+                                  color: AppColors.ink,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: AppSpacing.sedang),
-                          Text(
-                            'Detail Transaksi',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                ),
-                          ),
-                        ],
+                            const SizedBox(width: AppSpacing.sedang),
+                            Expanded(
+                              child: Text(
+                                'Detail Transaksi',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
 
-                    // Konten Utama
-                    Expanded(
-                      child: _bangunKonten(context, state),
-                    ),
-                  ],
-                );
-              },
+                      // Konten Utama
+                      Expanded(
+                        child: _bangunKonten(context, state),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -333,7 +342,7 @@ class _DetailTransaksiView extends StatelessWidget {
                       nilai: sumberTeks,
                       nilaiWidget: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.kecil,
+                          horizontal: AppSpacing.agakKecil,
                           vertical: AppSpacing.mini,
                         ),
                         decoration: BoxDecoration(
@@ -361,7 +370,7 @@ class _DetailTransaksiView extends StatelessWidget {
                                   ? AppColors.benar
                                   : AppColors.inkSoft,
                             ),
-                            const SizedBox(width: AppSpacing.agakKecil),
+                            const SizedBox(width: AppSpacing.sangatKecil),
                             Text(
                               sumberTeks,
                               style: Theme.of(context)
@@ -378,6 +387,14 @@ class _DetailTransaksiView extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (trx.namaToko != null &&
+                        trx.namaToko!.trim().isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.sedang),
+                      _BarisDetail(
+                        label: 'NAMA TOKO',
+                        nilai: trx.namaToko!.trim(),
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.sedang),
                     _BarisDetail(
                       label: 'TIPE KEBUTUHAN',
@@ -518,25 +535,32 @@ class _BarisDetail extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: AppColors.inkSoft,
-                letterSpacing: 0.8,
-              ),
+        Expanded(
+          flex: 5,
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.inkSoft,
+                  letterSpacing: 0.5,
+                ),
+          ),
         ),
-        const SizedBox(width: AppSpacing.sedang),
+        const SizedBox(width: AppSpacing.kecil),
         Flexible(
-          child: nilaiWidget ??
-              Text(
-                nilai,
-                textAlign: TextAlign.end,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink,
-                    ),
-              ),
+          flex: 6,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: nilaiWidget ??
+                Text(
+                  nilai,
+                  textAlign: TextAlign.end,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
+                ),
+          ),
         ),
       ],
     );

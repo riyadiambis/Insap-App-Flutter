@@ -556,11 +556,7 @@ class _BerandaContent extends StatelessWidget {
               const SizedBox(width: AppSpacing.sedang),
               Expanded(
                 child: KartuBukuTulis(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Segera hadir')),
-                    );
-                  },
+                  onTap: () => context.push('/pindai'),
                   backgroundColor: AppColors.kartu,
                   shadow: AppTheme.bayanganDefault,
                   pressedShadow: AppTheme.bayanganDefaultTertekan,
