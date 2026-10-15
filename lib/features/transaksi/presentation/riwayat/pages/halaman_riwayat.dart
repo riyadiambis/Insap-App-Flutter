@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../core/paper_background.dart';
 import '../../../../../core/theme.dart';
-import '../../../../../core/widgets/header_aplikasi.dart';
 import '../../../../../core/widgets/kartu_buku_tulis.dart';
 import '../../../../../core/widgets/tombol_stabilo.dart';
 import '../../../../beranda/presentation/cubit/beranda_cubit.dart';
@@ -180,17 +179,9 @@ class _RiwayatView extends StatelessWidget {
                         right: AppSpacing.besar,
                         bottom: AppSpacing.sedang,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SizedBox(height: AppSpacing.sangatKecil),
-                          const HeaderAplikasi(namaLayar: 'RIWAYAT'),
-                          const SizedBox(height: AppSpacing.lebihBesar),
-                          _JudulRiwayat(
-                            isFilterAktif: isFilterAktif,
-                            onTapFilter: () => _bukaFilter(context),
-                          ),
-                        ],
+                      child: _JudulRiwayat(
+                        isFilterAktif: isFilterAktif,
+                        onTapFilter: () => _bukaFilter(context),
                       ),
                     ),
 

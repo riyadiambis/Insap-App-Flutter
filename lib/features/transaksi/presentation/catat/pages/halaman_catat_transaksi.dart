@@ -6,7 +6,6 @@ import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/paper_background.dart';
 import '../../../../../core/theme.dart';
 import '../../../../../core/utils/iso_week.dart';
-import '../../../../../core/widgets/header_aplikasi.dart';
 import '../../../../../core/widgets/kartu_buku_tulis.dart';
 import '../../../../../core/widgets/tombol_stabilo.dart';
 import '../../../../beranda/presentation/cubit/beranda_cubit.dart';
@@ -188,7 +187,6 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
         }
       },
       child: Scaffold(
-        appBar: const HeaderAplikasi(namaLayar: 'CATAT'),
         body: PaperBackground(
           child: Center(
             child: Container(

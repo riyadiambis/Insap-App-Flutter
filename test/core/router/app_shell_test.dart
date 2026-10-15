@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:insap/core/router/app_shell.dart';
 import 'package:insap/core/theme.dart';
+import 'package:insap/core/widgets/header_aplikasi.dart';
 
 Future<void> _muatFont(String keluarga, List<String> berkas) async {
   final loader = FontLoader(keluarga);
@@ -28,7 +29,7 @@ void main() {
     ]);
   });
 
-  Widget buatAplikasiUji() {
+  Widget buatAplikasiUji({Widget? kontenBeranda}) {
     final router = GoRouter(
       initialLocation: '/',
       routes: [
@@ -41,7 +42,7 @@ void main() {
               routes: [
                 GoRoute(
                   path: '/',
-                  builder: (context, state) => const SizedBox(),
+                  builder: (context, state) => kontenBeranda ?? const SizedBox(),
                 ),
               ],
             ),
@@ -70,6 +71,12 @@ void main() {
               ],
             ),
           ],
+        ),
+        GoRoute(
+          path: '/akun',
+          builder: (context, state) => const Scaffold(
+            body: Text('Halaman Akun Pengguna'),
+          ),
         ),
       ],
     );
@@ -190,5 +197,56 @@ void main() {
   group('AppShell - Keseragaman Pill Navigasi & Label Utuh', () {
     ujiPillNavigasiPadaLebarLayar(360.0);
     ujiPillNavigasiPadaLebarLayar(411.0);
+  });
+
+  group('AppShell - HeaderAplikasi Seragam di Seluruh Tab (ISSUE-24)', () {
+    testWidgets(
+      'tiap tab menampilkan tepat satu HeaderAplikasi dengan subjudul benar dan berganti saat pindah tab',
+      (tester) async {
+        await tester.pumpWidget(buatAplikasiUji());
+        await tester.pumpAndSettle();
+
+        // 1. Tab 0: Beranda
+        expect(find.byType(HeaderAplikasi), findsOneWidget);
+        expect(find.text('BERANDA'), findsOneWidget);
+
+        // 2. Tab 1: Catat
+        await tester.tap(find.text('Catat'));
+        await tester.pumpAndSettle();
+        expect(find.byType(HeaderAplikasi), findsOneWidget);
+        expect(find.text('CATAT'), findsOneWidget);
+        expect(find.text('BERANDA'), findsNothing);
+
+        // 3. Tab 2: Refleksi
+        await tester.tap(find.text('Refleksi'));
+        await tester.pumpAndSettle();
+        expect(find.byType(HeaderAplikasi), findsOneWidget);
+        expect(find.text('REFLEKSI'), findsOneWidget);
+        expect(find.text('CATAT'), findsNothing);
+
+        // 4. Tab 3: Riwayat
+        await tester.tap(find.text('Riwayat'));
+        await tester.pumpAndSettle();
+        expect(find.byType(HeaderAplikasi), findsOneWidget);
+        expect(find.text('RIWAYAT'), findsOneWidget);
+        expect(find.text('REFLEKSI'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'mengetuk tombol profil di header aplikasi mengarahkan navigasi ke rute /akun',
+      (tester) async {
+        await tester.pumpWidget(buatAplikasiUji());
+        await tester.pumpAndSettle();
+
+        final tombolProfil = find.byKey(const Key('tombol_profil_header'));
+        expect(tombolProfil, findsOneWidget);
+
+        await tester.tap(tombolProfil);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Halaman Akun Pengguna'), findsOneWidget);
+      },
+    );
   });
 }

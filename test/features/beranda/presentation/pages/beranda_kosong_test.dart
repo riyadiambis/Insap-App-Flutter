@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:insap/core/router/app_shell.dart';
 import 'package:insap/core/theme.dart';
+import 'package:insap/core/widgets/header_aplikasi.dart';
 import 'package:insap/features/beranda/presentation/cubit/beranda_cubit.dart';
 import 'package:insap/features/beranda/presentation/cubit/beranda_state.dart';
 import 'package:insap/features/beranda/presentation/pages/halaman_beranda.dart';
@@ -209,5 +211,73 @@ void main() {
     // Pastikan elemen Beranda normal muncul
     expect(find.text('PENGELUARAN PEKAN INI'), findsOneWidget);
     expect(find.text('Catatan Terakhir'), findsOneWidget);
+  });
+
+  testWidgets(
+      'Beranda kosong di dalam AppShell hanya menampilkan tepat satu HeaderAplikasi (tidak dobel)',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    const ringkasanKosong = RingkasanPekanEntity(
+      totalMingguIni: 0,
+      totalMingguLalu: 0,
+      selisihMingguan: 0,
+      transaksiTerakhir: [],
+      kuotaPindai: 10,
+    );
+
+    const rincianKosong = RincianPengeluaranEntity(
+      totalBulanIni: 0,
+      kategoriPekanIni: [],
+      kategoriBulanIni: [],
+    );
+
+    final berandaCubit = _FakeBerandaCubit(
+      ringkasan: ringkasanKosong,
+      rincian: rincianKosong,
+    );
+
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) {
+            return AppShell(navigationShell: navigationShell);
+          },
+          branches: [
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/',
+                  builder: (context, state) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider<BerandaCubit>.value(value: berandaCubit),
+                      BlocProvider<KategoriCubit>.value(value: kategoriCubit),
+                    ],
+                    child: const HalamanBeranda(),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.lightTheme,
+        routerConfig: router,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Memastikan konten beranda kosong tampil
+    expect(find.text('Belum Ada Pengeluaran yang Dicatat'), findsOneWidget);
+    // Memastikan hanya ada tepat SATU HeaderAplikasi dengan subjudul BERANDA (tidak dobel)
+    expect(find.byType(HeaderAplikasi), findsOneWidget);
+    expect(find.text('BERANDA'), findsOneWidget);
   });
 }
