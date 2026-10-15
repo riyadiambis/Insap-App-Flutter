@@ -36,7 +36,8 @@ class CadanganCubit extends Cubit<CadanganState> {
     emit(const CadanganMemuat('Sedang mencadangkan data ke awan...'));
     try {
       await cadanganRepository.cadangkanData(uid);
-      emit(const CadanganSukses('Data berhasil dicadangkan ke awan!'));
+      final info = await cadanganRepository.ambilCadanganTerakhir(uid);
+      emit(CadanganSukses('Data berhasil dicadangkan ke awan!', info: info));
     } catch (e) {
       emit(CadanganGalat(e.toString().replaceAll('Exception: ', '')));
     }
