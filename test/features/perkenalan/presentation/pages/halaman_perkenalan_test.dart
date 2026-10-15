@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:insap/core/widgets/kartu_buku_tulis.dart';
 import 'package:insap/features/perkenalan/domain/repositories/pengaturan_repository.dart';
 import 'package:insap/features/perkenalan/presentation/cubit/onboarding_cubit.dart';
 import 'package:insap/features/perkenalan/presentation/pages/halaman_perkenalan.dart';
@@ -121,5 +122,53 @@ void main() {
     expect(find.byKey(const Key('kolom_target_bulanan')), findsOneWidget);
     expect(find.byKey(const Key('tombol_simpan_target')), findsOneWidget);
     expect(find.byKey(const Key('tombol_nanti_saja')), findsOneWidget);
+  });
+
+  testWidgets(
+      'bebas overflow pada layar kecil 360x640 untuk ketiga layar perkenalan dan tinggi kartu sama',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+    addTearDown(() => tester.view.resetDevicePixelRatio());
+
+    await tester.pumpWidget(buatHalamanUji());
+    await tester.pumpAndSettle();
+
+    // Layar 1
+    expect(find.text('Sadar Sebelum Boncos'), findsOneWidget);
+    expect(
+      find.textContaining('Insap bantu kamu sadar uangmu habis ke mana'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+
+    final tinggiKartuLayar1 =
+        tester.getSize(find.byType(KartuBukuTulis).first).height;
+    expect(tinggiKartuLayar1, greaterThan(0));
+
+    // Pindah ke Layar 2
+    await tester.tap(find.byKey(const Key('tombol_lanjut')));
+    await tester.pumpAndSettle();
+
+    // Layar 2
+    expect(find.text('Catat Cepat Dua Langkah'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    final tinggiKartuLayar2 =
+        tester.getSize(find.byType(KartuBukuTulis).first).height;
+    expect(tinggiKartuLayar2, equals(tinggiKartuLayar1));
+
+    // Pindah ke Layar 3
+    await tester.tap(find.byKey(const Key('tombol_lanjut')));
+    await tester.pumpAndSettle();
+
+    // Layar 3
+    expect(find.text('Refleksi Mingguan'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    final tinggiKartuLayar3 =
+        tester.getSize(find.byType(KartuBukuTulis).first).height;
+    expect(tinggiKartuLayar3, equals(tinggiKartuLayar1));
   });
 }

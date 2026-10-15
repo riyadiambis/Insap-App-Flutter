@@ -151,45 +151,58 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
           ),
         ),
 
-        // PageView 3 Layar Perkenalan
+        // PageView 3 Layar Perkenalan dengan LayoutBuilder (tinggi kartu dihitung dari ruang vertikal tersedia)
         Expanded(
-          child: PageView(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() => _halamanAktif = index);
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Sekitar 60% dari ruang vertikal di antara header dan indikator titik
+              final double tinggiKartu = constraints.maxHeight * 0.60;
+
+              return PageView(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() => _halamanAktif = index);
+                },
+                children: [
+                  _buildSlideItem(
+                    context,
+                    tinggiKartu: tinggiKartu,
+                    ikon: Icons.auto_stories_rounded,
+                    warnaLatarIkon: AppColors.stabilo,
+                    judul: 'Sadar Sebelum Boncos',
+                    kalimat:
+                        'Insap bantu kamu sadar uangmu habis ke mana, sebelum dompet menipis.',
+                  ),
+                  _buildSlideItem(
+                    context,
+                    tinggiKartu: tinggiKartu,
+                    ikon: Icons.edit_note_rounded,
+                    warnaLatarIkon: AppColors.paper,
+                    judul: 'Catat Cepat Dua Langkah',
+                    kalimat:
+                        'Cukup isi nominal pengeluaran lalu pilih kategori, catatan keuanganmu langsung rapi seketika.',
+                  ),
+                  _buildSlideItem(
+                    context,
+                    tinggiKartu: tinggiKartu,
+                    ikon: Icons.psychology_alt_outlined,
+                    warnaLatarIkon: AppColors.stabilo,
+                    judul: 'Refleksi Mingguan',
+                    kalimat:
+                        'Tiap akhir pekan, luangkan sejenak untuk melihat ulang pengeluaran, tandai butuh atau pengen, lalu tetapkan target hemat untuk pekan depan.',
+                  ),
+                ],
+              );
             },
-            children: [
-              _buildSlideItem(
-                context,
-                ikon: Icons.auto_stories_rounded,
-                warnaLatarIkon: AppColors.stabilo,
-                judul: 'Sadar Sebelum Boncos',
-                kalimat:
-                    'Insap bantu kamu sadar uangmu habis ke mana, sebelum dompet menipis.',
-              ),
-              _buildSlideItem(
-                context,
-                ikon: Icons.edit_note_rounded,
-                warnaLatarIkon: AppColors.paper,
-                judul: 'Catat Cepat Dua Langkah',
-                kalimat:
-                    'Cukup isi nominal pengeluaran lalu pilih kategori, catatan keuanganmu langsung rapi seketika.',
-              ),
-              _buildSlideItem(
-                context,
-                ikon: Icons.psychology_alt_outlined,
-                warnaLatarIkon: AppColors.stabilo,
-                judul: 'Refleksi Mingguan Tanpa Beban',
-                kalimat:
-                    'Tiap akhir pekan, luangkan sejenak untuk melihat ulang pengeluaran, tandai butuh atau pengen, lalu tetapkan target hemat untuk pekan depan.',
-              ),
-            ],
           ),
         ),
 
         // Bagian Bawah: Indikator Titik & Tombol Navigasi
         Padding(
-          padding: const EdgeInsets.all(AppSpacing.besar),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.besar,
+            vertical: AppSpacing.sedang,
+          ),
           child: Column(
             children: [
               // Indikator Titik Halaman
@@ -214,7 +227,7 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
                   );
                 }),
               ),
-              const SizedBox(height: AppSpacing.besar),
+              const SizedBox(height: AppSpacing.sedang),
 
               // Tombol Aksi Bawah
               TombolStabilo(
@@ -243,64 +256,79 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
 
   Widget _buildSlideItem(
     BuildContext context, {
+    required double tinggiKartu,
     required IconData ikon,
     required Color warnaLatarIkon,
     required String judul,
     required String kalimat,
   }) {
     return Center(
-      child: SingleChildScrollView(
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.besar),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: AppSizes.batasLebarKonten),
-          child: KartuBukuTulis(
-            padding: const EdgeInsets.all(AppSpacing.lebihBesar),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Ilustrasi Lingkaran Ikon tema Buku Tulis
-                Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    color: warnaLatarIkon,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.ink,
-                      width: AppSizes.border,
-                    ),
-                    boxShadow: const [AppTheme.bayanganDefault],
-                  ),
-                  child: Icon(
-                    ikon,
-                    size: 48,
-                    color: AppColors.ink,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lebihBesar),
-
-                // Judul Slide
-                Text(
-                  judul,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
+          child: SizedBox(
+            height: tinggiKartu,
+            child: KartuBukuTulis(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.besar,
+                vertical: AppSpacing.sedang,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Ilustrasi Lingkaran Ikon tema Buku Tulis diperbesar sekitar 1,5x (diameter 120, ikon 72)
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: warnaLatarIkon,
+                      shape: BoxShape.circle,
+                      border: Border.all(
                         color: AppColors.ink,
+                        width: AppSizes.border,
                       ),
-                ),
-                const SizedBox(height: AppSpacing.sedang),
+                      boxShadow: const [AppTheme.bayanganDefault],
+                    ),
+                    child: Icon(
+                      ikon,
+                      size: 72,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sedang),
 
-                // Kalimat Slide
-                Text(
-                  kalimat,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.inkSoft,
-                        height: 1.5,
-                        fontWeight: FontWeight.w600,
+                  // Judul Slide
+                  Text(
+                    judul,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.kecil),
+
+                  // Kalimat Slide (Expanded + SingleChildScrollView agar posisi awal seragam dan bebas overflow)
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Text(
+                          kalimat,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppColors.inkSoft,
+                                height: 1.45,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
                       ),
-                ),
-              ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
