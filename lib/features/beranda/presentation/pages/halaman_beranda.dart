@@ -9,7 +9,6 @@ import '../../../akun/domain/entities/pengguna_entity.dart';
 import '../../../akun/domain/repositories/akun_repository.dart';
 import '../../../../core/utils/iso_week.dart';
 import '../../../../core/utils/rupiah_extension.dart';
-import '../../../../core/widgets/header_aplikasi.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
 import '../../../../core/widgets/tombol_stabilo.dart';
 import '../../../kategori/domain/entities/kategori_entity.dart';
@@ -62,7 +61,6 @@ class HalamanBeranda extends StatelessWidget {
             ? penggunaAwal
             : (authSnapshot.data ?? penggunaAwal);
         return Scaffold(
-          appBar: HeaderAplikasi(namaLayar: 'BERANDA', pengguna: pengguna),
           body: PaperBackground(
             child: Center(
               child: Container(
