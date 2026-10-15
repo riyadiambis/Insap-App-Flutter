@@ -92,11 +92,14 @@ class _TombolStabiloState extends State<TombolStabilo> {
                       ),
                       const SizedBox(width: AppSpacing.kecil),
                     ],
-                    Text(
-                      widget.teks,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                    Flexible(
+                      child: Text(
+                        widget.teks,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
                     ),
                   ],
                 ),

@@ -24,6 +24,10 @@ import '../../features/akun/domain/repositories/akun_repository.dart';
 import '../../features/akun/domain/repositories/cadangan_repository.dart';
 import '../../features/akun/presentation/cubit/akun_cubit.dart';
 import '../../features/akun/presentation/cubit/cadangan_cubit.dart';
+import '../../features/perkenalan/data/datasources/pengaturan_local_datasource.dart';
+import '../../features/perkenalan/data/repositories/pengaturan_repository_impl.dart';
+import '../../features/perkenalan/domain/repositories/pengaturan_repository.dart';
+import '../../features/perkenalan/presentation/cubit/onboarding_cubit.dart';
 
 // service locator get_it (P07-Clean). satu blok komentar per fitur,
 // urutannya ikut ATURAN-GIT.md. tambah baris cuma di blok fiturmu sendiri
@@ -78,7 +82,16 @@ void setupInjectionContainer() {
     () => BerandaCubit(ambilRingkasanPekan: sl(), ambilRincianKategori: sl()),
   );
 
-  // perkenalan (Luthfi) — didaftarkan di ISSUE-05
+  // perkenalan & pengaturan (ISSUE-23)
+  sl.registerLazySingleton<PengaturanLocalDataSource>(
+    () => PengaturanLocalDataSource(),
+  );
+  sl.registerLazySingleton<PengaturanRepository>(
+    () => PengaturanRepositoryImpl(dataSource: sl()),
+  );
+  sl.registerFactory(
+    () => OnboardingCubit(pengaturanRepository: sl()),
+  );
 
   // refleksi (Luthfi) — SimpanRefleksi, AmbilRefleksiPekan di v0.2
 
