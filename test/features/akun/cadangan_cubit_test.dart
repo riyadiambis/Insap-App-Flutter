@@ -14,6 +14,10 @@ class _FakeCadanganRepository implements CadanganRepository {
   CadanganInfo? mockInfo;
   RencanaCadangan mockRencana = const RencanaCadangan();
 
+  Future<RencanaCadangan> Function()? customSiapkanCadangan;
+  Future<void> Function()? customCadangkanData;
+  Future<CadanganInfo> Function()? customPulihkanData;
+
   @override
   Stream<CadanganInfo?> pantauCadanganTerakhir(String uid) =>
       _controller.stream;
@@ -26,12 +30,14 @@ class _FakeCadanganRepository implements CadanganRepository {
 
   @override
   Future<RencanaCadangan> siapkanCadangan(String uid) async {
+    if (customSiapkanCadangan != null) return customSiapkanCadangan!();
     if (lemparGalat) throw Exception(pesanGalat);
     return mockRencana;
   }
 
   @override
   Future<void> cadangkanData(String uid) async {
+    if (customCadangkanData != null) return customCadangkanData!();
     if (lemparGalat) throw Exception(pesanGalat);
     final info = CadanganInfo(
       waktuCadanganTerakhir: DateTime.now(),
@@ -45,6 +51,7 @@ class _FakeCadanganRepository implements CadanganRepository {
 
   @override
   Future<CadanganInfo> pulihkanData(String uid) async {
+    if (customPulihkanData != null) return customPulihkanData!();
     if (lemparGalat) throw Exception(pesanGalat);
     return mockInfo ??
         CadanganInfo(waktuCadanganTerakhir: DateTime.now(), jumlahTransaksi: 5);
@@ -217,6 +224,54 @@ void main() {
       );
 
       await cubit.cadangkanData('uid-user-1');
+    });
+
+    group('Pengaman Penutupan Cubit (ISSUE-22)', () {
+      test(
+        'siapkanCadangan: Cubit ditutup saat Future masih berjalan, tidak ada exception',
+        () async {
+          final completer = Completer<RencanaCadangan>();
+          repo.customSiapkanCadangan = () => completer.future;
+
+          final future = cubit.siapkanCadangan('uid-user-1');
+          await cubit.close();
+
+          completer.complete(const RencanaCadangan());
+          final hasil = await future;
+          expect(hasil, isNull);
+          expect(cubit.isClosed, isTrue);
+        },
+      );
+
+      test(
+        'cadangkanData: Cubit ditutup saat Future masih berjalan, tidak ada exception',
+        () async {
+          final completer = Completer<void>();
+          repo.customCadangkanData = () => completer.future;
+
+          final future = cubit.cadangkanData('uid-user-1');
+          await cubit.close();
+
+          completer.complete();
+          await future;
+          expect(cubit.isClosed, isTrue);
+        },
+      );
+
+      test(
+        'pulihkanData: Cubit ditutup saat Future masih berjalan, tidak ada exception',
+        () async {
+          final completer = Completer<CadanganInfo>();
+          repo.customPulihkanData = () => completer.future;
+
+          final future = cubit.pulihkanData('uid-user-1');
+          await cubit.close();
+
+          completer.complete(const CadanganInfo(jumlahTransaksi: 5));
+          await future;
+          expect(cubit.isClosed, isTrue);
+        },
+      );
     });
   });
 }

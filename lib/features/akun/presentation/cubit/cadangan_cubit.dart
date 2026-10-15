@@ -24,9 +24,11 @@ class CadanganCubit extends Cubit<CadanganState> {
     emit(const CadanganMemuat('Memeriksa cadangan di awan...'));
     try {
       final rencana = await cadanganRepository.siapkanCadangan(uid);
+      if (isClosed) return null;
       emit(const CadanganAwal());
       return rencana;
     } catch (e) {
+      if (isClosed) return null;
       emit(CadanganGalat(e.toString().replaceAll('Exception: ', '')));
       return null;
     }
@@ -36,9 +38,12 @@ class CadanganCubit extends Cubit<CadanganState> {
     emit(const CadanganMemuat('Sedang mencadangkan data ke awan...'));
     try {
       await cadanganRepository.cadangkanData(uid);
+      if (isClosed) return;
       final info = await cadanganRepository.ambilCadanganTerakhir(uid);
+      if (isClosed) return;
       emit(CadanganSukses('Data berhasil dicadangkan ke awan!', info: info));
     } catch (e) {
+      if (isClosed) return;
       emit(CadanganGalat(e.toString().replaceAll('Exception: ', '')));
     }
   }
@@ -47,8 +52,10 @@ class CadanganCubit extends Cubit<CadanganState> {
     emit(const CadanganMemuat('Sedang memulihkan data dari awan...'));
     try {
       final info = await cadanganRepository.pulihkanData(uid);
+      if (isClosed) return;
       emit(CadanganPulihSukses(info));
     } catch (e) {
+      if (isClosed) return;
       emit(CadanganGalat(e.toString().replaceAll('Exception: ', '')));
     }
   }

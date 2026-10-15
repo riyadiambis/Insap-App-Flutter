@@ -182,13 +182,14 @@ class _HalamanAkunState extends State<HalamanAkun> {
   Future<void> _mulaiCadangkan(BuildContext context, CadanganInfo? info) async {
     final cubit = context.read<CadanganCubit>();
     final rencana = await cubit.siapkanCadangan(pengguna.uid);
-    if (rencana == null || !context.mounted) return;
+    if (!mounted || !context.mounted || rencana == null) return;
 
     if (rencana.ditolak) {
       _tampilkanPerangkatKosong(context, rencana, info);
     } else if (rencana.perluKonfirmasi) {
       _konfirmasiCadangkan(context, rencana);
     } else {
+      if (!mounted || !context.mounted) return;
       cubit.cadangkanData(pengguna.uid);
     }
   }
@@ -346,11 +347,8 @@ class _HalamanAkunState extends State<HalamanAkun> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider<CadanganCubit>(
-      create: (_) => sl<CadanganCubit>(),
-      child: Scaffold(
+  Widget _buildScaffold(BuildContext context) {
+    return Scaffold(
         appBar: AppBar(
           title: Text(
             'Akun & Cadangan',
@@ -811,7 +809,21 @@ class _HalamanAkunState extends State<HalamanAkun> {
             ),
           ),
         ),
-      ),
-    );
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    try {
+      context.read<CadanganCubit>();
+      return _buildScaffold(context);
+    } catch (_) {
+      return BlocProvider<CadanganCubit>(
+        create: (_) => sl<CadanganCubit>(),
+        child: Builder(
+          builder: (childContext) => _buildScaffold(childContext),
+        ),
+      );
+    }
   }
 }
