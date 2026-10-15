@@ -158,14 +158,16 @@ class _DetailTransaksiView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: AppSpacing.sedang),
-                          Text(
-                            'Detail Transaksi',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                ),
+                          Expanded(
+                            child: Text(
+                              'Detail Transaksi',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                            ),
                           ),
                         ],
                       ),
@@ -337,7 +339,7 @@ class _DetailTransaksiView extends StatelessWidget {
                       nilai: sumberTeks,
                       nilaiWidget: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.kecil,
+                          horizontal: AppSpacing.agakKecil,
                           vertical: AppSpacing.mini,
                         ),
                         decoration: BoxDecoration(
@@ -365,7 +367,7 @@ class _DetailTransaksiView extends StatelessWidget {
                                   ? AppColors.benar
                                   : AppColors.inkSoft,
                             ),
-                            const SizedBox(width: AppSpacing.agakKecil),
+                            const SizedBox(width: AppSpacing.sangatKecil),
                             Text(
                               sumberTeks,
                               style: Theme.of(context)
@@ -382,6 +384,14 @@ class _DetailTransaksiView extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (trx.namaToko != null &&
+                        trx.namaToko!.trim().isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.sedang),
+                      _BarisDetail(
+                        label: 'NAMA TOKO',
+                        nilai: trx.namaToko!.trim(),
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.sedang),
                     _BarisDetail(
                       label: 'TIPE KEBUTUHAN',
@@ -522,25 +532,32 @@ class _BarisDetail extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: AppColors.inkSoft,
-                letterSpacing: 0.8,
-              ),
+        Expanded(
+          flex: 5,
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.inkSoft,
+                  letterSpacing: 0.5,
+                ),
+          ),
         ),
-        const SizedBox(width: AppSpacing.sedang),
+        const SizedBox(width: AppSpacing.kecil),
         Flexible(
-          child: nilaiWidget ??
-              Text(
-                nilai,
-                textAlign: TextAlign.end,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink,
-                    ),
-              ),
+          flex: 6,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: nilaiWidget ??
+                Text(
+                  nilai,
+                  textAlign: TextAlign.end,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
+                ),
+          ),
         ),
       ],
     );
