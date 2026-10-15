@@ -64,17 +64,28 @@ void main() {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(() => tester.view.resetPhysicalSize());
+    addTearDown(() => tester.view.resetDevicePixelRatio());
 
     await tester.pumpWidget(buatHalamanUji());
     await tester.pumpAndSettle();
 
     // Layar 1
     expect(find.byKey(const Key('tombol_lewati')), findsOneWidget);
-    expect(find.textContaining('Sadar Sebelum Boncos'), findsOneWidget);
+    expect(find.text('KENALAN DULU'), findsOneWidget);
+    expect(
+      find.textContaining('Sadar Sebelum', findRichText: true),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Boncos', findRichText: true), findsOneWidget);
     expect(
       find.textContaining(
-        'Insap bantu kamu sadar uangmu habis ke mana, sebelum dompet menipis.',
+        'Insap bantu kamu sadar uangmu habis',
+        findRichText: true,
       ),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('ke mana', findRichText: true),
       findsOneWidget,
     );
 
@@ -84,7 +95,27 @@ void main() {
 
     // Layar 2
     expect(find.byKey(const Key('tombol_lewati')), findsOneWidget);
-    expect(find.textContaining('Catat Cepat Dua Langkah'), findsOneWidget);
+    expect(find.text('CATAT'), findsOneWidget);
+    expect(
+      find.textContaining('Catat Cepat', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Dua Langkah', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Isi nominal', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('contoh Rp15.000', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Pilih kategori', findRichText: true),
+      findsOneWidget,
+    );
 
     // Geser ke Layar 3 via tombol Lanjut
     await tester.tap(find.byKey(const Key('tombol_lanjut')));
@@ -92,16 +123,32 @@ void main() {
 
     // Layar 3
     expect(find.byKey(const Key('tombol_lewati')), findsOneWidget);
-    expect(find.textContaining('Refleksi Mingguan'), findsOneWidget);
+    expect(find.text('TIAP AKHIR PEKAN'), findsOneWidget);
     expect(
-      find.byWidgetPredicate((widget) {
-        if (widget is Text && widget.data != null) {
-          return widget.data!.toLowerCase().contains('refleksi');
-        }
-        return false;
-      }),
-      findsWidgets,
+      find.textContaining('Refleksi', findRichText: true),
+      findsOneWidget,
     );
+    expect(
+      find.textContaining('Mingguan', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Lihat ulang', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('pengeluaran sepekan', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('butuh atau pengen?', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('target', findRichText: true),
+      findsOneWidget,
+    );
+    expect(find.text('Santai, tanpa menghakimi.'), findsOneWidget);
   });
 
   testWidgets('tombol Lewati langsung membuka layar target pengeluaran',
@@ -109,6 +156,7 @@ void main() {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(() => tester.view.resetPhysicalSize());
+    addTearDown(() => tester.view.resetDevicePixelRatio());
 
     await tester.pumpWidget(buatHalamanUji());
     await tester.pumpAndSettle();
@@ -136,9 +184,21 @@ void main() {
     await tester.pumpAndSettle();
 
     // Layar 1
-    expect(find.text('Sadar Sebelum Boncos'), findsOneWidget);
+    expect(find.text('KENALAN DULU'), findsOneWidget);
     expect(
-      find.textContaining('Insap bantu kamu sadar uangmu habis ke mana'),
+      find.textContaining('Sadar Sebelum', findRichText: true),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Boncos', findRichText: true), findsOneWidget);
+    expect(
+      find.textContaining(
+        'Insap bantu kamu sadar uangmu habis',
+        findRichText: true,
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('ke mana', findRichText: true),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
@@ -152,7 +212,23 @@ void main() {
     await tester.pumpAndSettle();
 
     // Layar 2
-    expect(find.text('Catat Cepat Dua Langkah'), findsOneWidget);
+    expect(find.text('CATAT'), findsOneWidget);
+    expect(
+      find.textContaining('Catat Cepat', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Dua Langkah', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Isi nominal', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('contoh Rp15.000', findRichText: true),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
 
     final tinggiKartuLayar2 =
@@ -164,7 +240,28 @@ void main() {
     await tester.pumpAndSettle();
 
     // Layar 3
-    expect(find.text('Refleksi Mingguan'), findsOneWidget);
+    expect(find.text('TIAP AKHIR PEKAN'), findsOneWidget);
+    expect(
+      find.textContaining('Refleksi', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Mingguan', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Lihat ulang', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('butuh atau pengen?', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('target', findRichText: true),
+      findsOneWidget,
+    );
+    expect(find.text('Santai, tanpa menghakimi.'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     final tinggiKartuLayar3 =

@@ -169,27 +169,216 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
                     tinggiKartu: tinggiKartu,
                     ikon: Icons.auto_stories_rounded,
                     warnaLatarIkon: AppColors.stabilo,
-                    judul: 'Sadar Sebelum Boncos',
-                    kalimat:
-                        'Insap bantu kamu sadar uangmu habis ke mana, sebelum dompet menipis.',
+                    label: 'KENALAN DULU',
+                    judulSebelum: 'Sadar Sebelum ',
+                    judulStabilo: 'Boncos',
+                    isi: Text.rich(
+                      TextSpan(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.inkSoft,
+                              height: 1.45,
+                              fontWeight: FontWeight.w600,
+                            ),
+                        children: const [
+                          TextSpan(
+                            text: 'Insap bantu kamu sadar uangmu habis ',
+                          ),
+                          TextSpan(
+                            text: 'ke mana',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.ink,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ', sebelum dompet menipis.',
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                   _buildSlideItem(
                     context,
                     tinggiKartu: tinggiKartu,
                     ikon: Icons.edit_note_rounded,
                     warnaLatarIkon: AppColors.paper,
-                    judul: 'Catat Cepat Dua Langkah',
-                    kalimat:
-                        'Cukup isi nominal pengeluaran lalu pilih kategori, catatan keuanganmu langsung rapi seketika.',
+                    label: 'CATAT',
+                    judulSebelum: 'Catat Cepat ',
+                    judulStabilo: 'Dua Langkah',
+                    isi: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildBarisLangkah(
+                          context,
+                          nomor: 1,
+                          konten: Text.rich(
+                            TextSpan(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: AppColors.inkSoft,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                              children: const [
+                                TextSpan(
+                                  text: 'Isi nominal',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                                TextSpan(text: ' — '),
+                                TextSpan(
+                                  text: 'contoh Rp15.000',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.inkSoft,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.agakKecil),
+                        _buildBarisLangkah(
+                          context,
+                          nomor: 2,
+                          konten: Text.rich(
+                            TextSpan(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: AppColors.inkSoft,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                              children: const [
+                                TextSpan(
+                                  text: 'Pilih kategori',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                                TextSpan(text: ' — '),
+                                TextSpan(
+                                  text: 'makan, transport, nongkrong...',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.inkSoft,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   _buildSlideItem(
                     context,
                     tinggiKartu: tinggiKartu,
                     ikon: Icons.psychology_alt_outlined,
                     warnaLatarIkon: AppColors.stabilo,
-                    judul: 'Refleksi Mingguan',
-                    kalimat:
-                        'Tiap akhir pekan, luangkan sejenak untuk melihat ulang pengeluaran, tandai butuh atau pengen, lalu tetapkan target hemat untuk pekan depan.',
+                    label: 'TIAP AKHIR PEKAN',
+                    judulSebelum: 'Refleksi ',
+                    judulStabilo: 'Mingguan',
+                    isi: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildBarisLangkah(
+                          context,
+                          nomor: 1,
+                          konten: Text.rich(
+                            TextSpan(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: AppColors.inkSoft,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                              children: const [
+                                TextSpan(
+                                  text: 'Lihat ulang',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                                TextSpan(text: ' pengeluaran sepekan'),
+                              ],
+                            ),
+                          ),
+                        ),
+                        _buildBarisLangkah(
+                          context,
+                          nomor: 2,
+                          konten: Text.rich(
+                            TextSpan(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: AppColors.inkSoft,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                              children: const [
+                                TextSpan(text: 'Tandai: '),
+                                TextSpan(
+                                  text: 'butuh atau pengen?',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        _buildBarisLangkah(
+                          context,
+                          nomor: 3,
+                          konten: Text.rich(
+                            TextSpan(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: AppColors.inkSoft,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                              children: const [
+                                TextSpan(text: 'Tetapkan '),
+                                TextSpan(
+                                  text: 'target',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                                TextSpan(text: ' pekan depan'),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.sangatKecil),
+                        Text(
+                          'Santai, tanpa menghakimi.',
+                          textAlign: TextAlign.center,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontStyle: FontStyle.italic,
+                                    color: AppColors.inkSoft,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               );
@@ -259,8 +448,11 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
     required double tinggiKartu,
     required IconData ikon,
     required Color warnaLatarIkon,
-    required String judul,
-    required String kalimat,
+    required String label,
+    required String judulSebelum,
+    required String judulStabilo,
+    String? judulSetelah,
+    required Widget isi,
   }) {
     return Center(
       child: Padding(
@@ -272,7 +464,7 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
             child: KartuBukuTulis(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.besar,
-                vertical: AppSpacing.sedang,
+                vertical: AppSpacing.kecil,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -296,34 +488,28 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
                       color: AppColors.ink,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sedang),
+                  const SizedBox(height: AppSpacing.kecil),
 
-                  // Judul Slide
-                  Text(
-                    judul,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
-                        ),
+                  // 1. Label kecil di atas judul: huruf kapital, kecil, tebal, berwarna aksen tema (seperti badge)
+                  _buildLabelBadge(context, label),
+                  const SizedBox(height: AppSpacing.sangatKecil),
+
+                  // 2. Judul besar Baloo 2 dengan SATU frasa diberi efek stabilo kuning
+                  _buildJudulBerstabilo(
+                    context,
+                    teksSebelum: judulSebelum,
+                    teksStabilo: judulStabilo,
+                    teksSetelah: judulSetelah,
                   ),
                   const SizedBox(height: AppSpacing.kecil),
 
-                  // Kalimat Slide (Expanded + SingleChildScrollView agar posisi awal seragam dan bebas overflow)
+                  // 3. Isi Nunito (Expanded + SingleChildScrollView agar posisi awal seragam dan bebas overflow)
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const ClampingScrollPhysics(),
                       child: SizedBox(
                         width: double.infinity,
-                        child: Text(
-                          kalimat,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.inkSoft,
-                                height: 1.45,
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
+                        child: isi,
                       ),
                     ),
                   ),
@@ -332,6 +518,129 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Label kecil di atas judul: huruf kapital, kecil, tebal, berwarna aksen tema (seperti badge).
+  Widget _buildLabelBadge(BuildContext context, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sedang,
+        vertical: AppSpacing.mini,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.grid,
+        borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+        border: Border.all(
+          color: AppColors.ink,
+          width: AppSizes.borderTipis,
+        ),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppColors.ink,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
+            ),
+      ),
+    );
+  }
+
+  /// Judul besar Baloo 2 dengan SATU frasa diberi efek stabilo kuning (gaya stabilo seperti di judul Riwayat Transaksi).
+  Widget _buildJudulBerstabilo(
+    BuildContext context, {
+    required String teksSebelum,
+    required String teksStabilo,
+    String? teksSetelah,
+  }) {
+    final TextStyle gayaJudul =
+        Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: AppColors.ink,
+            ) ??
+            const TextStyle(
+              fontFamily: 'Baloo2',
+              fontWeight: FontWeight.w800,
+              color: AppColors.ink,
+              fontSize: 22,
+            );
+
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (teksSebelum.isNotEmpty)
+            Text(
+              teksSebelum,
+              style: gayaJudul,
+            ),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                bottom: AppSizes.geserStabiloJudul,
+                left: -AppSizes.geserStabiloJudul,
+                right: -AppSizes.geserStabiloJudul,
+                height: AppSizes.tinggiStabiloJudul,
+                child: Container(color: AppColors.stabilo),
+              ),
+              Text(
+                teksStabilo,
+                style: gayaJudul,
+              ),
+            ],
+          ),
+          if (teksSetelah != null && teksSetelah.isNotEmpty)
+            Text(
+              teksSetelah,
+              style: gayaJudul,
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Butir langkah bernomor untuk Layar 2 dan 3 (lingkaran nomor kecil + teks).
+  Widget _buildBarisLangkah(
+    BuildContext context, {
+    required int nomor,
+    required Widget konten,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: AppColors.grid,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.ink,
+                width: AppSizes.borderTipis,
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '$nomor',
+              style: const TextStyle(
+                fontFamily: 'Baloo2',
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+                color: AppColors.ink,
+                height: 1.0,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sedang),
+          Expanded(child: konten),
+        ],
       ),
     );
   }
