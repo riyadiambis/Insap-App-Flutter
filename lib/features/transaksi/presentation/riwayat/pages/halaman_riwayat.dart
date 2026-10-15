@@ -165,6 +165,7 @@ class _RiwayatView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const HeaderAplikasi(namaLayar: 'RIWAYAT'),
       body: PaperBackground(
         child: Center(
           child: Container(
@@ -176,7 +177,7 @@ class _RiwayatView extends StatelessWidget {
 
                 return Column(
                   children: [
-                    // Bagian Kepala Atas (Padding tetap di atas)
+                    // Bagian Kepala Atas (Judul & Filter)
                     Padding(
                       padding: const EdgeInsets.only(
                         left: AppSpacing.besar,
@@ -184,17 +185,9 @@ class _RiwayatView extends StatelessWidget {
                         right: AppSpacing.besar,
                         bottom: AppSpacing.sedang,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SizedBox(height: AppSpacing.sangatKecil),
-                          const HeaderAplikasi(namaLayar: 'RIWAYAT'),
-                          const SizedBox(height: AppSpacing.lebihBesar),
-                          _JudulRiwayat(
-                            isFilterAktif: isFilterAktif,
-                            onTapFilter: () => _bukaFilter(context),
-                          ),
-                        ],
+                      child: _JudulRiwayat(
+                        isFilterAktif: isFilterAktif,
+                        onTapFilter: () => _bukaFilter(context),
                       ),
                     ),
 
