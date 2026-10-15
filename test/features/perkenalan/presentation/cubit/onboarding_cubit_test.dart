@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:insap/features/perkenalan/domain/repositories/pengaturan_repository.dart';
+import 'package:insap/features/pengaturan/domain/repositories/pengaturan_repository.dart';
 import 'package:insap/features/perkenalan/presentation/cubit/onboarding_cubit.dart';
 import 'package:insap/features/perkenalan/presentation/cubit/onboarding_state.dart';
 
