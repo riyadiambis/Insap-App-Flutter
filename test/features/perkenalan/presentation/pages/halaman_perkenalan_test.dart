@@ -70,6 +70,12 @@ void main() {
     // Layar 1
     expect(find.byKey(const Key('tombol_lewati')), findsOneWidget);
     expect(find.textContaining('Sadar Sebelum Boncos'), findsOneWidget);
+    expect(
+      find.textContaining(
+        'Insap bantu kamu sadar uangmu habis ke mana, sebelum dompet menipis.',
+      ),
+      findsOneWidget,
+    );
 
     // Geser ke Layar 2 via tombol Lanjut
     await tester.tap(find.byKey(const Key('tombol_lanjut')));

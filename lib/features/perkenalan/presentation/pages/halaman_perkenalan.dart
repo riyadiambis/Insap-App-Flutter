@@ -165,7 +165,7 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
                 warnaLatarIkon: AppColors.stabilo,
                 judul: 'Sadar Sebelum Boncos',
                 kalimat:
-                    'Insap membantu kamu lebih sadar akan alur keluar masuk uang sebelum dompet menipis.',
+                    'Insap bantu kamu sadar uangmu habis ke mana, sebelum dompet menipis.',
               ),
               _buildSlideItem(
                 context,
