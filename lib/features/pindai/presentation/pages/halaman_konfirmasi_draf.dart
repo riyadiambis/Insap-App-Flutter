@@ -64,20 +64,31 @@ class _HalamanKonfirmasiDrafState extends State<HalamanKonfirmasiDraf> {
   }
 
   void _inisialisasiKategori(List<KategoriEntity> list) {
-    final validList = list.where((k) => k.id != null).toList();
-    if (validList.isEmpty) return;
+    if (list.isEmpty) return;
+
     final usulan = widget.hasilPindai.kategoriUsulan?.toLowerCase().trim();
+    int? matchedId;
+
     if (usulan != null && usulan.isNotEmpty) {
-      final cocok = validList.firstWhere(
-        (k) =>
-            k.nama.toLowerCase() == usulan ||
-            k.nama.toLowerCase().contains(usulan) ||
-            usulan.contains(k.nama.toLowerCase()),
-        orElse: () => validList.first,
-      );
-      _kategoriIdTerpilih = cocok.id;
+      for (final k in list) {
+        if (k.id == null) continue;
+        final nama = k.nama.toLowerCase();
+        if (nama == usulan || nama.contains(usulan) || usulan.contains(nama)) {
+          matchedId = k.id;
+          break;
+        }
+      }
+    }
+
+    if (matchedId != null) {
+      _kategoriIdTerpilih = matchedId;
     } else {
-      _kategoriIdTerpilih = validList.first.id;
+      for (final k in list) {
+        if (k.id != null) {
+          _kategoriIdTerpilih = k.id;
+          break;
+        }
+      }
     }
   }
 
