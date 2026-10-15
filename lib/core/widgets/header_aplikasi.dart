@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../features/akun/domain/entities/pengguna_entity.dart';
 import '../../features/akun/domain/repositories/akun_repository.dart';
-import '../../features/beranda/presentation/pages/halaman_tentang.dart';
 import '../di/injection_container.dart';
 import '../theme.dart';
 import 'avatar_profil.dart';
@@ -13,7 +13,7 @@ import 'avatar_profil.dart';
 /// - Kiri: Kotak logo kuning stabilo dengan ikon dompet, teks "Insap",
 ///   dan subjudul [namaLayar] kapital ("BERANDA" / "CATAT").
 /// - Kanan: Tombol lonceng notifikasi dan avatar profil yang masing-masing
-///   memunculkan SnackBar "Segera hadir" atau membuka HalamanTentang.
+///   memunculkan SnackBar "Segera hadir" atau membuka alur akun (/akun).
 class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
   final String namaLayar;
   final PenggunaEntity? pengguna;
@@ -136,12 +136,7 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
                     const SizedBox(width: AppSpacing.kecil),
                     GestureDetector(
                       key: const Key('tombol_profil_header'),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const HalamanTentang(),
-                        ),
-                      ),
+                      onTap: () => context.push('/akun'),
                       child: StreamBuilder<PenggunaEntity?>(
                         initialData: pengguna,
                         stream: _dapatkanStreamPengguna(),

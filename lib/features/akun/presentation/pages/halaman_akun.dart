@@ -5,6 +5,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/avatar_profil.dart';
+import '../../../../core/widgets/kartu_tentang_aplikasi.dart';
 import '../../../beranda/presentation/cubit/beranda_cubit.dart';
 import '../../../transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
 import '../../domain/entities/cadangan_info.dart';
@@ -779,6 +780,10 @@ class HalamanAkun extends StatelessWidget {
                           );
                         },
                       ),
+                      const SizedBox(height: AppSpacing.besar),
+
+                      // Kartu Informasi Aplikasi & Tim Pengembang (ISSUE-20)
+                      const KartuTentangAplikasi(),
                     ],
                   ),
                 ),
