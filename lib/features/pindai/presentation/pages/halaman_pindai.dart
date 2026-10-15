@@ -115,7 +115,9 @@ class _HalamanPindaiState extends State<HalamanPindai> {
                   return HalamanKonfirmasiDraf(hasilPindai: state.hasilPindai!);
                 }
 
-                return Column(
+                return SafeArea(
+                  bottom: false,
+                  child: Column(
                   children: [
                     // Header Navigasi Atas
                     Padding(
@@ -393,8 +395,9 @@ class _HalamanPindaiState extends State<HalamanPindai> {
                       ),
                     ),
                   ],
-                );
-              },
+                ),
+              );
+            },
             ),
           ),
         ),

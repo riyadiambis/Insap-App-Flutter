@@ -206,11 +206,13 @@ class _HalamanKonfirmasiDrafState extends State<HalamanKonfirmasiDraf> {
 
     return Scaffold(
       body: PaperBackground(
-        child: Center(
-          child: Container(
-            constraints: const BoxConstraints(
-              maxWidth: AppSizes.batasLebarKonten,
-            ),
+        child: SafeArea(
+          bottom: false,
+          child: Center(
+            child: Container(
+              constraints: const BoxConstraints(
+                maxWidth: AppSizes.batasLebarKonten,
+              ),
             child: Column(
               children: [
                 // Header Navigasi Atas
@@ -680,6 +682,7 @@ class _HalamanKonfirmasiDrafState extends State<HalamanKonfirmasiDraf> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
