@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/widgets/avatar_profil.dart';
+import '../../../../core/widgets/dialog_sukses.dart';
+import '../../../../core/widgets/kartu_tentang_aplikasi.dart';
 import '../../../beranda/presentation/cubit/beranda_cubit.dart';
 import '../../../transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
 import '../../domain/entities/cadangan_info.dart';
@@ -14,10 +17,19 @@ import '../cubit/akun_state.dart';
 import '../cubit/cadangan_cubit.dart';
 import '../cubit/cadangan_state.dart';
 
-class HalamanAkun extends StatelessWidget {
+class HalamanAkun extends StatefulWidget {
   final PenggunaEntity pengguna;
 
   const HalamanAkun({super.key, required this.pengguna});
+
+  @override
+  State<HalamanAkun> createState() => _HalamanAkunState();
+}
+
+class _HalamanAkunState extends State<HalamanAkun> {
+  CadanganInfo? _infoTerakhir;
+
+  PenggunaEntity get pengguna => widget.pengguna;
 
   static const List<String> _namaBulanSingkat = [
     'Jan',
@@ -170,13 +182,14 @@ class HalamanAkun extends StatelessWidget {
   Future<void> _mulaiCadangkan(BuildContext context, CadanganInfo? info) async {
     final cubit = context.read<CadanganCubit>();
     final rencana = await cubit.siapkanCadangan(pengguna.uid);
-    if (rencana == null || !context.mounted) return;
+    if (!mounted || !context.mounted || rencana == null) return;
 
     if (rencana.ditolak) {
       _tampilkanPerangkatKosong(context, rencana, info);
     } else if (rencana.perluKonfirmasi) {
       _konfirmasiCadangkan(context, rencana);
     } else {
+      if (!mounted || !context.mounted) return;
       cubit.cadangkanData(pengguna.uid);
     }
   }
@@ -334,11 +347,8 @@ class HalamanAkun extends StatelessWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider<CadanganCubit>(
-      create: (_) => sl<CadanganCubit>(),
-      child: Scaffold(
+  Widget _buildScaffold(BuildContext context) {
+    return Scaffold(
         appBar: AppBar(
           title: Text(
             'Akun & Cadangan',
@@ -358,24 +368,30 @@ class HalamanAkun extends StatelessWidget {
         body: BlocListener<CadanganCubit, CadanganState>(
           listener: (context, state) {
             if (state is CadanganSukses) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.pesan),
-                  backgroundColor: AppColors.benar,
-                ),
+              final info = state.info ?? _infoTerakhir;
+              final ringkasan = info != null
+                  ? '${info.jumlahTransaksi} transaksi, ${info.jumlahKategori} kategori, ${info.jumlahRefleksi} refleksi'
+                  : state.pesan;
+              tampilkanDialogSukses(
+                context,
+                'Cadangan berhasil',
+                ringkasan,
               );
             } else if (state is CadanganPulihSukses) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Data berhasil dipulihkan dari awan (${state.info.jumlahTransaksi} transaksi)!',
-                  ),
-                  backgroundColor: AppColors.benar,
-                ),
+              final ringkasan =
+                  '${state.info.jumlahTransaksi} transaksi, ${state.info.jumlahKategori} kategori, ${state.info.jumlahRefleksi} refleksi';
+              tampilkanDialogSukses(
+                context,
+                'Data berhasil dipulihkan',
+                ringkasan,
               );
               // Muat ulang KEDUANYA sesuai aturan ISSUE-16 dan ISSUE-14
-              context.read<BerandaCubit>().muatRingkasan();
-              context.read<RiwayatCubit>().muatRiwayat();
+              try {
+                context.read<BerandaCubit>().muatRingkasan();
+              } catch (_) {}
+              try {
+                context.read<RiwayatCubit>().muatRiwayat();
+              } catch (_) {}
             } else if (state is CadanganGalat) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -415,24 +431,12 @@ class HalamanAkun extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                Container(
-                                  width: 52,
-                                  height: 52,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.stabilo,
-                                    border: Border.all(
-                                      color: AppColors.ink,
-                                      width: AppSizes.border,
-                                    ),
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusBadge,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: AppColors.ink,
-                                    size: 28,
-                                  ),
+                                AvatarProfil(
+                                  fotoUrl: pengguna.fotoUrl,
+                                  ukuran: 52,
+                                  ukuranIkon: 28,
+                                  warnaLatar: AppColors.stabilo,
+                                  warnaIkon: AppColors.ink,
                                 ),
                                 const SizedBox(width: AppSpacing.sedang),
                                 Expanded(
@@ -440,15 +444,43 @@ class HalamanAkun extends StatelessWidget {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        pengguna.email ?? 'Pengguna Anonim',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                      ),
+                                      if (pengguna.namaTampilan != null &&
+                                          pengguna.namaTampilan!
+                                              .trim()
+                                              .isNotEmpty) ...[
+                                        Text(
+                                          pengguna.namaTampilan!,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                        if (pengguna.email != null) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            pengguna.email!,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  color: AppColors.inkSoft,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          ),
+                                        ],
+                                      ] else ...[
+                                        Text(
+                                          pengguna.email ?? 'Pengguna Anonim',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                      ],
                                       const SizedBox(height: 2),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
@@ -525,6 +557,9 @@ class HalamanAkun extends StatelessWidget {
                                   .pantauCadanganTerakhir(pengguna.uid),
                               builder: (context, snapshot) {
                                 final info = snapshot.data;
+                                if (info != null) {
+                                  _infoTerakhir = info;
+                                }
                                 final waktuStr =
                                     info?.waktuCadanganTerakhir != null
                                     ? _formatWaktu(info!.waktuCadanganTerakhir!)
@@ -723,11 +758,16 @@ class HalamanAkun extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpacing.besar),
 
-                      // Tombol Keluar
+                      // Kartu Informasi Aplikasi & Tim Pengembang (ISSUE-20)
+                      const KartuTentangAplikasi(),
+                      const SizedBox(height: AppSpacing.besar),
+
+                      // Tombol Keluar (Paling Bawah)
                       BlocBuilder<AkunCubit, AkunState>(
                         builder: (context, state) {
                           final sedangMemuat = state is AkunMemuat;
                           return OutlinedButton.icon(
+                            key: const Key('tombol_keluar'),
                             onPressed: sedangMemuat
                                 ? null
                                 : () => _konfirmasiKeluar(context),
@@ -769,7 +809,21 @@ class HalamanAkun extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    try {
+      context.read<CadanganCubit>();
+      return _buildScaffold(context);
+    } catch (_) {
+      return BlocProvider<CadanganCubit>(
+        create: (_) => sl<CadanganCubit>(),
+        child: Builder(
+          builder: (childContext) => _buildScaffold(childContext),
+        ),
+      );
+    }
   }
 }

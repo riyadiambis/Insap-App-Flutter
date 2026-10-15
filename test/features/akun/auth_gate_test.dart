@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:insap/core/theme.dart';
@@ -168,6 +169,48 @@ void main() {
 
         expect(find.byType(HalamanMasuk), findsOneWidget);
         expect(find.byType(HalamanAkun), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'stream login memancarkan nilai ulang saat HalamanAkun terbuka, instance CadanganCubit tetap sama dan tidak ditutup',
+      (tester) async {
+        await tester.pumpWidget(buatWidgetUji(streamController.stream));
+
+        const pengguna1 = PenggunaEntity(
+          uid: 'uid-1',
+          email: 'user1@insap.id',
+        );
+        streamController.add(pengguna1);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(HalamanAkun), findsOneWidget);
+
+        // Ambil instance CadanganCubit pertama
+        final cubitPertama = tester
+            .element(find.byType(HalamanAkun))
+            .read<CadanganCubit>();
+        expect(cubitPertama.isClosed, isFalse);
+
+        // Stream memancarkan pembaruan data pengguna
+        const penggunaDiperbarui = PenggunaEntity(
+          uid: 'uid-1',
+          email: 'user1@insap.id',
+          namaTampilan: 'Nama Baru',
+        );
+        streamController.add(penggunaDiperbarui);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(HalamanAkun), findsOneWidget);
+
+        // Ambil instance CadanganCubit setelah stream update
+        final cubitKedua = tester
+            .element(find.byType(HalamanAkun))
+            .read<CadanganCubit>();
+
+        // Pastikan instance tetap sama persis dan tidak ditutup
+        expect(identical(cubitPertama, cubitKedua), isTrue);
+        expect(cubitPertama.isClosed, isFalse);
       },
     );
   });

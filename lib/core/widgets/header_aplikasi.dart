@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../features/beranda/presentation/pages/halaman_tentang.dart';
+import '../../features/akun/domain/entities/pengguna_entity.dart';
+import '../../features/akun/domain/repositories/akun_repository.dart';
+import '../di/injection_container.dart';
 import '../theme.dart';
+import 'avatar_profil.dart';
 
 /// Header aplikasi bersama sesuai mockup layar 1 dan 2.
 ///
@@ -9,14 +13,33 @@ import '../theme.dart';
 /// - Kiri: Kotak logo kuning stabilo dengan ikon dompet, teks "Insap",
 ///   dan subjudul [namaLayar] kapital ("BERANDA" / "CATAT").
 /// - Kanan: Tombol lonceng notifikasi dan avatar profil yang masing-masing
-///   memunculkan SnackBar "Segera hadir".
+///   memunculkan SnackBar "Segera hadir" atau membuka alur akun (/akun).
 class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
   final String namaLayar;
+  final PenggunaEntity? pengguna;
+  final Stream<PenggunaEntity?>? streamPengguna;
 
-  const HeaderAplikasi({super.key, required this.namaLayar});
+  const HeaderAplikasi({
+    super.key,
+    required this.namaLayar,
+    this.pengguna,
+    this.streamPengguna,
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(AppSizes.tinggiHeader);
+
+  Stream<PenggunaEntity?>? _dapatkanStreamPengguna() {
+    if (streamPengguna != null) return streamPengguna;
+    if (sl.isRegistered<AkunRepository>()) {
+      try {
+        return sl<AkunRepository>().pantauPengguna();
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
 
   void _tampilkanPesanSegeraHadir(BuildContext context) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -113,29 +136,23 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
                     const SizedBox(width: AppSpacing.kecil),
                     GestureDetector(
                       key: const Key('tombol_profil_header'),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const HalamanTentang(),
-                        ),
-                      ),
-                      child: Container(
-                        width: 34.0,
-                        height: 34.0,
-                        decoration: BoxDecoration(
-                          color: AppColors.ink,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.ink,
-                            width: AppSizes.border,
-                          ),
-                          boxShadow: const [AppTheme.bayanganKecilGelap],
-                        ),
-                        child: const Icon(
-                          Icons.person,
-                          size: 18.0,
-                          color: AppColors.kartu,
-                        ),
+                      onTap: () => context.push('/akun'),
+                      child: StreamBuilder<PenggunaEntity?>(
+                        initialData: pengguna,
+                        stream: _dapatkanStreamPengguna(),
+                        builder: (context, snapshot) {
+                          final p = snapshot.hasError
+                              ? pengguna
+                              : (snapshot.data ?? pengguna);
+                          return AvatarProfil(
+                            fotoUrl: p?.fotoUrl,
+                            ukuran: 34.0,
+                            ukuranIkon: 18.0,
+                            warnaLatar: AppColors.ink,
+                            warnaIkon: AppColors.kartu,
+                            bayangan: const [AppTheme.bayanganKecilGelap],
+                          );
+                        },
                       ),
                     ),
                   ],

@@ -26,6 +26,13 @@ import '../../features/akun/presentation/cubit/akun_cubit.dart';
 import '../../features/akun/presentation/cubit/cadangan_cubit.dart';
 import '../database/database_helper.dart';
 import '../network/gemini_client.dart';
+import '../../features/pengaturan/data/datasources/pengaturan_local_datasource.dart';
+import '../../features/pengaturan/data/repositories/pengaturan_repository_impl.dart';
+import '../../features/pengaturan/domain/repositories/pengaturan_repository.dart';
+import '../../features/pengaturan/domain/usecases/ambil_target_bulanan.dart';
+import '../../features/pengaturan/domain/usecases/hitung_perbandingan_target.dart';
+import '../../features/pengaturan/domain/usecases/simpan_target_bulanan.dart';
+import '../../features/perkenalan/presentation/cubit/onboarding_cubit.dart';
 import '../../features/pindai/data/datasources/kuota_local_datasource.dart';
 import '../../features/pindai/data/datasources/pindai_remote_datasource.dart';
 import '../../features/pindai/data/repositories/pindai_repository_impl.dart';
@@ -84,10 +91,28 @@ void setupInjectionContainer() {
   // beranda (Riyadi) — cuma presentation, pakai AmbilRingkasanPekan
   // dari blok transaksi di atas
   sl.registerFactory(
-    () => BerandaCubit(ambilRingkasanPekan: sl(), ambilRincianKategori: sl()),
+    () => BerandaCubit(
+      ambilRingkasanPekan: sl(),
+      ambilRincianKategori: sl(),
+      ambilTargetBulanan: sl(),
+      simpanTargetBulanan: sl(),
+      hitungPerbandinganTarget: sl(),
+    ),
   );
 
-  // perkenalan (Luthfi) — didaftarkan di ISSUE-05
+  // perkenalan & pengaturan (ISSUE-23, ISSUE-25)
+  sl.registerLazySingleton<PengaturanLocalDataSource>(
+    () => PengaturanLocalDataSource(),
+  );
+  sl.registerLazySingleton<PengaturanRepository>(
+    () => PengaturanRepositoryImpl(dataSource: sl()),
+  );
+  sl.registerLazySingleton(() => AmbilTargetBulanan(sl()));
+  sl.registerLazySingleton(() => SimpanTargetBulanan(sl()));
+  sl.registerLazySingleton(() => const HitungPerbandinganTarget());
+  sl.registerFactory(
+    () => OnboardingCubit(pengaturanRepository: sl()),
+  );
 
   // refleksi (Luthfi) — SimpanRefleksi, AmbilRefleksiPekan di v0.2
 

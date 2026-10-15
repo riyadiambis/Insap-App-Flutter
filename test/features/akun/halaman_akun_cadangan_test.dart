@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:insap/core/theme.dart';
+import 'package:insap/core/widgets/dialog_sukses.dart';
+import 'package:insap/core/widgets/kartu_tentang_aplikasi.dart';
 import 'package:insap/features/akun/domain/entities/cadangan_info.dart';
 import 'package:insap/features/akun/domain/entities/pengguna_entity.dart';
 import 'package:insap/features/akun/domain/entities/rencana_cadangan.dart';
@@ -47,13 +49,16 @@ class _FakeCadanganRepository implements CadanganRepository {
   final _controller = StreamController<CadanganInfo?>.broadcast();
   RencanaCadangan rencana = const RencanaCadangan();
   int jumlahCadangkan = 0;
+  CadanganInfo? infoCadangan;
+
+  bool lemparGalatPulihkan = false;
 
   @override
   Stream<CadanganInfo?> pantauCadanganTerakhir(String uid) =>
       _controller.stream;
 
   @override
-  Future<CadanganInfo?> ambilCadanganTerakhir(String uid) async => null;
+  Future<CadanganInfo?> ambilCadanganTerakhir(String uid) async => infoCadangan;
 
   @override
   Future<RencanaCadangan> siapkanCadangan(String uid) async => rencana;
@@ -62,7 +67,12 @@ class _FakeCadanganRepository implements CadanganRepository {
   Future<void> cadangkanData(String uid) async => jumlahCadangkan++;
 
   @override
-  Future<CadanganInfo> pulihkanData(String uid) async => const CadanganInfo();
+  Future<CadanganInfo> pulihkanData(String uid) async {
+    if (lemparGalatPulihkan) {
+      throw const PerangkatTidakKosongException();
+    }
+    return infoCadangan ?? const CadanganInfo();
+  }
 
   void dispose() => _controller.close();
 }
@@ -185,5 +195,104 @@ void main() {
       expect(find.byType(AlertDialog), findsNothing);
       expect(repo.jumlahCadangkan, 1);
     });
+  });
+
+  group('Tombol Pulihkan pada HalamanAkun', () {
+    testWidgets(
+      'menampilkan pesan ramah penolakan bila perangkat tidak kosong',
+      (tester) async {
+        repo.lemparGalatPulihkan = true;
+        await bukaHalamanAkun(tester);
+
+        await tester.ensureVisible(find.byKey(const Key('tombol_pulihkan')));
+        await tester.tap(find.byKey(const Key('tombol_pulihkan')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Pulihkan Data dari Awan?'), findsOneWidget);
+
+        await tester.tap(find.text('Pulihkan'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            'Data di perangkat ini masih ada. Pemulihan hanya untuk perangkat kosong, supaya data barumu tidak tertimpa.',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+  });
+
+  group('Urutan HalamanAkun (ISSUE-21)', () {
+    testWidgets('tombol keluar berada di bawah KartuTentangAplikasi', (
+      tester,
+    ) async {
+      await bukaHalamanAkun(tester);
+
+      await tester.ensureVisible(find.byType(KartuTentangAplikasi));
+      final posTentang =
+          tester.getTopLeft(find.byType(KartuTentangAplikasi)).dy;
+
+      await tester.ensureVisible(find.byKey(const Key('tombol_keluar')));
+      final posKeluar =
+          tester.getTopLeft(find.byKey(const Key('tombol_keluar'))).dy;
+
+      expect(posKeluar, greaterThan(posTentang));
+    });
+  });
+
+  group('Dialog Sukses Cadangan dan Pemulihan (ISSUE-21)', () {
+    testWidgets(
+      'state CadanganSukses pada Cubit memunculkan DialogSukses dengan judul dan ringkasan',
+      (tester) async {
+        repo.rencana = const RencanaCadangan();
+        repo.infoCadangan = const CadanganInfo(
+          jumlahTransaksi: 5,
+          jumlahKategori: 9,
+          jumlahRefleksi: 0,
+        );
+        await bukaHalamanAkun(tester);
+        await tekanCadangkan(tester);
+
+        expect(find.byType(DialogSukses), findsOneWidget);
+        expect(find.text('Cadangan berhasil'), findsOneWidget);
+        expect(find.text('5 transaksi, 9 kategori, 0 refleksi'), findsOneWidget);
+
+        // Menutup dialog dengan tombol Oke
+        await tester.tap(find.byKey(const Key('tombol_dialog_sukses_oke')));
+        await tester.pumpAndSettle();
+        expect(find.byType(DialogSukses), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'state CadanganPulihSukses pada Cubit memunculkan DialogSukses dengan judul Data berhasil dipulihkan',
+      (tester) async {
+        repo.infoCadangan = const CadanganInfo(
+          jumlahTransaksi: 7,
+          jumlahKategori: 3,
+          jumlahRefleksi: 2,
+        );
+        await bukaHalamanAkun(tester);
+
+        await tester.ensureVisible(find.byKey(const Key('tombol_pulihkan')));
+        await tester.tap(find.byKey(const Key('tombol_pulihkan')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Pulihkan Data dari Awan?'), findsOneWidget);
+
+        await tester.tap(find.text('Pulihkan'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(DialogSukses), findsOneWidget);
+        expect(find.text('Data berhasil dipulihkan'), findsOneWidget);
+        expect(find.text('7 transaksi, 3 kategori, 2 refleksi'), findsOneWidget);
+
+        // Menutup dialog dengan tombol Oke
+        await tester.tap(find.byKey(const Key('tombol_dialog_sukses_oke')));
+        await tester.pumpAndSettle();
+        expect(find.byType(DialogSukses), findsNothing);
+      },
+    );
   });
 }

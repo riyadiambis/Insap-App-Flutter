@@ -19,11 +19,20 @@ class AkunRepositoryImpl implements AkunRepository {
        _databaseHelper = databaseHelper ?? DatabaseHelper(),
        _googleSignIn = googleSignIn ?? GoogleSignIn();
 
+  PenggunaEntity _kePenggunaEntity(User user) {
+    return PenggunaEntity(
+      uid: user.uid,
+      email: user.email,
+      namaTampilan: user.displayName,
+      fotoUrl: user.photoURL,
+    );
+  }
+
   @override
   Stream<PenggunaEntity?> pantauPengguna() {
     return _firebaseAuth.authStateChanges().map((user) {
       if (user == null) return null;
-      return PenggunaEntity(uid: user.uid, email: user.email);
+      return _kePenggunaEntity(user);
     });
   }
 
@@ -31,7 +40,7 @@ class AkunRepositoryImpl implements AkunRepository {
   Future<PenggunaEntity?> ambilPenggunaSaatIni() async {
     final user = _firebaseAuth.currentUser;
     if (user == null) return null;
-    return PenggunaEntity(uid: user.uid, email: user.email);
+    return _kePenggunaEntity(user);
   }
 
   @override
@@ -46,7 +55,7 @@ class AkunRepositoryImpl implements AkunRepository {
       );
       final user = credential.user!;
       await _simpanUidKeLokal(user.uid);
-      return PenggunaEntity(uid: user.uid, email: user.email);
+      return _kePenggunaEntity(user);
     } on FirebaseAuthException catch (e) {
       throw _terjemahkanPesanGalat(e);
     }
@@ -64,7 +73,7 @@ class AkunRepositoryImpl implements AkunRepository {
       );
       final user = credential.user!;
       await _simpanUidKeLokal(user.uid);
-      return PenggunaEntity(uid: user.uid, email: user.email);
+      return _kePenggunaEntity(user);
     } on FirebaseAuthException catch (e) {
       throw _terjemahkanPesanGalat(e);
     }
@@ -108,7 +117,7 @@ class AkunRepositoryImpl implements AkunRepository {
       final user = userCredential.user;
       if (user != null) {
         await _simpanUidKeLokal(user.uid);
-        return PenggunaEntity(uid: user.uid, email: user.email);
+        return _kePenggunaEntity(user);
       }
       return null;
     } on FirebaseAuthException catch (e) {

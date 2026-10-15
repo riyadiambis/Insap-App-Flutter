@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../theme.dart';
+import '../widgets/header_aplikasi.dart';
 
 // kerangka navigasi bawah 4 tab (P04-Router, P05). di v0.4 Luthfi bikin
 // versi adaptif pakai NavigationRail buat layar lebar
@@ -9,6 +10,21 @@ class AppShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   const AppShell({super.key, required this.navigationShell});
+
+  String _dapatkanSubjudul(int index) {
+    switch (index) {
+      case 0:
+        return 'BERANDA';
+      case 1:
+        return 'CATAT';
+      case 2:
+        return 'REFLEKSI';
+      case 3:
+        return 'RIWAYAT';
+      default:
+        return 'BERANDA';
+    }
+  }
 
   void _pindahTab(int index) {
     // tap tab yang lagi aktif = balik ke halaman awal tab itu
@@ -40,6 +56,9 @@ class AppShell extends StatelessWidget {
     ];
 
     return Scaffold(
+      appBar: HeaderAplikasi(
+        namaLayar: _dapatkanSubjudul(navigationShell.currentIndex),
+      ),
       body: navigationShell,
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
