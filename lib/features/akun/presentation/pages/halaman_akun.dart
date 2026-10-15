@@ -5,6 +5,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/avatar_profil.dart';
+import '../../../../core/widgets/dialog_sukses.dart';
 import '../../../../core/widgets/kartu_tentang_aplikasi.dart';
 import '../../../beranda/presentation/cubit/beranda_cubit.dart';
 import '../../../transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
@@ -16,10 +17,19 @@ import '../cubit/akun_state.dart';
 import '../cubit/cadangan_cubit.dart';
 import '../cubit/cadangan_state.dart';
 
-class HalamanAkun extends StatelessWidget {
+class HalamanAkun extends StatefulWidget {
   final PenggunaEntity pengguna;
 
   const HalamanAkun({super.key, required this.pengguna});
+
+  @override
+  State<HalamanAkun> createState() => _HalamanAkunState();
+}
+
+class _HalamanAkunState extends State<HalamanAkun> {
+  CadanganInfo? _infoTerakhir;
+
+  PenggunaEntity get pengguna => widget.pengguna;
 
   static const List<String> _namaBulanSingkat = [
     'Jan',
@@ -360,24 +370,30 @@ class HalamanAkun extends StatelessWidget {
         body: BlocListener<CadanganCubit, CadanganState>(
           listener: (context, state) {
             if (state is CadanganSukses) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.pesan),
-                  backgroundColor: AppColors.benar,
-                ),
+              final info = state.info ?? _infoTerakhir;
+              final ringkasan = info != null
+                  ? '${info.jumlahTransaksi} transaksi, ${info.jumlahKategori} kategori, ${info.jumlahRefleksi} refleksi'
+                  : state.pesan;
+              tampilkanDialogSukses(
+                context,
+                'Cadangan berhasil',
+                ringkasan,
               );
             } else if (state is CadanganPulihSukses) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Data berhasil dipulihkan dari awan (${state.info.jumlahTransaksi} transaksi)!',
-                  ),
-                  backgroundColor: AppColors.benar,
-                ),
+              final ringkasan =
+                  '${state.info.jumlahTransaksi} transaksi, ${state.info.jumlahKategori} kategori, ${state.info.jumlahRefleksi} refleksi';
+              tampilkanDialogSukses(
+                context,
+                'Data berhasil dipulihkan',
+                ringkasan,
               );
               // Muat ulang KEDUANYA sesuai aturan ISSUE-16 dan ISSUE-14
-              context.read<BerandaCubit>().muatRingkasan();
-              context.read<RiwayatCubit>().muatRiwayat();
+              try {
+                context.read<BerandaCubit>().muatRingkasan();
+              } catch (_) {}
+              try {
+                context.read<RiwayatCubit>().muatRiwayat();
+              } catch (_) {}
             } else if (state is CadanganGalat) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -543,6 +559,9 @@ class HalamanAkun extends StatelessWidget {
                                   .pantauCadanganTerakhir(pengguna.uid),
                               builder: (context, snapshot) {
                                 final info = snapshot.data;
+                                if (info != null) {
+                                  _infoTerakhir = info;
+                                }
                                 final waktuStr =
                                     info?.waktuCadanganTerakhir != null
                                     ? _formatWaktu(info!.waktuCadanganTerakhir!)
@@ -741,11 +760,16 @@ class HalamanAkun extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpacing.besar),
 
-                      // Tombol Keluar
+                      // Kartu Informasi Aplikasi & Tim Pengembang (ISSUE-20)
+                      const KartuTentangAplikasi(),
+                      const SizedBox(height: AppSpacing.besar),
+
+                      // Tombol Keluar (Paling Bawah)
                       BlocBuilder<AkunCubit, AkunState>(
                         builder: (context, state) {
                           final sedangMemuat = state is AkunMemuat;
                           return OutlinedButton.icon(
+                            key: const Key('tombol_keluar'),
                             onPressed: sedangMemuat
                                 ? null
                                 : () => _konfirmasiKeluar(context),
@@ -780,10 +804,6 @@ class HalamanAkun extends StatelessWidget {
                           );
                         },
                       ),
-                      const SizedBox(height: AppSpacing.besar),
-
-                      // Kartu Informasi Aplikasi & Tim Pengembang (ISSUE-20)
-                      const KartuTentangAplikasi(),
                     ],
                   ),
                 ),

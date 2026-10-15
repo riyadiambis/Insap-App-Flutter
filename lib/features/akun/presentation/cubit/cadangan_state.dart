@@ -15,7 +15,8 @@ class CadanganMemuat extends CadanganState {
 
 class CadanganSukses extends CadanganState {
   final String pesan;
-  const CadanganSukses(this.pesan);
+  final CadanganInfo? info;
+  const CadanganSukses(this.pesan, {this.info});
 }
 
 class CadanganPulihSukses extends CadanganState {
