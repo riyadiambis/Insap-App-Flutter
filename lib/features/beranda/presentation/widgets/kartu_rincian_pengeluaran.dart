@@ -8,8 +8,11 @@ import '../../../../core/widgets/kartu_buku_tulis.dart';
 import '../../../kategori/domain/entities/kategori_entity.dart';
 import '../../../kategori/presentation/cubit/kategori_cubit.dart';
 import '../../../kategori/presentation/cubit/kategori_state.dart';
+import '../../../pengaturan/domain/entities/perbandingan_target_entity.dart';
 import '../../../transaksi/domain/entities/rincian_pengeluaran_entity.dart';
 import '../../../transaksi/domain/entities/total_kategori_entity.dart';
+import '../cubit/beranda_cubit.dart';
+import 'bottom_sheet_target_bulanan.dart';
 import 'tampilan_kategori.dart';
 
 enum _PeriodeRincian { pekan, bulan }
@@ -17,11 +20,15 @@ enum _PeriodeRincian { pekan, bulan }
 class KartuRincianPengeluaran extends StatefulWidget {
   final int totalPekanIni;
   final RincianPengeluaranEntity rincian;
+  final PerbandinganTargetEntity? perbandinganTarget;
+  final Future<void> Function(int nominalBaru)? onUbahTarget;
 
   const KartuRincianPengeluaran({
     super.key,
     required this.totalPekanIni,
     required this.rincian,
+    this.perbandinganTarget,
+    this.onUbahTarget,
   });
 
   @override
@@ -32,6 +39,31 @@ class KartuRincianPengeluaran extends StatefulWidget {
 class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
   _PeriodeRincian _periode = _PeriodeRincian.pekan;
 
+  void _bukaLembarBawahTarget(
+    BuildContext context,
+    PerbandinganTargetEntity perbandingan,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) {
+        return BottomSheetTargetBulanan(
+          targetSaatIni: perbandingan.targetBulanan,
+          onSimpan: (targetBaru) async {
+            if (widget.onUbahTarget != null) {
+              await widget.onUbahTarget!(targetBaru);
+            } else {
+              try {
+                await context.read<BerandaCubit>().ubahTarget(targetBaru);
+              } catch (_) {}
+            }
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isPekan = _periode == _PeriodeRincian.pekan;
@@ -41,6 +73,10 @@ class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
     final List<TotalKategoriEntity> daftarKategori = isPekan
         ? widget.rincian.kategoriPekanIni
         : widget.rincian.kategoriBulanIni;
+    final PerbandinganTargetEntity perbandingan = widget.perbandinganTarget ??
+        PerbandinganTargetEntity.hitung(
+          totalBulanIni: widget.rincian.totalBulanIni,
+        );
 
     return KartuBukuTulis(
       radius: AppSizes.radiusTombol,
@@ -90,24 +126,165 @@ class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
           ),
           const SizedBox(height: AppSpacing.sedang),
 
-          // baris 3: satu baris kecil teks keterangan dan nominal
-          Row(
-            children: [
-              Text(
-                isPekan ? 'Total pekan ini' : 'Total bulan ini',
-                style: Theme.of(context).textTheme.bodyMedium
-                    ?.copyWith(color: AppColors.inkSoft),
-              ),
-              const SizedBox(width: AppSpacing.agakKecil),
-              Text(
-                totalPeriode.toRupiah(),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.ink,
-                  fontWeight: FontWeight.w800,
+          // baris 3: satu baris kecil teks keterangan dan nominal atau baris target
+          if (isPekan) ...[
+            Row(
+              children: [
+                Text(
+                  'Total pekan ini',
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(color: AppColors.inkSoft),
+                ),
+                const SizedBox(width: AppSpacing.agakKecil),
+                Text(
+                  totalPeriode.toRupiah(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            // Tab Bulan ini
+            if (perbandingan.adaTarget) ...[
+              InkWell(
+                key: const Key('baris_target_bulanan'),
+                onTap: () => _bukaLembarBawahTarget(context, perbandingan),
+                borderRadius: BorderRadius.circular(AppSizes.radiusLabel),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${perbandingan.totalBulanIni.toRupiah()} dari target ${(perbandingan.targetBulanan ?? 0).toRupiah()}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: AppColors.ink,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.kecil),
+                          const Icon(
+                            Icons.edit_outlined,
+                            size: 14,
+                            color: AppColors.inkSoft,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.agakKecil),
+                      Container(
+                        key: const Key('bilah_progres_target'),
+                        height: 8,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: AppColors.grid,
+                          border: Border.all(
+                            color: AppColors.ink,
+                            width: AppSizes.borderTipis,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.radiusBarKuotaPindai,
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.radiusBarKuotaPindai,
+                          ),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: perbandingan.persen.clamp(0.0, 1.0),
+                            child: Container(
+                              color: perbandingan.isLewat
+                                  ? AppColors.salah
+                                  : AppColors.stabilo,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.sangatKecil),
+                      Text(
+                        perbandingan.isLewat
+                            ? 'Lewat ${perbandingan.lewat.toRupiah()} dari target'
+                            : 'Sisa ${perbandingan.sisa.toRupiah()}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: perbandingan.isLewat
+                                  ? AppColors.salah
+                                  : AppColors.inkSoft,
+                              fontWeight: perbandingan.isLewat
+                                  ? FontWeight.w700
+                                  : FontWeight.w600,
+                            ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+            ] else ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Total bulan ini',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.inkSoft,
+                            ),
+                      ),
+                      const SizedBox(width: AppSpacing.agakKecil),
+                      Text(
+                        totalPeriode.toRupiah(),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ],
+                  ),
+                  InkWell(
+                    key: const Key('tombol_atur_target_bulanan'),
+                    onTap: () => _bukaLembarBawahTarget(context, perbandingan),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusLabel),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sangatKecil,
+                        vertical: AppSpacing.mini,
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.add_circle_outline,
+                            size: 14,
+                            color: AppColors.ink,
+                          ),
+                          const SizedBox(width: AppSpacing.sangatKecil),
+                          Text(
+                            'Atur target bulanan',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.ink,
+                                      fontWeight: FontWeight.w700,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
-          ),
+          ],
           const SizedBox(height: AppSpacing.sedang),
           Container(
             height: AppSizes.tinggiGarisPemisah,

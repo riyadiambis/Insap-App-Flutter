@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:insap/core/router/app_router.dart';
-import 'package:insap/features/perkenalan/domain/repositories/pengaturan_repository.dart';
+import 'package:insap/features/pengaturan/domain/repositories/pengaturan_repository.dart';
 
 class _FakePengaturanRepository implements PengaturanRepository {
   bool sudahOnboarding;

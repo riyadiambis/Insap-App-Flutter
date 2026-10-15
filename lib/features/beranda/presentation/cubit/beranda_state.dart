@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../pengaturan/domain/entities/perbandingan_target_entity.dart';
 import '../../../transaksi/domain/entities/ringkasan_pekan_entity.dart';
 import '../../../transaksi/domain/entities/rincian_pengeluaran_entity.dart';
 
@@ -23,11 +24,27 @@ class BerandaLoading extends BerandaState {
 class BerandaLoaded extends BerandaState {
   final RingkasanPekanEntity ringkasan;
   final RincianPengeluaranEntity rincian;
+  final int? targetBulanan;
+  final PerbandinganTargetEntity perbandinganTarget;
 
-  const BerandaLoaded(this.ringkasan, this.rincian);
+  BerandaLoaded(
+    this.ringkasan,
+    this.rincian, {
+    this.targetBulanan,
+    PerbandinganTargetEntity? perbandinganTarget,
+  }) : perbandinganTarget = perbandinganTarget ??
+            PerbandinganTargetEntity.hitung(
+              totalBulanIni: rincian.totalBulanIni,
+              targetBulanan: targetBulanan,
+            );
 
   @override
-  List<Object?> get props => [ringkasan, rincian];
+  List<Object?> get props => [
+        ringkasan,
+        rincian,
+        targetBulanan,
+        perbandinganTarget,
+      ];
 }
 
 class BerandaError extends BerandaState {

@@ -11,6 +11,9 @@ import 'package:insap/features/kategori/domain/entities/kategori_entity.dart';
 import 'package:insap/features/kategori/domain/repositories/kategori_repository.dart';
 import 'package:insap/features/kategori/domain/usecases/ambil_kategori.dart';
 import 'package:insap/features/kategori/presentation/cubit/kategori_cubit.dart';
+import 'package:insap/features/pengaturan/domain/usecases/ambil_target_bulanan.dart';
+import 'package:insap/features/pengaturan/domain/usecases/hitung_perbandingan_target.dart';
+import 'package:insap/features/pengaturan/domain/usecases/simpan_target_bulanan.dart';
 import 'package:insap/features/transaksi/domain/entities/rincian_pengeluaran_entity.dart';
 import 'package:insap/features/transaksi/domain/entities/ringkasan_pekan_entity.dart';
 import 'package:insap/features/transaksi/domain/entities/total_kategori_entity.dart';
@@ -41,9 +44,22 @@ class _FakeBerandaCubit extends Cubit<BerandaState> implements BerandaCubit {
   AmbilRincianKategori? get ambilRincianKategori => null;
 
   @override
+  AmbilTargetBulanan? get ambilTargetBulanan => null;
+
+  @override
+  SimpanTargetBulanan? get simpanTargetBulanan => null;
+
+  @override
+  HitungPerbandinganTarget get hitungPerbandinganTarget =>
+      const HitungPerbandinganTarget();
+
+  @override
   Future<void> muatRingkasan() async {
     emit(BerandaLoaded(ringkasan, rincian));
   }
+
+  @override
+  Future<void> ubahTarget(int targetBaru) async {}
 }
 
 void main() {

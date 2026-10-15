@@ -14,6 +14,7 @@ import '../../../../core/widgets/tombol_stabilo.dart';
 import '../../../kategori/domain/entities/kategori_entity.dart';
 import '../../../kategori/presentation/cubit/kategori_cubit.dart';
 import '../../../kategori/presentation/cubit/kategori_state.dart';
+import '../../../pengaturan/domain/entities/perbandingan_target_entity.dart';
 import '../../../transaksi/domain/entities/rincian_pengeluaran_entity.dart';
 import '../../../transaksi/domain/entities/ringkasan_pekan_entity.dart';
 import '../../../transaksi/domain/entities/transaksi_entity.dart';
@@ -90,6 +91,7 @@ class HalamanBeranda extends StatelessWidget {
                         ringkasan: state.ringkasan,
                         rincian: state.rincian,
                         pengguna: pengguna,
+                        perbandinganTarget: state.perbandinganTarget,
                       );
                     }
                     return const SizedBox();
@@ -108,11 +110,13 @@ class _BerandaContent extends StatelessWidget {
   final RingkasanPekanEntity ringkasan;
   final RincianPengeluaranEntity rincian;
   final PenggunaEntity? pengguna;
+  final PerbandinganTargetEntity? perbandinganTarget;
 
   const _BerandaContent({
     required this.ringkasan,
     required this.rincian,
     this.pengguna,
+    this.perbandinganTarget,
   });
 
   Widget _buildGreetingHeader(BuildContext context, String teksRentang) {
@@ -699,6 +703,7 @@ class _BerandaContent extends StatelessWidget {
         KartuRincianPengeluaran(
           totalPekanIni: ringkasan.totalMingguIni,
           rincian: rincian,
+          perbandinganTarget: perbandinganTarget,
         ),
         const SizedBox(height: AppSpacing.lebihBesar),
         // Recent Transactions Section Header

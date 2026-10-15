@@ -24,9 +24,12 @@ import '../../features/akun/domain/repositories/akun_repository.dart';
 import '../../features/akun/domain/repositories/cadangan_repository.dart';
 import '../../features/akun/presentation/cubit/akun_cubit.dart';
 import '../../features/akun/presentation/cubit/cadangan_cubit.dart';
-import '../../features/perkenalan/data/datasources/pengaturan_local_datasource.dart';
-import '../../features/perkenalan/data/repositories/pengaturan_repository_impl.dart';
-import '../../features/perkenalan/domain/repositories/pengaturan_repository.dart';
+import '../../features/pengaturan/data/datasources/pengaturan_local_datasource.dart';
+import '../../features/pengaturan/data/repositories/pengaturan_repository_impl.dart';
+import '../../features/pengaturan/domain/repositories/pengaturan_repository.dart';
+import '../../features/pengaturan/domain/usecases/ambil_target_bulanan.dart';
+import '../../features/pengaturan/domain/usecases/hitung_perbandingan_target.dart';
+import '../../features/pengaturan/domain/usecases/simpan_target_bulanan.dart';
 import '../../features/perkenalan/presentation/cubit/onboarding_cubit.dart';
 
 // service locator get_it (P07-Clean). satu blok komentar per fitur,
@@ -79,16 +82,25 @@ void setupInjectionContainer() {
   // beranda (Riyadi) — cuma presentation, pakai AmbilRingkasanPekan
   // dari blok transaksi di atas
   sl.registerFactory(
-    () => BerandaCubit(ambilRingkasanPekan: sl(), ambilRincianKategori: sl()),
+    () => BerandaCubit(
+      ambilRingkasanPekan: sl(),
+      ambilRincianKategori: sl(),
+      ambilTargetBulanan: sl(),
+      simpanTargetBulanan: sl(),
+      hitungPerbandinganTarget: sl(),
+    ),
   );
 
-  // perkenalan & pengaturan (ISSUE-23)
+  // perkenalan & pengaturan (ISSUE-23, ISSUE-25)
   sl.registerLazySingleton<PengaturanLocalDataSource>(
     () => PengaturanLocalDataSource(),
   );
   sl.registerLazySingleton<PengaturanRepository>(
     () => PengaturanRepositoryImpl(dataSource: sl()),
   );
+  sl.registerLazySingleton(() => AmbilTargetBulanan(sl()));
+  sl.registerLazySingleton(() => SimpanTargetBulanan(sl()));
+  sl.registerLazySingleton(() => const HitungPerbandinganTarget());
   sl.registerFactory(
     () => OnboardingCubit(pengaturanRepository: sl()),
   );

@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../di/injection_container.dart';
 import '../../features/beranda/presentation/pages/halaman_beranda.dart';
 import '../../features/kategori/presentation/pages/halaman_kelola_kategori.dart';
-import '../../features/perkenalan/domain/repositories/pengaturan_repository.dart';
+import '../../features/pengaturan/domain/repositories/pengaturan_repository.dart';
 import '../../features/perkenalan/presentation/pages/halaman_perkenalan.dart';
 import '../../features/refleksi/presentation/pages/halaman_refleksi.dart';
 import '../../features/transaksi/presentation/catat/pages/halaman_catat_transaksi.dart';

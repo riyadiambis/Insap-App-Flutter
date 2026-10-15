@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:insap/core/widgets/kartu_buku_tulis.dart';
 import 'package:insap/core/widgets/tombol_stabilo.dart';
-import 'package:insap/features/perkenalan/domain/repositories/pengaturan_repository.dart';
+import 'package:insap/features/pengaturan/domain/repositories/pengaturan_repository.dart';
 import 'package:insap/features/perkenalan/presentation/cubit/onboarding_cubit.dart';
 import 'package:insap/features/perkenalan/presentation/pages/halaman_perkenalan.dart';
 import 'package:insap/features/transaksi/presentation/catat/widgets/kolom_input_nominal.dart';

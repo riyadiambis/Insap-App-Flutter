@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:insap/features/perkenalan/data/datasources/pengaturan_local_datasource.dart';
-import 'package:insap/features/perkenalan/data/repositories/pengaturan_repository_impl.dart';
-import 'package:insap/features/perkenalan/domain/repositories/pengaturan_repository.dart';
+import 'package:insap/features/pengaturan/data/datasources/pengaturan_local_datasource.dart';
+import 'package:insap/features/pengaturan/data/repositories/pengaturan_repository_impl.dart';
+import 'package:insap/features/pengaturan/domain/repositories/pengaturan_repository.dart';
 
 class _FakePengaturanLocalDataSource implements PengaturanLocalDataSource {
   final Map<String, String> _memori = {};
@@ -26,7 +26,7 @@ void main() {
     repository = PengaturanRepositoryImpl(dataSource: fakeDataSource);
   });
 
-  group('PengaturanRepository (ISSUE-23)', () {
+  group('PengaturanRepository (Refactor ISSUE-25)', () {
     test('bacaStatusOnboarding default false dan true setelah disimpan', () async {
       // Nilai awal belum ada -> false
       expect(await repository.bacaStatusOnboarding(), isFalse);
