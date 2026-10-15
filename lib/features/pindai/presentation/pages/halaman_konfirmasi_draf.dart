@@ -7,9 +7,11 @@ import '../../../../core/theme.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
 import '../../../../core/widgets/tombol_stabilo.dart';
 import '../../../beranda/presentation/cubit/beranda_cubit.dart';
+import '../../../kategori/domain/entities/kategori_entity.dart';
 import '../../../kategori/presentation/cubit/kategori_cubit.dart';
 import '../../../kategori/presentation/cubit/kategori_state.dart';
 import '../../../transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
+import '../../../transaksi/presentation/riwayat/widgets/riwayat_helper.dart';
 import '../../domain/entities/hasil_pindai_entity.dart';
 import '../cubit/pindai_cubit.dart';
 
@@ -53,6 +55,29 @@ class _HalamanKonfirmasiDrafState extends State<HalamanKonfirmasiDraf> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _nominalFocusNode.requestFocus();
       });
+    }
+
+    final katState = context.read<KategoriCubit>().state;
+    if (katState is KategoriLoaded) {
+      _inisialisasiKategori(katState.kategoriList);
+    }
+  }
+
+  void _inisialisasiKategori(List<KategoriEntity> list) {
+    final validList = list.where((k) => k.id != null).toList();
+    if (validList.isEmpty) return;
+    final usulan = widget.hasilPindai.kategoriUsulan?.toLowerCase().trim();
+    if (usulan != null && usulan.isNotEmpty) {
+      final cocok = validList.firstWhere(
+        (k) =>
+            k.nama.toLowerCase() == usulan ||
+            k.nama.toLowerCase().contains(usulan) ||
+            usulan.contains(k.nama.toLowerCase()),
+        orElse: () => validList.first,
+      );
+      _kategoriIdTerpilih = cocok.id;
+    } else {
+      _kategoriIdTerpilih = validList.first.id;
     }
   }
 
@@ -439,32 +464,54 @@ class _HalamanKonfirmasiDrafState extends State<HalamanKonfirmasiDraf> {
                                     ),
                               ),
                               const SizedBox(height: AppSpacing.mini),
-                              BlocBuilder<KategoriCubit, KategoriState>(
+                              BlocConsumer<KategoriCubit, KategoriState>(
+                                listener: (context, state) {
+                                  if (state is KategoriLoaded &&
+                                      _kategoriIdTerpilih == null) {
+                                    setState(() {
+                                      _inisialisasiKategori(state.kategoriList);
+                                    });
+                                  }
+                                },
                                 builder: (context, state) {
                                   if (state is KategoriLoaded) {
-                                    // Cari kategori yang cocok dengan kategori_usulan Gemini
-                                    if (_kategoriIdTerpilih == null &&
-                                        state.kategoriList.isNotEmpty) {
-                                      final usulan = widget
-                                          .hasilPindai
-                                          .kategoriUsulan
-                                          ?.toLowerCase();
-                                      final cocok = state.kategoriList
-                                          .firstWhere(
-                                            (k) =>
-                                                k.nama.toLowerCase() ==
-                                                    usulan ||
-                                                k.nama.toLowerCase().contains(
-                                                  usulan ?? '',
-                                                ),
-                                            orElse: () =>
-                                                state.kategoriList.first,
-                                          );
-                                      _kategoriIdTerpilih = cocok.id;
+                                    final validList = <KategoriEntity>[];
+                                    final seenIds = <int>{};
+                                    for (final k in state.kategoriList) {
+                                      if (k.id != null && seenIds.add(k.id!)) {
+                                        validList.add(k);
+                                      }
                                     }
 
+                                    if (validList.isEmpty) {
+                                      return const Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: AppSpacing.sedang,
+                                        ),
+                                        child: Text(
+                                          'Belum ada kategori tersedia',
+                                          style: TextStyle(
+                                            color: AppColors.inkSoft,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      );
+                                    }
+
+                                    if (_kategoriIdTerpilih == null ||
+                                        !validList.any(
+                                          (k) => k.id == _kategoriIdTerpilih,
+                                        )) {
+                                      _inisialisasiKategori(validList);
+                                    }
+
+                                    final nilaiAktif =
+                                        _kategoriIdTerpilih ??
+                                        validList.first.id;
+
                                     return DropdownButtonFormField<int>(
-                                      initialValue: _kategoriIdTerpilih,
+                                      key: ValueKey('kategori_$nilaiAktif'),
+                                      initialValue: nilaiAktif,
                                       isExpanded: true,
                                       decoration: InputDecoration(
                                         filled: true,
@@ -488,27 +535,62 @@ class _HalamanKonfirmasiDrafState extends State<HalamanKonfirmasiDraf> {
                                           ),
                                         ),
                                       ),
-                                      items: state.kategoriList.map((k) {
+                                      items: validList.map((k) {
+                                        final ikon = RiwayatHelper.parseIkon(
+                                          k.ikon,
+                                        );
+                                        final warna = RiwayatHelper.parseWarna(
+                                          k.warna,
+                                        );
                                         return DropdownMenuItem<int>(
                                           value: k.id,
-                                          child: Text(
-                                            k.nama,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              color: AppColors.ink,
-                                            ),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.all(
+                                                  4,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: warna.withAlpha(50),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                child: Icon(
+                                                  ikon,
+                                                  size: 18,
+                                                  color: AppColors.ink,
+                                                ),
+                                              ),
+                                              const SizedBox(
+                                                width: AppSpacing.kecil,
+                                              ),
+                                              Text(
+                                                RiwayatHelper.kapitalPertama(
+                                                  k.nama,
+                                                ),
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppColors.ink,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         );
                                       }).toList(),
                                       onChanged: (id) {
-                                        setState(
-                                          () => _kategoriIdTerpilih = id,
-                                        );
+                                        if (id != null) {
+                                          setState(
+                                            () => _kategoriIdTerpilih = id,
+                                          );
+                                        }
                                       },
                                     );
                                   }
                                   return const Center(
-                                    child: CircularProgressIndicator(),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(AppSpacing.sedang),
+                                      child: CircularProgressIndicator(),
+                                    ),
                                   );
                                 },
                               ),
