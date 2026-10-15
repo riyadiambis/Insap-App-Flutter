@@ -170,7 +170,7 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
                     ikon: Icons.auto_stories_rounded,
                     warnaLatarIkon: AppColors.stabilo,
                     label: 'KENALAN DULU',
-                    judulSebelum: 'Sadar Sebelum ',
+                    judulSebelum: 'Sadar Sebelum',
                     judulStabilo: 'Boncos',
                     isi: Text.rich(
                       TextSpan(
@@ -202,79 +202,24 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
                     context,
                     tinggiKartu: tinggiKartu,
                     ikon: Icons.edit_note_rounded,
-                    warnaLatarIkon: AppColors.paper,
+                    warnaLatarIkon: AppColors.stabilo,
                     label: 'CATAT',
-                    judulSebelum: 'Catat Cepat ',
+                    judulSebelum: 'Catat Cepat',
                     judulStabilo: 'Dua Langkah',
                     isi: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildBarisLangkah(
-                          context,
+                      children: const [
+                        KotakLangkah(
                           nomor: 1,
-                          konten: Text.rich(
-                            TextSpan(
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: AppColors.inkSoft,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                              children: const [
-                                TextSpan(
-                                  text: 'Isi nominal',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.ink,
-                                  ),
-                                ),
-                                TextSpan(text: ' — '),
-                                TextSpan(
-                                  text: 'contoh Rp15.000',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.inkSoft,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          teksUtama: 'Isi nominal',
+                          keterangan: 'Contoh Rp15.000',
                         ),
-                        const SizedBox(height: AppSpacing.agakKecil),
-                        _buildBarisLangkah(
-                          context,
+                        SizedBox(height: 10),
+                        KotakLangkah(
                           nomor: 2,
-                          konten: Text.rich(
-                            TextSpan(
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: AppColors.inkSoft,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                              children: const [
-                                TextSpan(
-                                  text: 'Pilih kategori',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.ink,
-                                  ),
-                                ),
-                                TextSpan(text: ' — '),
-                                TextSpan(
-                                  text: 'makan, transport, nongkrong...',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.inkSoft,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          teksUtama: 'Pilih kategori',
+                          keterangan:
+                              'Makan, transport, nongkrong, dan lainnya',
                         ),
                       ],
                     ),
@@ -285,88 +230,30 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
                     ikon: Icons.psychology_alt_outlined,
                     warnaLatarIkon: AppColors.stabilo,
                     label: 'TIAP AKHIR PEKAN',
-                    judulSebelum: 'Refleksi ',
+                    judulSebelum: 'Refleksi',
                     judulStabilo: 'Mingguan',
                     isi: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildBarisLangkah(
-                          context,
+                        const KotakLangkah(
                           nomor: 1,
-                          konten: Text.rich(
-                            TextSpan(
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: AppColors.inkSoft,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                              children: const [
-                                TextSpan(
-                                  text: 'Lihat ulang',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.ink,
-                                  ),
-                                ),
-                                TextSpan(text: ' pengeluaran sepekan'),
-                              ],
-                            ),
-                          ),
+                          teksUtama: 'Lihat ulang',
+                          keterangan: 'Pengeluaran sepekan terakhir',
                         ),
-                        _buildBarisLangkah(
-                          context,
+                        const SizedBox(height: 10),
+                        const KotakLangkah(
                           nomor: 2,
-                          konten: Text.rich(
-                            TextSpan(
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: AppColors.inkSoft,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                              children: const [
-                                TextSpan(text: 'Tandai: '),
-                                TextSpan(
-                                  text: 'butuh atau pengen?',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.ink,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          teksUtama: 'Butuh atau pengen?',
+                          keterangan:
+                              'Tandai belanja yang sebenarnya bisa ditahan',
                         ),
-                        _buildBarisLangkah(
-                          context,
+                        const SizedBox(height: 10),
+                        const KotakLangkah(
                           nomor: 3,
-                          konten: Text.rich(
-                            TextSpan(
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: AppColors.inkSoft,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                              children: const [
-                                TextSpan(text: 'Tetapkan '),
-                                TextSpan(
-                                  text: 'target',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.ink,
-                                  ),
-                                ),
-                                TextSpan(text: ' pekan depan'),
-                              ],
-                            ),
-                          ),
+                          teksUtama: 'Tetapkan target',
+                          keterangan: 'Batas pengeluaran untuk pekan depan',
                         ),
-                        const SizedBox(height: AppSpacing.sangatKecil),
+                        const SizedBox(height: AppSpacing.kecil),
                         Text(
                           'Santai, tanpa menghakimi.',
                           textAlign: TextAlign.center,
@@ -374,6 +261,7 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     fontStyle: FontStyle.italic,
                                     color: AppColors.inkSoft,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                   ),
                         ),
@@ -464,56 +352,64 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
             child: KartuBukuTulis(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.besar,
-                vertical: AppSpacing.kecil,
+                vertical: AppSpacing.sedang,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Ilustrasi Lingkaran Ikon tema Buku Tulis diperbesar sekitar 1,5x (diameter 120, ikon 72)
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: warnaLatarIkon,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.ink,
-                        width: AppSizes.border,
+              child: LayoutBuilder(
+                builder: (context, cardConstraints) {
+                  return SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: cardConstraints.maxHeight,
                       ),
-                      boxShadow: const [AppTheme.bayanganDefault],
-                    ),
-                    child: Icon(
-                      ikon,
-                      size: 72,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.kecil),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Ilustrasi Lingkaran Ikon tema Buku Tulis
+                            Container(
+                              width: 96,
+                              height: 96,
+                              decoration: BoxDecoration(
+                                color: warnaLatarIkon,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.ink,
+                                  width: AppSizes.border,
+                                ),
+                                boxShadow: const [AppTheme.bayanganDefault],
+                              ),
+                              child: Icon(
+                                ikon,
+                                size: 56,
+                                color: AppColors.ink,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.kecil),
 
-                  // 1. Label kecil di atas judul: huruf kapital, kecil, tebal, berwarna aksen tema (seperti badge)
-                  _buildLabelBadge(context, label),
-                  const SizedBox(height: AppSpacing.sangatKecil),
+                            // 1. Label kecil di atas judul: huruf kapital, kecil, tebal, berwarna aksen tema (seperti badge)
+                            _buildLabelBadge(context, label),
+                            const SizedBox(height: AppSpacing.sangatKecil),
 
-                  // 2. Judul besar Baloo 2 dengan SATU frasa diberi efek stabilo kuning
-                  _buildJudulBerstabilo(
-                    context,
-                    teksSebelum: judulSebelum,
-                    teksStabilo: judulStabilo,
-                    teksSetelah: judulSetelah,
-                  ),
-                  const SizedBox(height: AppSpacing.kecil),
+                            // 2. Judul besar Baloo 2 dengan SATU frasa diberi efek stabilo kuning
+                            _buildJudulBerstabilo(
+                              context,
+                              teksSebelum: judulSebelum,
+                              teksStabilo: judulStabilo,
+                              teksSetelah: judulSetelah,
+                            ),
+                            const SizedBox(height: AppSpacing.sedang),
 
-                  // 3. Isi Nunito (Expanded + SingleChildScrollView agar posisi awal seragam dan bebas overflow)
-                  Expanded(
-                    child: SingleChildScrollView(
-                      physics: const ClampingScrollPhysics(),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: isi,
+                            // 3. Isi (teks Layar 1 atau kotak langkah Layar 2 & 3)
+                            isi,
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           ),
@@ -548,24 +444,24 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
     );
   }
 
-  /// Judul besar Baloo 2 dengan SATU frasa diberi efek stabilo kuning (gaya stabilo seperti di judul Riwayat Transaksi).
+  /// Judul besar Baloo 2 diperbesar sekitar 1,3x (~28px) dengan SATU frasa diberi
+  /// efek stabilo kuning pita sejajar sekitar 40% bagian bawah tinggi huruf.
   Widget _buildJudulBerstabilo(
     BuildContext context, {
     required String teksSebelum,
     required String teksStabilo,
     String? teksSetelah,
   }) {
+    const double ukuranJudul = 28.0;
+    const double tinggiPita = ukuranJudul * 0.40;
+
     final TextStyle gayaJudul =
-        Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink,
-            ) ??
-            const TextStyle(
-              fontFamily: 'Baloo2',
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink,
-              fontSize: 22,
-            );
+        (Theme.of(context).textTheme.titleLarge ?? const TextStyle(fontFamily: 'Baloo2')).copyWith(
+          fontSize: ukuranJudul,
+          fontWeight: FontWeight.w800,
+          color: AppColors.ink,
+          height: 1.15,
+        );
 
     return FittedBox(
       fit: BoxFit.scaleDown,
@@ -573,19 +469,22 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (teksSebelum.isNotEmpty)
+          if (teksSebelum.isNotEmpty) ...[
             Text(
               teksSebelum,
               style: gayaJudul,
             ),
+            const SizedBox(width: 6),
+          ],
           Stack(
             clipBehavior: Clip.none,
+            alignment: Alignment.bottomCenter,
             children: [
               Positioned(
-                bottom: AppSizes.geserStabiloJudul,
-                left: -AppSizes.geserStabiloJudul,
-                right: -AppSizes.geserStabiloJudul,
-                height: AppSizes.tinggiStabiloJudul,
+                bottom: 2.0,
+                left: 0.0,
+                right: 0.0,
+                height: tinggiPita,
                 child: Container(color: AppColors.stabilo),
               ),
               Text(
@@ -594,52 +493,13 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
               ),
             ],
           ),
-          if (teksSetelah != null && teksSetelah.isNotEmpty)
+          if (teksSetelah != null && teksSetelah.isNotEmpty) ...[
+            const SizedBox(width: 6),
             Text(
               teksSetelah,
               style: gayaJudul,
             ),
-        ],
-      ),
-    );
-  }
-
-  /// Butir langkah bernomor untuk Layar 2 dan 3 (lingkaran nomor kecil + teks).
-  Widget _buildBarisLangkah(
-    BuildContext context, {
-    required int nomor,
-    required Widget konten,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: AppColors.grid,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.ink,
-                width: AppSizes.borderTipis,
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              '$nomor',
-              style: const TextStyle(
-                fontFamily: 'Baloo2',
-                fontWeight: FontWeight.w800,
-                fontSize: 12,
-                color: AppColors.ink,
-                height: 1.0,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sedang),
-          Expanded(child: konten),
+          ],
         ],
       ),
     );
@@ -803,6 +663,100 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Kotak langkah untuk layar perkenalan (F-16, P02-Widget).
+/// Menampilkan kotak selebar penuh kartu dengan latar krem kertas (AppColors.paper),
+/// garis tipis tinta tema, sudut membulat, lingkaran nomor di kiri, teks utama tebal,
+/// dan keterangan kecil abu-abu di baris bawah.
+class KotakLangkah extends StatelessWidget {
+  final int nomor;
+  final String teksUtama;
+  final String keterangan;
+
+  const KotakLangkah({
+    super.key,
+    required this.nomor,
+    required this.teksUtama,
+    required this.keterangan,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sedang,
+        vertical: AppSpacing.kecil,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.paper,
+        borderRadius: BorderRadius.circular(AppSizes.radiusKotakIkonAksi),
+        border: Border.all(
+          color: AppColors.ink,
+          width: AppSizes.borderTipis,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Lingkaran nomor di kiri
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: AppColors.grid,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.ink,
+                width: AppSizes.borderTipis,
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '$nomor',
+              style: const TextStyle(
+                fontFamily: 'Baloo2',
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+                color: AppColors.ink,
+                height: 1.0,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sedang),
+
+          // Di kanannya: baris atas teks utama (tebal), baris bawah keterangan kecil abu-abu
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  teksUtama,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
+                        height: 1.25,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  keterangan,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.inkSoft,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        height: 1.25,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

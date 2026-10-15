@@ -104,16 +104,12 @@ void main() {
       find.textContaining('Dua Langkah', findRichText: true),
       findsOneWidget,
     );
+    expect(find.byType(KotakLangkah), findsNWidgets(2));
+    expect(find.text('Isi nominal'), findsOneWidget);
+    expect(find.text('Contoh Rp15.000'), findsOneWidget);
+    expect(find.text('Pilih kategori'), findsOneWidget);
     expect(
-      find.textContaining('Isi nominal', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('contoh Rp15.000', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('Pilih kategori', findRichText: true),
+      find.text('Makan, transport, nongkrong, dan lainnya'),
       findsOneWidget,
     );
 
@@ -132,22 +128,16 @@ void main() {
       find.textContaining('Mingguan', findRichText: true),
       findsOneWidget,
     );
+    expect(find.byType(KotakLangkah), findsNWidgets(3));
+    expect(find.text('Lihat ulang'), findsOneWidget);
+    expect(find.text('Pengeluaran sepekan terakhir'), findsOneWidget);
+    expect(find.text('Butuh atau pengen?'), findsOneWidget);
     expect(
-      find.textContaining('Lihat ulang', findRichText: true),
+      find.text('Tandai belanja yang sebenarnya bisa ditahan'),
       findsOneWidget,
     );
-    expect(
-      find.textContaining('pengeluaran sepekan', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('butuh atau pengen?', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('target', findRichText: true),
-      findsOneWidget,
-    );
+    expect(find.text('Tetapkan target'), findsOneWidget);
+    expect(find.text('Batas pengeluaran untuk pekan depan'), findsOneWidget);
     expect(find.text('Santai, tanpa menghakimi.'), findsOneWidget);
   });
 
@@ -190,17 +180,6 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('Boncos', findRichText: true), findsOneWidget);
-    expect(
-      find.textContaining(
-        'Insap bantu kamu sadar uangmu habis',
-        findRichText: true,
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('ke mana', findRichText: true),
-      findsOneWidget,
-    );
     expect(tester.takeException(), isNull);
 
     final tinggiKartuLayar1 =
@@ -213,20 +192,12 @@ void main() {
 
     // Layar 2
     expect(find.text('CATAT'), findsOneWidget);
+    expect(find.byType(KotakLangkah), findsNWidgets(2));
+    expect(find.text('Isi nominal'), findsOneWidget);
+    expect(find.text('Contoh Rp15.000'), findsOneWidget);
+    expect(find.text('Pilih kategori'), findsOneWidget);
     expect(
-      find.textContaining('Catat Cepat', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('Dua Langkah', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('Isi nominal', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('contoh Rp15.000', findRichText: true),
+      find.text('Makan, transport, nongkrong, dan lainnya'),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
@@ -241,31 +212,71 @@ void main() {
 
     // Layar 3
     expect(find.text('TIAP AKHIR PEKAN'), findsOneWidget);
+    expect(find.byType(KotakLangkah), findsNWidgets(3));
+    expect(find.text('Lihat ulang'), findsOneWidget);
+    expect(find.text('Pengeluaran sepekan terakhir'), findsOneWidget);
+    expect(find.text('Butuh atau pengen?'), findsOneWidget);
     expect(
-      find.textContaining('Refleksi', findRichText: true),
+      find.text('Tandai belanja yang sebenarnya bisa ditahan'),
       findsOneWidget,
     );
-    expect(
-      find.textContaining('Mingguan', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('Lihat ulang', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('butuh atau pengen?', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('target', findRichText: true),
-      findsOneWidget,
-    );
+    expect(find.text('Tetapkan target'), findsOneWidget);
+    expect(find.text('Batas pengeluaran untuk pekan depan'), findsOneWidget);
     expect(find.text('Santai, tanpa menghakimi.'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     final tinggiKartuLayar3 =
         tester.getSize(find.byType(KartuBukuTulis).first).height;
     expect(tinggiKartuLayar3, equals(tinggiKartuLayar1));
+  });
+
+  testWidgets(
+      'bebas overflow pada layar standar 411x914 untuk ketiga layar perkenalan',
+      (tester) async {
+    tester.view.physicalSize = const Size(411, 914);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+    addTearDown(() => tester.view.resetDevicePixelRatio());
+
+    await tester.pumpWidget(buatHalamanUji());
+    await tester.pumpAndSettle();
+
+    // Layar 1
+    expect(find.text('KENALAN DULU'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    // Layar 2
+    await tester.tap(find.byKey(const Key('tombol_lanjut')));
+    await tester.pumpAndSettle();
+    expect(find.text('CATAT'), findsOneWidget);
+    expect(find.byType(KotakLangkah), findsNWidgets(2));
+    expect(tester.takeException(), isNull);
+
+    // Layar 3
+    await tester.tap(find.byKey(const Key('tombol_lanjut')));
+    await tester.pumpAndSettle();
+    expect(find.text('TIAP AKHIR PEKAN'), findsOneWidget);
+    expect(find.byType(KotakLangkah), findsNWidgets(3));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'tidak ada karakter tanda pisah panjang em dash di teks perkenalan',
+      (tester) async {
+    await tester.pumpWidget(buatHalamanUji());
+    await tester.pumpAndSettle();
+
+    // Layar 1
+    expect(find.textContaining('—'), findsNothing);
+
+    // Layar 2
+    await tester.tap(find.byKey(const Key('tombol_lanjut')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('—'), findsNothing);
+
+    // Layar 3
+    await tester.tap(find.byKey(const Key('tombol_lanjut')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('—'), findsNothing);
   });
 }
