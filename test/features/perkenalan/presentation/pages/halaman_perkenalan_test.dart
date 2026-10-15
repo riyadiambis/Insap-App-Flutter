@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:insap/core/widgets/kartu_buku_tulis.dart';
+import 'package:insap/core/widgets/tombol_stabilo.dart';
 import 'package:insap/features/perkenalan/domain/repositories/pengaturan_repository.dart';
 import 'package:insap/features/perkenalan/presentation/cubit/onboarding_cubit.dart';
 import 'package:insap/features/perkenalan/presentation/pages/halaman_perkenalan.dart';
+import 'package:insap/features/transaksi/presentation/catat/widgets/kolom_input_nominal.dart';
 
 class _FakePengaturanRepository implements PengaturanRepository {
   bool _sudahOnboarding = false;
@@ -50,11 +53,26 @@ void main() {
   });
 
   Widget buatHalamanUji() {
-    return MaterialApp(
-      home: BlocProvider<OnboardingCubit>.value(
-        value: cubit,
-        child: const HalamanPerkenalan(),
-      ),
+    final router = GoRouter(
+      initialLocation: '/perkenalan',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) =>
+              const Scaffold(body: Text('Beranda Dummy')),
+        ),
+        GoRoute(
+          path: '/perkenalan',
+          builder: (context, state) => BlocProvider<OnboardingCubit>.value(
+            value: cubit,
+            child: const HalamanPerkenalan(),
+          ),
+        ),
+      ],
+    );
+
+    return MaterialApp.router(
+      routerConfig: router,
     );
   }
 
@@ -278,5 +296,145 @@ void main() {
     await tester.tap(find.byKey(const Key('tombol_lanjut')));
     await tester.pumpAndSettle();
     expect(find.textContaining('—'), findsNothing);
+  });
+
+  testWidgets(
+      'layar target: tata letak tanpa KartuBukuTulis, teks baru tanpa kata "mengubahnya nanti", dan tombol simpan nonaktif saat kosong',
+      (tester) async {
+    await tester.pumpWidget(buatHalamanUji());
+    await tester.pumpAndSettle();
+
+    // Buka layar target
+    await tester.tap(find.byKey(const Key('tombol_lewati')));
+    await tester.pumpAndSettle();
+
+    // 1. Tidak memakai KartuBukuTulis
+    expect(find.byType(KartuBukuTulis), findsNothing);
+
+    // 2. Susunan ikon & badge & judul & teks baru
+    expect(find.byIcon(Icons.track_changes_rounded), findsOneWidget);
+    expect(find.text('LANGKAH TERAKHIR'), findsOneWidget);
+    expect(
+      find.textContaining('Tentukan Target', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Bulanan', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        'Berapa batas maksimal pengeluaranmu dalam sebulan? Tidak harus pas, cukup perkiraan kasar dulu.',
+      ),
+      findsOneWidget,
+    );
+    // Teks lama tidak ada
+    expect(find.textContaining('mengubahnya nanti'), findsNothing);
+
+    // 3. Memakai KolomInputNominal
+    expect(find.byType(KolomInputNominal), findsOneWidget);
+
+    // 4. Tombol Simpan nonaktif saat nominal kosong
+    final tombolSimpan = tester.widget<TombolStabilo>(
+      find.byKey(const Key('tombol_simpan_target')),
+    );
+    expect(tombolSimpan.onPressed, isNull);
+
+    // 5. Tombol Nanti saja berupa TextButton tepat di atas Simpan Target
+    expect(find.byKey(const Key('tombol_nanti_saja')), findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Nanti saja'), findsOneWidget);
+  });
+
+  testWidgets(
+      'layar target: ketik 2000000 tampil "Rp2.000.000" dan tersimpan angka murni 2000000',
+      (tester) async {
+    await tester.pumpWidget(buatHalamanUji());
+    await tester.pumpAndSettle();
+
+    // Buka layar target
+    await tester.tap(find.byKey(const Key('tombol_lewati')));
+    await tester.pumpAndSettle();
+
+    final inputNominal = find.descendant(
+      of: find.byKey(const Key('kolom_target_bulanan')),
+      matching: find.byType(TextFormField),
+    );
+    expect(inputNominal, findsOneWidget);
+
+    // Ketik 2000000
+    await tester.enterText(inputNominal, '2000000');
+    await tester.pumpAndSettle();
+
+    // Tampil Rp2.000.000
+    expect(find.text('Rp2.000.000'), findsOneWidget);
+
+    // Tombol simpan kini aktif
+    final tombolSimpan = tester.widget<TombolStabilo>(
+      find.byKey(const Key('tombol_simpan_target')),
+    );
+    expect(tombolSimpan.onPressed, isNotNull);
+
+    // Simpan target
+    await tester.tap(find.byKey(const Key('tombol_simpan_target')));
+    await tester.pumpAndSettle();
+
+    // Tersimpan angka murni tanpa titik
+    expect(repo._target, equals(2000000));
+    expect(repo._sudahOnboarding, isTrue);
+  });
+
+  testWidgets(
+      'layar target: tidak overflow pada 360x640 (devicePixelRatio 1.0) termasuk saat keyboard terbuka (viewInsets 300)',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+    addTearDown(() => tester.view.resetDevicePixelRatio());
+
+    await tester.pumpWidget(buatHalamanUji());
+    await tester.pumpAndSettle();
+
+    // Buka layar target
+    await tester.tap(find.byKey(const Key('tombol_lewati')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(KartuBukuTulis), findsNothing);
+    expect(tester.takeException(), isNull);
+
+    // Buka keyboard (viewInsets bottom 300)
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(() => tester.view.resetViewInsets());
+    await tester.pumpAndSettle();
+
+    // Tidak ada overflow exception
+    expect(tester.takeException(), isNull);
+
+    // Tombol simpan target dan nanti saja tetap terlihat di atas keyboard
+    expect(find.byKey(const Key('tombol_simpan_target')), findsOneWidget);
+    expect(find.byKey(const Key('tombol_nanti_saja')), findsOneWidget);
+
+    // Isi bisa digulir
+    await tester.drag(find.text('LANGKAH TERAKHIR'), const Offset(0, -100));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'layar target: tombol nanti saja menyelesaikan onboarding tanpa menyimpan target bulanan',
+      (tester) async {
+    await tester.pumpWidget(buatHalamanUji());
+    await tester.pumpAndSettle();
+
+    // Buka layar target
+    await tester.tap(find.byKey(const Key('tombol_lewati')));
+    await tester.pumpAndSettle();
+
+    // Tekan tombol nanti saja
+    await tester.tap(find.byKey(const Key('tombol_nanti_saja')));
+    await tester.pumpAndSettle();
+
+    // Selesai onboarding, target tetap null
+    expect(repo._target, isNull);
+    expect(repo._sudahOnboarding, isTrue);
   });
 }
