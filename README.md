@@ -32,13 +32,14 @@ Insap adalah aplikasi pencatat keuangan pribadi yang dirancang khusus untuk maha
 
 ### Alur Pengguna
 
-1. **Perkenalan (F-16, dalam pengerjaan):** Pengguna baru disambut dengan alur perkenalan tiga langkah untuk memahami esensi pencatatan Kakeibo dan filosofi sadar boncos.
-2. **Beranda:** Menampilkan ringkasan pengeluaran sepekan dibanding pekan lalu, sisa kuota pindai struk AI mingguan, kartu rincian pengeluaran per kategori (dapat beralih antara pekan ini dan bulan ini), tombol aksi cepat, serta daftar transaksi terakhir.
+1. **Perkenalan (F-16):** Pengguna baru disambut tiga layar perkenalan tentang pencatatan ala Kakeibo dan filosofi sadar boncos, lalu diajak menetapkan target pengeluaran bulanan. Langkah target boleh dilewati dan diisi belakangan.
+2. **Beranda (F-05):** Menampilkan pengeluaran pekan ini dibanding pekan lalu, tombol Catat Cepat dan Pindai Struk beserta sisa kuota pindai, serta kartu rincian pengeluaran per kategori yang dapat beralih antara pekan ini dan bulan ini. Pada tab bulan ini, total pengeluaran dibandingkan dengan target bulanan lengkap dengan bilah progres dan keterangan sisa atau lewat target. Target dapat diubah langsung lewat lembar bawah. Pengguna yang belum punya data melihat tampilan Beranda kosong berisi ajakan mulai mencatat.
 3. **Catat Transaksi Manual (F-01 & F-07):** Memasukkan nominal pengeluaran, memilih tanggal, dan memilih salah satu dari sembilan kategori mahasiswa. Untuk kategori opsional dan hiburan, aplikasi menanyakan pertimbangan niat belanja: "butuh atau pengen".
-4. **Pindai Struk dengan AI (F-09 s.d. F-11, dalam pengerjaan):** Mengambil foto struk belanja untuk diekstraksi toko, tanggal, dan total belanjanya secara otomatis menggunakan Gemini AI, lalu dikonfirmasi pengguna sebelum disimpan. Kuota gratis sepuluh struk per pekan direset setiap Senin.
+4. **Pindai Struk dengan AI (F-09 s.d. F-11):** Foto struk diambil dari kamera atau galeri dan dipotong otomatis menggunakan ML Kit Document Scanner, lalu dikirim ke Gemini untuk membaca nama toko, tanggal, total, dan usulan kategori. Hasilnya selalu tampil sebagai draf yang wajib diperiksa pengguna sebelum disimpan. Kuota gratis sepuluh pindai per pekan direset setiap Senin dan tidak dipotong saat pemindaian gagal.
 5. **Riwayat Transaksi (F-02):** Melihat seluruh catatan pengeluaran yang dikelompokkan per tanggal. Dilengkapi filter rentang tanggal dan kategori, halaman detail transaksi, serta tombol hapus transaksi dengan dialog konfirmasi.
 6. **Refleksi Mingguan (F-08, dalam pengerjaan):** Ritual evaluasi akhir pekan untuk membandingkan realisasi pengeluaran dengan target mingguan, disertai catatan evaluasi diri untuk pekan berikutnya.
-7. **Akun & Cadangan Awan (F-17 & F-13):** Masuk menggunakan akun Google untuk menampilkan nama dan foto profil di Halaman Akun dan Beranda (ISSUE-19). Data lokal (transaksi, kategori, refleksi) dapat dicadangkan dengan aman ke Cloud Firestore, serta dipulihkan kembali secara cerdas dengan perlindungan agar data baru di perangkat tidak tertimpa (ISSUE-14). Autentikasi bersifat sepenuhnya opsional sehingga aplikasi tetap berfungsi penuh secara luring (KNF-04).
+7. **Akun & Cadangan Awan (F-17 & F-13):** Pengguna dapat masuk dengan email dan kata sandi atau dengan akun Google. Setelah masuk, nama dan foto akun Google tampil di Beranda dan halaman Akun. Mengetuk avatar di header langsung membuka halaman Akun & Cadangan. Data lokal (transaksi, kategori, refleksi) dapat dicadangkan secara manual ke Cloud Firestore. Pemulihan hanya diizinkan pada perangkat yang masih kosong agar data di perangkat tidak tertimpa, dan pencadangan ditolak bila perangkat kosong sementara cadangan di awan sudah berisi data. Informasi aplikasi dan tim pengembang tersedia di bagian bawah halaman Akun dan halaman masuk. Masuk akun bersifat opsional, aplikasi tetap berfungsi penuh secara luring (KNF-04).
+8. **Navigasi:** Bilah navigasi bawah berisi empat tab (Beranda, Catat, Refleksi, Riwayat) dengan header seragam di setiap tab berisi logo, nama layar, dan avatar akun.
 
 ### Arsitektur Aplikasi
 
@@ -127,12 +128,12 @@ Pengembangan aplikasi Insap dilakukan secara bertahap per versi sesuai dengan ja
 |---|---|---|---|---|
 | F-01 | Input transaksi manual | Form isian jumlah, kategori, tanggal, catatan singkat | Riyadi | selesai |
 | F-02 | Riwayat transaksi | Daftar transaksi yang dapat disaring per tanggal dan kategori | Dafa | selesai |
-| F-03 | Kategori khas mahasiswa | Sembilan kategori bawaan, lihat KATEGORI.md | Luthfi | sebagian |
+| F-03 | Kategori khas mahasiswa | Sembilan kategori bawaan sudah berjalan, pengelolaan kategori ditunda | Luthfi | sebagian |
 | F-04 | Penyimpanan lokal | Seluruh data tersimpan di perangkat menggunakan SQLite | Riyadi | selesai |
-| F-05 | Ringkasan periodik | Total pengeluaran per kategori untuk rentang mingguan dan bulanan | Riyadi | selesai |
+| F-05 | Ringkasan periodik | Total per kategori mingguan dan bulanan, plus perbandingan total bulan dengan target bulanan | Riyadi | selesai |
 | F-06 | Format Rupiah | Penulisan mata uang yang benar, misalnya Rp15.000 | Riyadi | selesai |
 | F-07 | Tanya niat belanja | Pertanyaan "butuh atau pengen" untuk kategori opsional dan hiburan | Riyadi | selesai |
-| F-16 | Perkenalan dan keadaan kosong | Layar sambutan tiga langkah dan tampilan saat belum ada data | Luthfi | sebagian |
+| F-16 | Perkenalan dan keadaan kosong | Perkenalan tiga layar, penetapan target bulanan, dan Beranda kosong sudah selesai; Riwayat dan Refleksi kosong menyusul | Riyadi, Dafa, Luthfi | sebagian |
 
 ### v0.2 Pembeda
 
@@ -144,9 +145,9 @@ Pengembangan aplikasi Insap dilakukan secara bertahap per versi sesuai dengan ja
 
 | Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
 |---|---|---|---|---|
-| F-09 | Pindai struk | Foto struk dikirim ke Gemini untuk diekstrak toko, tanggal, total | Dafa | dalam pengerjaan |
-| F-10 | Konfirmasi hasil pindai | Hasil AI ditampilkan sebagai draf yang wajib disetujui pengguna | Dafa | dalam pengerjaan |
-| F-11 | Kuota pindai gratis | Pembatasan sepuluh pemindaian per minggu untuk pengguna gratis | Dafa | sebagian |
+| F-09 | Pindai struk | Foto struk dipotong otomatis dengan ML Kit Document Scanner, lalu dibaca Gemini | Dafa | uji akhir |
+| F-10 | Konfirmasi hasil pindai | Hasil AI ditampilkan sebagai draf yang wajib disetujui pengguna | Dafa | uji akhir |
+| F-11 | Kuota pindai gratis | Sepuluh pemindaian per pekan, direset setiap Senin, tidak dipotong saat gagal | Dafa | uji akhir |
 
 ### v0.4 Pemantapan
 
@@ -162,12 +163,12 @@ Pengembangan aplikasi Insap dilakukan secara bertahap per versi sesuai dengan ja
 
 ### Fitur Akun, Cadangan, dan Premium
 
-Fitur autentikasi dan pencadangan awan telah berhasil diselesaikan pada modul v0.4 / pemantapan dengan integrasi Firebase Auth dan Cloud Firestore. Fitur langganan premium dan kuota tanpa batas direncanakan pada tahap berikutnya sesuai pemenuhan gerbang mutu.
+Fitur masuk akun dan cadangan awan dikerjakan lebih awal dari urutan versi untuk menerapkan materi Modul 06 (Firebase), menggunakan Firebase Auth dan Cloud Firestore. Fitur langganan premium dan pindai tanpa batas tetap direncanakan untuk tahap berikutnya.
 
 | Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
 |---|---|---|---|---|
-| F-17 | Masuk dengan akun (Email & Google) | Firebase Auth, profil nama dan foto Google (ISSUE-19) | Riyadi | selesai |
-| F-13 | Cadangan awan | Sinkronisasi ke Cloud Firestore dengan proteksi perangkat kosong (ISSUE-14) | Riyadi | selesai |
+| F-17 | Masuk dengan akun (Email & Google) | Firebase Auth, menampilkan nama dan foto akun Google di Beranda dan halaman Akun | Riyadi | selesai |
+| F-13 | Cadangan awan | Cadangkan dan pulihkan manual ke Cloud Firestore, pemulihan hanya di perangkat kosong | Riyadi | selesai |
 | F-18 | Langganan premium | Penagihan lewat Google Play Billing, bergantung pada F-17 | - | belum dimulai |
 | F-15 | Pindai tanpa batas | Menghapus kuota mingguan bagi pelanggan, bergantung pada F-18 | - | belum dimulai |
 
