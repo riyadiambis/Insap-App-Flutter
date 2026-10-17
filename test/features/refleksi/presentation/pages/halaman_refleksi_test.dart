@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insap/core/theme.dart';
+import 'package:insap/features/beranda/presentation/cubit/beranda_cubit.dart';
 import 'package:insap/features/kategori/domain/entities/kategori_entity.dart';
 import 'package:insap/features/kategori/domain/repositories/kategori_repository.dart';
 import 'package:insap/features/refleksi/domain/entities/refleksi_mingguan_entity.dart';
@@ -12,6 +13,7 @@ import 'package:insap/features/refleksi/presentation/cubit/refleksi_cubit.dart';
 import 'package:insap/features/refleksi/presentation/pages/halaman_refleksi.dart';
 import 'package:insap/features/transaksi/domain/entities/transaksi_entity.dart';
 import 'package:insap/features/transaksi/domain/repositories/transaksi_repository.dart';
+import 'package:insap/features/transaksi/domain/usecases/ambil_ringkasan_pekan.dart';
 
 class _FakeKategoriRepository implements KategoriRepository {
   @override
@@ -145,13 +147,16 @@ void main() {
 
   tearDown(() => cubit.close());
 
-  Widget buatWidgetUji() {
+  Widget buatWidgetUji({BerandaCubit? berandaCubit}) {
+    final child = BlocProvider<RefleksiCubit>.value(
+      value: cubit,
+      child: const HalamanRefleksi(),
+    );
     return MaterialApp(
       theme: AppTheme.lightTheme,
-      home: BlocProvider<RefleksiCubit>.value(
-        value: cubit,
-        child: const HalamanRefleksi(),
-      ),
+      home: berandaCubit != null
+          ? BlocProvider<BerandaCubit>.value(value: berandaCubit, child: child)
+          : child,
     );
   }
 
@@ -273,6 +278,65 @@ void main() {
         'Mulai catat pengeluaran harian minggu depan',
       );
       expect(fakeRefleksiRepo.targetPekanDepan, 300000);
+    },
+  );
+
+  testWidgets(
+    'otomatis memuat ulang pengeluaran sepekan saat BerandaCubit memancarkan BerandaLoaded setelah transaksi baru ditambahkan',
+    (tester) async {
+      tester.view.physicalSize = const Size(460, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final berandaCubit = BerandaCubit(
+        ambilRingkasanPekan: AmbilRingkasanPekan(
+          fakeTransaksiRepo,
+          sekarang: () => tanggalAcuan,
+        ),
+      );
+      addTearDown(berandaCubit.close);
+
+      fakeTransaksiRepo.daftarPekanIni = const [
+        TransaksiEntity(
+          id: 1,
+          jumlah: 50000,
+          kategoriId: 1,
+          tanggal: '2026-10-13',
+          dibuatPada: '2026-10-13T10:00:00',
+        ),
+      ];
+
+      await cubit.muatRefleksi(tanggalAcuan);
+      await tester.pumpWidget(buatWidgetUji(berandaCubit: berandaCubit));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Rp50.000'), findsAtLeastNWidgets(1));
+
+      // simulasi pengguna menambah transaksi baru hari ini lalu BerandaCubit dimuat ulang
+      fakeTransaksiRepo.daftarPekanIni = const [
+        TransaksiEntity(
+          id: 1,
+          jumlah: 50000,
+          kategoriId: 1,
+          tanggal: '2026-10-13',
+          dibuatPada: '2026-10-13T10:00:00',
+        ),
+        TransaksiEntity(
+          id: 2,
+          jumlah: 35000,
+          kategoriId: 6,
+          tanggal: '2026-10-18',
+          tipeKebutuhan: 'pengen',
+          dibuatPada: '2026-10-18T12:00:00',
+        ),
+      ];
+
+      await berandaCubit.muatRingkasan();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Rp85.000'), findsOneWidget);
+      expect(find.text('Rp35.000'), findsAtLeastNWidgets(1));
     },
   );
 }

@@ -7,6 +7,8 @@ import '../../../../core/theme.dart';
 import '../../../../core/utils/iso_week.dart';
 import '../../../../core/utils/rupiah_extension.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
+import '../../../beranda/presentation/cubit/beranda_cubit.dart';
+import '../../../beranda/presentation/cubit/beranda_state.dart';
 import '../../domain/usecases/ambil_refleksi_pekan.dart';
 import '../cubit/refleksi_cubit.dart';
 import '../cubit/refleksi_state.dart';
@@ -36,9 +38,18 @@ class HalamanRefleksi extends StatelessWidget {
 class _RefleksiView extends StatelessWidget {
   const _RefleksiView();
 
+  bool _adaBerandaCubit(BuildContext context) {
+    try {
+      context.read<BerandaCubit>();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final kontenScaffold = Scaffold(
       body: PaperBackground(
         child: Center(
           child: Container(
@@ -103,6 +114,20 @@ class _RefleksiView extends StatelessWidget {
         ),
       ),
     );
+
+    // ikuti perubahan transaksi dari BerandaCubit supaya angka pengeluaran sepekan
+    // otomatis segar kembali meskipun tab refleksi ditahan oleh IndexedStack
+    if (_adaBerandaCubit(context)) {
+      return BlocListener<BerandaCubit, BerandaState>(
+        listenWhen: (prev, curr) => curr is BerandaLoaded,
+        listener: (context, _) {
+          context.read<RefleksiCubit>().muatRefleksi();
+        },
+        child: kontenScaffold,
+      );
+    }
+
+    return kontenScaffold;
   }
 }
 
