@@ -33,6 +33,11 @@ import '../../features/pengaturan/domain/usecases/ambil_target_bulanan.dart';
 import '../../features/pengaturan/domain/usecases/hitung_perbandingan_target.dart';
 import '../../features/pengaturan/domain/usecases/simpan_target_bulanan.dart';
 import '../../features/perkenalan/presentation/cubit/onboarding_cubit.dart';
+import '../../features/refleksi/data/datasources/refleksi_local_datasource.dart';
+import '../../features/refleksi/data/repositories/refleksi_repository_impl.dart';
+import '../../features/refleksi/domain/repositories/refleksi_repository.dart';
+import '../../features/refleksi/domain/usecases/ambil_refleksi_pekan.dart';
+import '../../features/refleksi/domain/usecases/simpan_refleksi.dart';
 import '../../features/pindai/data/datasources/kuota_local_datasource.dart';
 import '../../features/pindai/data/datasources/pindai_remote_datasource.dart';
 import '../../features/pindai/data/repositories/pindai_repository_impl.dart';
@@ -110,11 +115,23 @@ void setupInjectionContainer() {
   sl.registerLazySingleton(() => AmbilTargetBulanan(sl()));
   sl.registerLazySingleton(() => SimpanTargetBulanan(sl()));
   sl.registerLazySingleton(() => const HitungPerbandinganTarget());
-  sl.registerFactory(
-    () => OnboardingCubit(pengaturanRepository: sl()),
-  );
+  sl.registerFactory(() => OnboardingCubit(pengaturanRepository: sl()));
 
   // refleksi (Luthfi) — SimpanRefleksi, AmbilRefleksiPekan di v0.2
+  sl.registerLazySingleton<RefleksiLocalDataSource>(
+    () => RefleksiLocalDataSource(),
+  );
+  sl.registerLazySingleton<RefleksiRepository>(
+    () => RefleksiRepositoryImpl(dataSource: sl()),
+  );
+  sl.registerLazySingleton(
+    () => AmbilRefleksiPekan(
+      refleksiRepository: sl(),
+      transaksiRepository: sl(),
+      kategoriRepository: sl(),
+    ),
+  );
+  sl.registerLazySingleton(() => SimpanRefleksi(sl()));
 
   // pindai (Dafa) — PindaiStruk, AmbilKuotaPindai di v0.3
   sl.registerLazySingleton<GeminiClient>(() => GeminiClient());
