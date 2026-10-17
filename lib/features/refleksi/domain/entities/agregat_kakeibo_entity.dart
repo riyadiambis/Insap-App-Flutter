@@ -33,6 +33,18 @@ class AgregatKakeiboEntity extends Equatable {
 
   bool get adaTransaksi => totalPekanIni > 0;
 
+  double get porsiEsensial =>
+      totalPekanIni > 0 ? (totalEsensial / totalPekanIni).clamp(0.0, 1.0) : 0.0;
+
+  double get porsiOpsional =>
+      totalPekanIni > 0 ? (totalOpsional / totalPekanIni).clamp(0.0, 1.0) : 0.0;
+
+  double get porsiHiburan =>
+      totalPekanIni > 0 ? (totalHiburan / totalPekanIni).clamp(0.0, 1.0) : 0.0;
+
+  double get porsiEkstra =>
+      totalPekanIni > 0 ? (totalEkstra / totalPekanIni).clamp(0.0, 1.0) : 0.0;
+
   @override
   List<Object?> get props => [
     totalEsensial,

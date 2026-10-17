@@ -38,6 +38,7 @@ import '../../features/refleksi/data/repositories/refleksi_repository_impl.dart'
 import '../../features/refleksi/domain/repositories/refleksi_repository.dart';
 import '../../features/refleksi/domain/usecases/ambil_refleksi_pekan.dart';
 import '../../features/refleksi/domain/usecases/simpan_refleksi.dart';
+import '../../features/refleksi/presentation/cubit/refleksi_cubit.dart';
 import '../../features/pindai/data/datasources/kuota_local_datasource.dart';
 import '../../features/pindai/data/datasources/pindai_remote_datasource.dart';
 import '../../features/pindai/data/repositories/pindai_repository_impl.dart';
@@ -132,6 +133,9 @@ void setupInjectionContainer() {
     ),
   );
   sl.registerLazySingleton(() => SimpanRefleksi(sl()));
+  sl.registerFactory(
+    () => RefleksiCubit(ambilRefleksiPekan: sl(), simpanRefleksi: sl()),
+  );
 
   // pindai (Dafa) — PindaiStruk, AmbilKuotaPindai di v0.3
   sl.registerLazySingleton<GeminiClient>(() => GeminiClient());
