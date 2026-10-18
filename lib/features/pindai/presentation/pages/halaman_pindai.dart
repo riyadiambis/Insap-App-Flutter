@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 
+import '../../../../core/constants/kuota_constants.dart';
 import '../../../../core/network/gemini_client.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
@@ -346,7 +347,7 @@ class _HalamanPindaiState extends State<HalamanPindai> {
                                             ),
                                       ),
                                       Text(
-                                        '${state.sisaKuota} dari 10 tersisa',
+                                        '${state.sisaKuota} dari $kuotaPindaiPekanan tersisa',
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleSmall

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/kuota_constants.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
@@ -691,7 +692,9 @@ class _BerandaContent extends StatelessWidget {
                                   alignment: Alignment.centerLeft,
                                   widthFactor: ringkasan.kuotaPindai <= 0
                                       ? 0.0
-                                      : (ringkasan.kuotaPindai / 10).clamp(
+                                      : (ringkasan.kuotaPindai /
+                                              kuotaPindaiPekanan)
+                                          .clamp(
                                           0.0,
                                           1.0,
                                         ),
@@ -707,7 +710,7 @@ class _BerandaContent extends StatelessWidget {
                               child: Text(
                                 ringkasan.kuotaPindai <= 0
                                     ? 'Habis, reset Senin'
-                                    : '${ringkasan.kuotaPindai}/10',
+                                    : '${ringkasan.kuotaPindai}/$kuotaPindaiPekanan',
                                 style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
                                       fontSize: ringkasan.kuotaPindai <= 0

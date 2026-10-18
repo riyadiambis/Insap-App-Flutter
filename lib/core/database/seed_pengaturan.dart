@@ -1,3 +1,4 @@
+import '../constants/kuota_constants.dart';
 import 'models/pengaturan.dart';
 
 List<Pengaturan> buatSeedPengaturan({DateTime? waktuSekarang}) {
@@ -12,7 +13,7 @@ List<Pengaturan> buatSeedPengaturan({DateTime? waktuSekarang}) {
   return [
     Pengaturan(kunci: 'versi_skema', nilai: '1'),
     Pengaturan(kunci: 'onboarding_selesai', nilai: '0'),
-    Pengaturan(kunci: 'kuota_pindai_sisa', nilai: '10'),
+    Pengaturan(kunci: 'kuota_pindai_sisa', nilai: kuotaPindaiPekanan.toString()),
     Pengaturan(kunci: 'kuota_periode_mulai', nilai: kuotaPeriodeMulai),
     Pengaturan(kunci: 'status_langganan', nilai: 'gratis'),
     Pengaturan(kunci: 'kategori_terakhir', nilai: ''),
