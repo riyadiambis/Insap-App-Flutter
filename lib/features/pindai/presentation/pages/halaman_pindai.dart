@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 
+import '../../../../core/network/gemini_client.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
@@ -15,20 +16,29 @@ import '../../../kategori/presentation/cubit/kategori_state.dart';
 import '../cubit/pindai_cubit.dart';
 import '../cubit/pindai_state.dart';
 import '../utils/gambar_helper.dart';
-import 'halaman_konfirmasi_draf.dart';
+import '../widgets/dialog_panduan_pindai.dart';
+import 'halaman_konfirmasi_pindai.dart';
 
 /// Layar utama pemindaian struk belanja (F-09, Modul Jaringan REST API, Google ML Kit).
 class HalamanPindai extends StatefulWidget {
+  /// Parameter opsional untuk langsung menjalankan pemindai setelah inisialisasi
+  final bool mulaiLangsung;
+
   /// Parameter opsional untuk pengujian widget (memungkinkan injeksi pemindai tiruan)
   final Future<List<String>?> Function()? onScanDocument;
 
   /// Parameter opsional untuk pengujian koneksi internet (No 13)
   final Future<bool> Function()? onCheckConnection;
 
+  /// Parameter opsional untuk pengujian cek kunci API Gemini (No 33)
+  final bool Function()? onCheckApiKey;
+
   const HalamanPindai({
     super.key,
+    this.mulaiLangsung = false,
     this.onScanDocument,
     this.onCheckConnection,
+    this.onCheckApiKey,
   });
 
   @override
@@ -42,8 +52,11 @@ class _HalamanPindaiState extends State<HalamanPindai> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PindaiCubit>().inisialisasi();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<PindaiCubit>().inisialisasi();
+      if (widget.mulaiLangsung && mounted) {
+        _jalankanPemindaiDokumen();
+      }
     });
   }
 
@@ -84,6 +97,22 @@ class _HalamanPindaiState extends State<HalamanPindai> {
     });
 
     try {
+      // No 33: Periksa kunci Gemini kosong SEBELUM pemindai dibuka
+      final adaKunci = widget.onCheckApiKey != null
+          ? widget.onCheckApiKey!()
+          : GeminiClient.apiKey.trim().isNotEmpty;
+      if (!adaKunci) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Pindai struk belum aktif di versi ini'),
+            ),
+          );
+          context.go('/catat');
+        }
+        return;
+      }
+
       // No 13: Periksa koneksi SEBELUM pemindai dibuka (batas 3 detik)
       final terhubung = await _cekKoneksi();
       if (!terhubung) {
@@ -161,17 +190,23 @@ class _HalamanPindaiState extends State<HalamanPindai> {
 
         // 3. Ambil daftar kategori aktif dari KategoriCubit untuk disisipkan ke prompt Gemini
         List<String> daftarKategori = [];
+        Map<String, int> petaKategoriId = {};
         final katState = context.read<KategoriCubit>().state;
         if (katState is KategoriLoaded) {
           daftarKategori = katState.kategoriList
               .map((k) => k.nama.toLowerCase())
               .toList();
+          petaKategoriId = {
+            for (final k in katState.kategoriList)
+              if (k.id != null) k.nama.toLowerCase().trim(): k.id!,
+          };
         }
 
         // 4. Kirim ke Gemini AI
         await cubit.prosesPindai(
           imagePath: pathSiapKirim,
           daftarKategori: daftarKategori,
+          petaKategoriId: petaKategoriId,
         );
       } finally {
         // No 16: Berkas sementara _1024.png selalu dihapus di finally setelah dikirim termasuk saat gagal
@@ -201,7 +236,7 @@ class _HalamanPindaiState extends State<HalamanPindai> {
                 // Jika Gemini berhasil mengekstrak dan butuh konfirmasi draf
                 if (state.status == PindaiStatus.butuhKonfirmasi &&
                     state.hasilPindai != null) {
-                  return HalamanKonfirmasiDraf(hasilPindai: state.hasilPindai!);
+                  return HalamanKonfirmasiPindai(hasilPindai: state.hasilPindai!);
                 }
 
                 return SafeArea(
@@ -434,48 +469,34 @@ class _HalamanPindaiState extends State<HalamanPindai> {
                               backgroundColor: AppColors.paper,
                               padding: const EdgeInsets.all(AppSpacing.besar),
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.document_scanner_outlined,
-                                        color: AppColors.ink,
-                                        size: 28,
-                                      ),
-                                      const SizedBox(
-                                        width: AppSpacing.agakKecil,
-                                      ),
-                                      Text(
-                                        'Panduan Pemindaian',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w800,
-                                              color: AppColors.ink,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: AppSpacing.sedang),
-                                  const Text(
-                                    '1. Letakkan struk fisik pada permukaan datar dengan pencahayaan cukup.\n'
-                                    '2. Kamera akan mendeteksi tepi kertas dan memotong foto otomatis.\n'
-                                    '3. AI Gemini akan mengekstrak total nominal dan kategori belanja.\n'
-                                    '4. Anda tetap dapat mengedit draf sebelum disimpan ke catatan.',
-                                    style: TextStyle(
-                                      height: 1.5,
-                                      color: AppColors.inkSoft,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: AppSpacing.besar),
                                   TombolStabilo(
                                     teks: 'Buka Pemindai Struk',
                                     ikon: Icons.photo_camera_rounded,
                                     isLoading: _sedangMemindai,
                                     onPressed: _sedangMemindai ? null : _jalankanPemindaiDokumen,
+                                  ),
+                                  const SizedBox(height: AppSpacing.sedang),
+                                  Center(
+                                    child: TextButton.icon(
+                                      onPressed: () => tampilkanDialogPanduanPindai(
+                                        context,
+                                        onLanjut: _jalankanPemindaiDokumen,
+                                      ),
+                                      icon: const Icon(
+                                        Icons.help_outline_rounded,
+                                        size: 18,
+                                        color: AppColors.inkSoft,
+                                      ),
+                                      label: const Text(
+                                        'Lihat panduan',
+                                        style: TextStyle(
+                                          color: AppColors.inkSoft,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
