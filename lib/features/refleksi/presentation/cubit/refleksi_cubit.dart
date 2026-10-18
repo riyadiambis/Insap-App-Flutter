@@ -40,17 +40,21 @@ class RefleksiCubit extends Cubit<RefleksiState> {
   }) async {
     emit(state.copyWith(status: RefleksiStatus.saving, hapusPesan: true));
     try {
-      final realisasi = state.data?.agregat.totalPekanIni ?? 0;
+      final displayedData = state.data;
+      final tanggalPekanDitampilkan = tanggalAcuan ?? displayedData?.awalPekan;
+
       await simpanRefleksi(
         catatanRefleksi: catatanRefleksi,
-        realisasi: realisasi,
+        realisasi: displayedData?.agregat.totalPekanIni ?? 0,
         targetPekanDepan: targetPekanDepan,
-        targetPengeluaranPekanIni: state.data?.targetPekanIni,
-        tanggalAcuan: tanggalAcuan,
+        targetPengeluaranPekanIni: displayedData?.targetPekanIni,
+        tanggalAcuan: tanggalPekanDitampilkan,
+        tahun: displayedData?.tahun,
+        mingguKe: displayedData?.mingguKe,
       );
       if (isClosed) return;
 
-      final dataTerbaru = await ambilRefleksiPekan(tanggalAcuan);
+      final dataTerbaru = await ambilRefleksiPekan(tanggalPekanDitampilkan);
       if (isClosed) return;
 
       emit(

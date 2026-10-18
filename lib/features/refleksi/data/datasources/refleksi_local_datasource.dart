@@ -64,7 +64,7 @@ class RefleksiLocalDataSource {
     );
   }
 
-  Future<int?> bacaTargetPekanDepan() async {
+  Future<int?> bacaTargetPekanDepan({int? tahun, int? mingguKe}) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
       'pengaturan',
@@ -77,14 +77,40 @@ class RefleksiLocalDataSource {
     if (maps.isEmpty) return null;
     final raw = maps.first['nilai'] as String?;
     if (raw == null || raw.trim().isEmpty) return null;
-    final parsed = int.tryParse(raw.trim());
+    final trimmed = raw.trim();
+
+    // Format target bersama pekan tujuannya: "tahun-minggu:nominal" (contoh "2026-43:500000")
+    if (trimmed.contains(':')) {
+      final parts = trimmed.split(':');
+      if (parts.length == 2) {
+        final tahunMinggu = parts[0];
+        final target = int.tryParse(parts[1]);
+        if (target == null || target <= 0) return null;
+        if (tahun != null && mingguKe != null) {
+          if (tahunMinggu == '$tahun-$mingguKe') {
+            return target;
+          }
+          // Target disimpan bukan untuk pekan yang diminta (misal terlewat 1 pekan)
+          return null;
+        }
+        return target;
+      }
+    }
+
+    final parsed = int.tryParse(trimmed);
     if (parsed == null || parsed <= 0) return null;
+    // Format angka polos lama hanya dikembalikan bila pekan tidak dispesifikasikan
+    if (tahun != null && mingguKe != null) return null;
     return parsed;
   }
 
-  Future<void> simpanTargetPekanDepan(int? target) async {
+  Future<void> simpanTargetPekanDepan(
+    int? target, {
+    int? tahunTujuan,
+    int? mingguTujuan,
+  }) async {
     final db = await _dbHelper.database;
-    if (target == null || target <= 0) {
+    if (target == null || target <= 0 || tahunTujuan == null || mingguTujuan == null) {
       await db.delete(
         'pengaturan',
         where: 'kunci = ?',
@@ -93,9 +119,10 @@ class RefleksiLocalDataSource {
       return;
     }
 
+    final nilai = '$tahunTujuan-$mingguTujuan:$target';
     await db.insert('pengaturan', {
       'kunci': kunciTargetPekanDepan,
-      'nilai': target.toString(),
+      'nilai': nilai,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 }

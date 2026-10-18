@@ -139,7 +139,9 @@ void setupInjectionContainer() {
       kategoriRepository: sl(),
     ),
   );
-  sl.registerLazySingleton(() => SimpanRefleksi(sl()));
+  sl.registerLazySingleton(
+    () => SimpanRefleksi(sl(), transaksiRepository: sl()),
+  );
   sl.registerFactory(
     () => RefleksiCubit(ambilRefleksiPekan: sl(), simpanRefleksi: sl()),
   );

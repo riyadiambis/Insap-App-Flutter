@@ -5,7 +5,11 @@ abstract class RefleksiRepository {
 
   Future<int> simpanRefleksi(RefleksiMingguanEntity refleksi);
 
-  Future<int?> bacaTargetPekanDepan();
+  Future<int?> bacaTargetPekanDepan({int? tahun, int? mingguKe});
 
-  Future<void> simpanTargetPekanDepan(int? target);
+  Future<void> simpanTargetPekanDepan(
+    int? target, {
+    int? tahunTujuan,
+    int? mingguTujuan,
+  });
 }

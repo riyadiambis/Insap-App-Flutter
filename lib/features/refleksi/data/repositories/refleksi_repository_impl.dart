@@ -20,12 +20,20 @@ class RefleksiRepositoryImpl implements RefleksiRepository {
   }
 
   @override
-  Future<int?> bacaTargetPekanDepan() {
-    return dataSource.bacaTargetPekanDepan();
+  Future<int?> bacaTargetPekanDepan({int? tahun, int? mingguKe}) {
+    return dataSource.bacaTargetPekanDepan(tahun: tahun, mingguKe: mingguKe);
   }
 
   @override
-  Future<void> simpanTargetPekanDepan(int? target) {
-    return dataSource.simpanTargetPekanDepan(target);
+  Future<void> simpanTargetPekanDepan(
+    int? target, {
+    int? tahunTujuan,
+    int? mingguTujuan,
+  }) {
+    return dataSource.simpanTargetPekanDepan(
+      target,
+      tahunTujuan: tahunTujuan,
+      mingguTujuan: mingguTujuan,
+    );
   }
 }

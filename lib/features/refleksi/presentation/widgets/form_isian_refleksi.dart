@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme.dart';
+import '../../../../core/utils/rupiah_extension.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
 import '../../../../core/widgets/tombol_stabilo.dart';
 
 class FormIsianRefleksi extends StatefulWidget {
   final String? catatanAwal;
   final int? targetAwal;
+  final int? targetPekanIni;
   final bool sedangMenyimpan;
   final void Function(String catatan, int? targetPekanDepan) onSimpan;
 
@@ -15,6 +17,7 @@ class FormIsianRefleksi extends StatefulWidget {
     super.key,
     this.catatanAwal,
     this.targetAwal,
+    this.targetPekanIni,
     this.sedangMenyimpan = false,
     required this.onSimpan,
   });
@@ -32,10 +35,8 @@ class _FormIsianRefleksiState extends State<FormIsianRefleksi> {
   void initState() {
     super.initState();
     _catatanController = TextEditingController(text: widget.catatanAwal ?? '');
-    final teksTarget = (widget.targetAwal != null && widget.targetAwal! > 0)
-        ? widget.targetAwal.toString()
-        : '';
-    _targetController = TextEditingController(text: teksTarget);
+    // Kolom target pekan depan selalu mulai KOSONG sesuai aturan Tahap 1
+    _targetController = TextEditingController(text: '');
   }
 
   @override
@@ -45,12 +46,6 @@ class _FormIsianRefleksiState extends State<FormIsianRefleksi> {
         widget.catatanAwal != null &&
         _catatanController.text.isEmpty) {
       _catatanController.text = widget.catatanAwal!;
-    }
-    if (widget.targetAwal != oldWidget.targetAwal &&
-        widget.targetAwal != null &&
-        widget.targetAwal! > 0 &&
-        _targetController.text.isEmpty) {
-      _targetController.text = widget.targetAwal.toString();
     }
   }
 
@@ -240,6 +235,18 @@ class _FormIsianRefleksiState extends State<FormIsianRefleksi> {
                     ],
                   ),
                 ),
+                if (widget.targetPekanIni != null &&
+                    widget.targetPekanIni! > 0) ...[
+                  const SizedBox(height: AppSpacing.sangatKecil),
+                  Text(
+                    'Pekan ini: ${widget.targetPekanIni!.toRupiah()}',
+                    key: const Key('teks_bantu_target_pekan_ini'),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: AppColors.inkSoft,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
