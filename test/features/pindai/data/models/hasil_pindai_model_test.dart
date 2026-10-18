@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:insap/core/network/gemini_client.dart';
 import 'package:insap/features/pindai/data/models/hasil_pindai_model.dart';
 import 'package:insap/features/pindai/domain/entities/hasil_pindai_entity.dart';
 
@@ -57,37 +58,41 @@ void main() {
       expect(result.keyakinan, 0.0);
     });
 
-    test('fromJson aman menangani map kosong atau nilai null tak terduga', () {
+    test('fromJson melempar GeminiException bila adalah_struk hilang dari JSON (No 15)', () {
       final Map<String, dynamic> json = {};
 
-      final result = HasilPindaiModel.fromJson(json);
-
-      expect(result.adalahStruk, isFalse);
-      expect(result.namaToko, isNull);
-      expect(result.tanggal, isNull);
-      expect(result.total, isNull);
-      expect(result.kategoriUsulan, isNull);
-      expect(result.keyakinan, 0.0);
+      expect(
+        () => HasilPindaiModel.fromJson(json),
+        throwsA(
+          isA<GeminiException>().having(
+            (e) => e.pesan,
+            'pesan',
+            'Gagal membaca struk, coba lagi',
+          ),
+        ),
+      );
     });
 
-    test('fromJson menangani format tipe tak terduga dari Gemini AI secara toleran', () {
+    test('fromJson melempar GeminiException bila adalah_struk bukan boolean (No 15)', () {
       final json = {
-        'adalah_struk': 'true',
-        'nama_toko': '  Kopi Kenangan  ',
+        'adalah_struk': 'true', // string bukan boolean
+        'nama_toko': 'Kopi Kenangan',
         'tanggal': '2026-10-14',
-        'total': 'Rp 28.500', // Format string dengan simbol mata uang
-        'kategori_usulan': ' MAKAN ',
-        'keyakinan': '0.88', // String float
+        'total': 28500,
+        'kategori_usulan': 'makan',
+        'keyakinan': 0.88,
       };
 
-      final result = HasilPindaiModel.fromJson(json);
-
-      expect(result.adalahStruk, isTrue);
-      expect(result.namaToko, 'Kopi Kenangan');
-      expect(result.tanggal, '2026-10-14');
-      expect(result.total, 28500);
-      expect(result.kategoriUsulan, 'makan');
-      expect(result.keyakinan, 0.88);
+      expect(
+        () => HasilPindaiModel.fromJson(json),
+        throwsA(
+          isA<GeminiException>().having(
+            (e) => e.pesan,
+            'pesan',
+            'Gagal membaca struk, coba lagi',
+          ),
+        ),
+      );
     });
 
     test('fromJson menangani total sebagai tipe num/double', () {
