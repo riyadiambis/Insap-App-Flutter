@@ -3,6 +3,9 @@ import '../entities/transaksi_entity.dart';
 abstract class TransaksiRepository {
   Future<int> simpan(TransaksiEntity transaksi);
 
+  /// Menyimpan sekumpulan transaksi secara atomik dalam satu transaksi basis data
+  Future<List<int>> simpanBanyak(List<TransaksiEntity> daftarTransaksi);
+
   Future<List<TransaksiEntity>> ambilTerakhir(int batas);
 
   Future<int> totalMingguIni(String tanggalMulai, String tanggalAkhir);
