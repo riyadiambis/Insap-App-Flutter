@@ -83,6 +83,10 @@ class _FakeTransaksiRepo implements TransaksiRepository {
 
   @override
   Future<int> hapus(int id) async => 0;
+
+  @override
+  Future<List<int>> simpanBanyak(List<TransaksiEntity> daftarTransaksi) async =>
+      List.generate(daftarTransaksi.length, (i) => i + 1);
 }
 
 class _FakeRefleksiRepo implements RefleksiRepository {
