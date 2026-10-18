@@ -82,7 +82,12 @@ class _KonfirmasiPindaiView extends StatelessWidget {
     int index,
     int hargaSekarang,
   ) {
-    final controller = TextEditingController(text: hargaSekarang.toString());
+    final String initialText = hargaSekarang < 0
+        ? '-${formatRupiah(hargaSekarang.abs()).replaceFirst('Rp', '')}'
+        : (hargaSekarang > 0
+            ? formatRupiah(hargaSekarang).replaceFirst('Rp', '')
+            : '0');
+    final controller = TextEditingController(text: initialText);
     final formKey = GlobalKey<FormState>();
     showDialog(
       context: context,
@@ -95,15 +100,39 @@ class _KonfirmasiPindaiView extends StatelessWidget {
             keyboardType: const TextInputType.numberWithOptions(signed: true),
             decoration: const InputDecoration(
               labelText: 'Harga (Rupiah)',
-              hintText: 'Contoh: 15000 atau -5000',
+              hintText: 'Contoh: 15.000 atau -5.000',
               border: OutlineInputBorder(),
             ),
             autofocus: true,
+            onChanged: (val) {
+              final isNegative = val.trim().startsWith('-');
+              final cleaned = val.replaceAll(RegExp(r'[^0-9]'), '');
+              final angka = int.tryParse(cleaned);
+              if (angka != null && angka > 0) {
+                final formatted = formatRupiah(angka).replaceFirst('Rp', '');
+                final result = isNegative ? '-$formatted' : formatted;
+                controller.value = TextEditingValue(
+                  text: result,
+                  selection: TextSelection.collapsed(offset: result.length),
+                );
+              } else if (isNegative) {
+                controller.value = const TextEditingValue(
+                  text: '-',
+                  selection: TextSelection.collapsed(offset: 1),
+                );
+              } else {
+                controller.value = const TextEditingValue(
+                  text: '',
+                  selection: TextSelection.collapsed(offset: 0),
+                );
+              }
+            },
             validator: (val) {
-              if (val == null || val.trim().isEmpty) {
+              if (val == null || val.trim().isEmpty || val.trim() == '-') {
                 return 'Harga tidak boleh kosong';
               }
-              if (int.tryParse(val.trim()) == null) {
+              final cleaned = val.replaceAll(RegExp(r'[^0-9]'), '');
+              if (int.tryParse(cleaned) == null) {
                 return 'Masukkan angka bulat valid';
               }
               return null;
@@ -118,7 +147,11 @@ class _KonfirmasiPindaiView extends StatelessWidget {
           TextButton(
             onPressed: () {
               if (formKey.currentState?.validate() ?? false) {
-                final harga = int.parse(controller.text.trim());
+                final isNegative = controller.text.trim().startsWith('-');
+                final cleaned =
+                    controller.text.replaceAll(RegExp(r'[^0-9]'), '');
+                final angka = int.tryParse(cleaned) ?? 0;
+                final harga = isNegative ? -angka : angka;
                 context
                     .read<KonfirmasiPindaiCubit>()
                     .ubahHarga(index, harga);
