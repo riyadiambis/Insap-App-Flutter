@@ -26,6 +26,15 @@ class RefleksiLocalDataSource {
     return null;
   }
 
+  Future<List<RefleksiMingguanModel>> ambilSemuaRefleksi() async {
+    final db = await _dbHelper.database;
+    final maps = await db.query(
+      'refleksi_mingguan',
+      orderBy: 'tahun DESC, minggu_ke DESC',
+    );
+    return maps.map((m) => RefleksiMingguanModel.fromMap(m)).toList();
+  }
+
   // simpan baris baru atau perbarui baris pekan berjalan supaya tidak ada entri ganda
   Future<int> simpanAtauPerbarui(RefleksiMingguanModel refleksi) async {
     final db = await _dbHelper.database;
@@ -97,11 +106,8 @@ class RefleksiLocalDataSource {
       }
     }
 
-    final parsed = int.tryParse(trimmed);
-    if (parsed == null || parsed <= 0) return null;
-    // Format angka polos lama hanya dikembalikan bila pekan tidak dispesifikasikan
-    if (tahun != null && mingguKe != null) return null;
-    return parsed;
+    // Nilai lama yang berformat angka saja (sebelum ISSUE-30) terbaca aman sebagai null (tidak ada target)
+    return null;
   }
 
   Future<void> simpanTargetPekanDepan(

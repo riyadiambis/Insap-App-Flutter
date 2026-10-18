@@ -7,6 +7,7 @@ import '../../features/kategori/presentation/pages/halaman_kelola_kategori.dart'
 import '../../features/pengaturan/domain/repositories/pengaturan_repository.dart';
 import '../../features/perkenalan/presentation/pages/halaman_perkenalan.dart';
 import '../../features/refleksi/presentation/pages/halaman_refleksi.dart';
+import '../../features/refleksi/presentation/pages/halaman_riwayat_refleksi.dart';
 import '../../features/transaksi/presentation/catat/pages/halaman_catat_transaksi.dart';
 import '../../features/transaksi/presentation/riwayat/pages/halaman_detail_transaksi.dart';
 import '../../features/transaksi/presentation/riwayat/pages/halaman_riwayat.dart';
@@ -110,6 +111,10 @@ GoRouter buatAppRouter({
         path: '/transaksi/:id',
         builder: (context, state) =>
             HalamanDetailTransaksi(id: int.parse(state.pathParameters['id']!)),
+      ),
+      GoRoute(
+        path: '/refleksi/riwayat',
+        builder: (context, state) => const HalamanRiwayatRefleksi(),
       ),
       GoRoute(
         path: '/kategori',
