@@ -39,6 +39,7 @@ import '../../features/refleksi/data/datasources/refleksi_local_datasource.dart'
 import '../../features/refleksi/data/repositories/refleksi_repository_impl.dart';
 import '../../features/refleksi/domain/repositories/refleksi_repository.dart';
 import '../../features/refleksi/domain/usecases/ambil_refleksi_pekan.dart';
+import '../../features/refleksi/domain/usecases/ambil_semua_refleksi.dart';
 import '../../features/refleksi/domain/usecases/simpan_refleksi.dart';
 import '../../features/refleksi/presentation/cubit/refleksi_cubit.dart';
 import '../../features/pindai/data/datasources/kuota_local_datasource.dart';
@@ -138,10 +139,14 @@ void setupInjectionContainer() {
       refleksiRepository: sl(),
       transaksiRepository: sl(),
       kategoriRepository: sl(),
+      ambilTargetBulanan: sl(),
     ),
   );
   sl.registerLazySingleton(
     () => SimpanRefleksi(sl(), transaksiRepository: sl()),
+  );
+  sl.registerLazySingleton(
+    () => AmbilSemuaRefleksi(sl()),
   );
   sl.registerFactory(
     () => RefleksiCubit(ambilRefleksiPekan: sl(), simpanRefleksi: sl()),

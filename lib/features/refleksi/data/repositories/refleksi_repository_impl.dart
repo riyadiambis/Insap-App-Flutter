@@ -14,6 +14,11 @@ class RefleksiRepositoryImpl implements RefleksiRepository {
   }
 
   @override
+  Future<List<RefleksiMingguanEntity>> ambilSemuaRefleksi() {
+    return dataSource.ambilSemuaRefleksi();
+  }
+
+  @override
   Future<int> simpanRefleksi(RefleksiMingguanEntity refleksi) {
     final model = RefleksiMingguanModel.fromEntity(refleksi);
     return dataSource.simpanAtauPerbarui(model);

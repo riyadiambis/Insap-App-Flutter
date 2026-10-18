@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/format.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/utils/rupiah_extension.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
@@ -10,6 +11,8 @@ class FormIsianRefleksi extends StatefulWidget {
   final String? catatanAwal;
   final int? targetAwal;
   final int? targetPekanIni;
+  final int? targetBulanan;
+  final DateTime? tanggalAcuan;
   final bool sedangMenyimpan;
   final void Function(String catatan, int? targetPekanDepan) onSimpan;
 
@@ -18,6 +21,8 @@ class FormIsianRefleksi extends StatefulWidget {
     this.catatanAwal,
     this.targetAwal,
     this.targetPekanIni,
+    this.targetBulanan,
+    this.tanggalAcuan,
     this.sedangMenyimpan = false,
     required this.onSimpan,
   });
@@ -31,12 +36,18 @@ class _FormIsianRefleksiState extends State<FormIsianRefleksi> {
   late final TextEditingController _catatanController;
   late final TextEditingController _targetController;
 
+  static String _formatNominal(int? nominal) {
+    if (nominal == null || nominal <= 0) return '';
+    return formatRupiah(nominal).replaceFirst('Rp', '');
+  }
+
   @override
   void initState() {
     super.initState();
     _catatanController = TextEditingController(text: widget.catatanAwal ?? '');
-    // Kolom target pekan depan selalu mulai KOSONG sesuai aturan Tahap 1
-    _targetController = TextEditingController(text: '');
+    _targetController = TextEditingController(
+      text: _formatNominal(widget.targetAwal),
+    );
   }
 
   @override
@@ -46,6 +57,28 @@ class _FormIsianRefleksiState extends State<FormIsianRefleksi> {
         widget.catatanAwal != null &&
         _catatanController.text.isEmpty) {
       _catatanController.text = widget.catatanAwal!;
+    }
+    if (widget.targetAwal != oldWidget.targetAwal &&
+        widget.targetAwal != null &&
+        _targetController.text.isEmpty) {
+      _targetController.text = _formatNominal(widget.targetAwal);
+    }
+  }
+
+  void _onTargetChanged(String val) {
+    final cleaned = val.replaceAll(RegExp(r'[^0-9]'), '');
+    final angka = int.tryParse(cleaned);
+    if (angka != null && angka > 0) {
+      final formatted = formatRupiah(angka).replaceFirst('Rp', '');
+      _targetController.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
+    } else {
+      _targetController.value = const TextEditingValue(
+        text: '',
+        selection: TextSelection.collapsed(offset: 0),
+      );
     }
   }
 
@@ -209,17 +242,22 @@ class _FormIsianRefleksiState extends State<FormIsianRefleksi> {
                             color: AppColors.ink,
                           ),
                           decoration: InputDecoration(
-                            hintText: '350000',
+                            hintText: '350.000',
                             hintStyle: textTheme.titleMedium?.copyWith(
                               color: AppColors.garis,
                             ),
                             border: InputBorder.none,
                           ),
+                          onChanged: _onTargetChanged,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return null;
                             }
-                            final angka = int.tryParse(value.trim());
+                            final angkaBersih = value.replaceAll(
+                              RegExp(r'[^0-9]'),
+                              '',
+                            );
+                            final angka = int.tryParse(angkaBersih);
                             if (angka == null || angka <= 0) {
                               return 'Target harus berupa angka lebih dari 0.';
                             }
@@ -245,6 +283,30 @@ class _FormIsianRefleksiState extends State<FormIsianRefleksi> {
                       color: AppColors.inkSoft,
                       fontWeight: FontWeight.w600,
                     ),
+                  ),
+                ],
+                if (widget.targetBulanan != null &&
+                    widget.targetBulanan! > 0) ...[
+                  const SizedBox(height: AppSpacing.sangatKecil),
+                  Builder(
+                    builder: (context) {
+                      final acuan = widget.tanggalAcuan ?? DateTime.now();
+                      final hariDalamBulan =
+                          DateTime(acuan.year, acuan.month + 1, 0).day;
+                      final perPekan =
+                          ((widget.targetBulanan! * 7 / hariDalamBulan) /
+                                  1000)
+                              .round() *
+                          1000;
+                      return Text(
+                        'Target bulananmu ${widget.targetBulanan!.toRupiah()}, kira-kira ${perPekan.toRupiah()} per pekan.',
+                        key: const Key('teks_bantu_target_bulanan_per_pekan'),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: AppColors.inkSoft,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ],
