@@ -19,6 +19,7 @@ class _FakePindaiRemoteDataSource implements PindaiRemoteDataSource {
   Future<HasilPindaiModel> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
     CancelToken? cancelToken,
   }) async {
     pindaiDipanggil = true;

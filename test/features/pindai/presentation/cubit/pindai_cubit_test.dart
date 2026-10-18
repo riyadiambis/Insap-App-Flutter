@@ -21,6 +21,7 @@ class _FakePindaiRepository implements PindaiRepository {
   Future<HasilPindaiEntity> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
     CancelToken? cancelToken,
   }) async {
     capturedCancelToken = cancelToken;
@@ -84,6 +85,14 @@ class _FakeTransaksiRepository implements TransaksiRepository {
 
   @override
   Future<int> ambilKuotaPindai() async => 10;
+
+  @override
+  Future<List<int>> simpanBanyak(List<TransaksiEntity> daftarTransaksi) async {
+    if (shouldThrow) {
+      throw Exception('Database disk error');
+    }
+    return List.generate(daftarTransaksi.length, (i) => i + 1);
+  }
 }
 
 void main() {

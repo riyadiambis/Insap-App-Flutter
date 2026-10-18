@@ -30,7 +30,9 @@ import '../../features/pengaturan/data/datasources/pengaturan_local_datasource.d
 import '../../features/pengaturan/data/repositories/pengaturan_repository_impl.dart';
 import '../../features/pengaturan/domain/repositories/pengaturan_repository.dart';
 import '../../features/pengaturan/domain/usecases/ambil_target_bulanan.dart';
+import '../../features/pengaturan/domain/usecases/baca_status_panduan_pindai.dart';
 import '../../features/pengaturan/domain/usecases/hitung_perbandingan_target.dart';
+import '../../features/pengaturan/domain/usecases/simpan_status_panduan_pindai.dart';
 import '../../features/pengaturan/domain/usecases/simpan_target_bulanan.dart';
 import '../../features/perkenalan/presentation/cubit/onboarding_cubit.dart';
 import '../../features/pindai/data/datasources/kuota_local_datasource.dart';
@@ -39,6 +41,7 @@ import '../../features/pindai/data/repositories/pindai_repository_impl.dart';
 import '../../features/pindai/domain/repositories/pindai_repository.dart';
 import '../../features/pindai/domain/usecases/ambil_kuota_pindai.dart';
 import '../../features/pindai/domain/usecases/pindai_struk.dart';
+import '../../features/pindai/domain/usecases/simpan_transaksi_pindai.dart';
 import '../../features/pindai/presentation/cubit/pindai_cubit.dart';
 
 // service locator get_it (P07-Clean). satu blok komentar per fitur,
@@ -110,6 +113,8 @@ void setupInjectionContainer() {
   sl.registerLazySingleton(() => AmbilTargetBulanan(sl()));
   sl.registerLazySingleton(() => SimpanTargetBulanan(sl()));
   sl.registerLazySingleton(() => const HitungPerbandinganTarget());
+  sl.registerLazySingleton(() => BacaStatusPanduanPindai(sl()));
+  sl.registerLazySingleton(() => SimpanStatusPanduanPindai(sl()));
   sl.registerFactory(
     () => OnboardingCubit(pengaturanRepository: sl()),
   );
@@ -129,6 +134,7 @@ void setupInjectionContainer() {
   );
   sl.registerLazySingleton(() => PindaiStruk(sl()));
   sl.registerLazySingleton(() => AmbilKuotaPindai(sl()));
+  sl.registerLazySingleton(() => SimpanTransaksiPindai(sl()));
   sl.registerFactory(
     () => PindaiCubit(
       pindaiStruk: sl(),

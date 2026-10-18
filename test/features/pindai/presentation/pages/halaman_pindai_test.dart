@@ -18,6 +18,7 @@ import 'package:insap/features/pindai/domain/entities/hasil_pindai_entity.dart';
 import 'package:insap/features/pindai/domain/repositories/pindai_repository.dart';
 import 'package:insap/features/pindai/domain/usecases/ambil_kuota_pindai.dart';
 import 'package:insap/features/pindai/domain/usecases/pindai_struk.dart';
+import 'package:insap/features/pindai/domain/usecases/simpan_transaksi_pindai.dart';
 import 'package:insap/features/pindai/presentation/cubit/pindai_cubit.dart';
 import 'package:insap/features/pindai/presentation/cubit/pindai_state.dart';
 import 'package:insap/features/pindai/presentation/pages/halaman_pindai.dart';
@@ -69,6 +70,10 @@ class _FakeTransaksiRepository implements TransaksiRepository {
 
   @override
   Future<int> ambilKuotaPindai() async => 10;
+
+  @override
+  Future<List<int>> simpanBanyak(List<TransaksiEntity> daftarTransaksi) async =>
+      List.generate(daftarTransaksi.length, (i) => i + 1);
 }
 
 class _FakePindaiRepository implements PindaiRepository {
@@ -80,6 +85,7 @@ class _FakePindaiRepository implements PindaiRepository {
   Future<HasilPindaiEntity> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
     CancelToken? cancelToken,
   }) async {
     if (errorToThrow != null) {
@@ -108,11 +114,15 @@ void main() {
   late PindaiCubit pindaiCubit;
   late BerandaCubit berandaCubit;
 
-  setUp(() {
-    GetIt.instance.reset();
+  setUp(() async {
+    await GetIt.instance.reset();
     fakeKatRepo = _FakeKategoriRepository();
     fakeTransRepo = _FakeTransaksiRepository();
     fakePindaiRepo = _FakePindaiRepository();
+
+    GetIt.instance.registerSingleton<SimpanTransaksiPindai>(
+      SimpanTransaksiPindai(fakeTransRepo),
+    );
 
     kategoriCubit = KategoriCubit(ambilKategori: AmbilKategori(fakeKatRepo));
     pindaiCubit = PindaiCubit(
@@ -125,16 +135,17 @@ void main() {
     );
   });
 
-  tearDown(() {
+  tearDown(() async {
     kategoriCubit.close();
     pindaiCubit.close();
     berandaCubit.close();
-    GetIt.instance.reset();
+    await GetIt.instance.reset();
   });
 
   Widget bangunAplikasiUji({
     Future<List<String>?> Function()? onScanDocument,
     Future<bool> Function()? onCheckConnection,
+    bool Function()? onCheckApiKey,
   }) {
     final router = GoRouter(
       initialLocation: '/pindai',
@@ -145,6 +156,7 @@ void main() {
             onScanDocument: onScanDocument,
             // Default selalu terhubung jika tidak dispesifikasikan agar tes UI tidak terhambat
             onCheckConnection: onCheckConnection ?? () async => true,
+            onCheckApiKey: onCheckApiKey ?? () => true,
           ),
         ),
         GoRoute(
@@ -169,7 +181,7 @@ void main() {
   }
 
   group('HalamanPindai', () {
-    testWidgets('menampilkan panduan dan informasi sisa kuota', (tester) async {
+    testWidgets('menampilkan tombol panduan dan informasi sisa kuota', (tester) async {
       tester.view.physicalSize = const Size(460, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -181,8 +193,29 @@ void main() {
       expect(find.text('Pindai Struk'), findsOneWidget);
       expect(find.text('Kuota Pindai Pekan Ini'), findsOneWidget);
       expect(find.text('8 dari 10 tersisa'), findsOneWidget);
-      expect(find.text('Panduan Pemindaian'), findsOneWidget);
+      expect(find.text('Lihat panduan'), findsOneWidget);
       expect(find.text('Buka Pemindai Struk'), findsOneWidget);
+    });
+
+    testWidgets('No 33: Kunci Gemini kosong menampilkan snackbar dan arahkan ke catat', (tester) async {
+      tester.view.physicalSize = const Size(460, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        bangunAplikasiUji(
+          onCheckApiKey: () => false,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final tombolScan = find.text('Buka Pemindai Struk');
+      await tester.tap(tombolScan);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Pindai struk belum aktif di versi ini'), findsOneWidget);
+      expect(find.text('Halaman Catat Manual'), findsOneWidget);
     });
 
     testWidgets('pembatalan scanner oleh pengguna tidak mengubah kuota', (

@@ -45,6 +45,12 @@ class _FakeTransaksiRepository implements TransaksiRepository {
   }
 
   @override
+  Future<List<int>> simpanBanyak(List<TransaksiEntity> daftarTransaksi) async {
+    tersimpan.addAll(daftarTransaksi);
+    return List.generate(daftarTransaksi.length, (i) => i + 1);
+  }
+
+  @override
   Future<int> totalMingguIni(String a, String b) async => 0;
 
   @override

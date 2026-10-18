@@ -24,6 +24,7 @@ class _FakePindaiRepository implements PindaiRepository {
   Future<HasilPindaiEntity> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
     CancelToken? cancelToken,
   }) async {
     throw UnimplementedError();

@@ -43,6 +43,7 @@ class PindaiCubit extends Cubit<PindaiState> {
   Future<void> prosesPindai({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
   }) async {
     _cancelToken?.cancel('Permintaan baru dimulai');
     _cancelToken = CancelToken();
@@ -63,6 +64,7 @@ class PindaiCubit extends Cubit<PindaiState> {
       final hasil = await pindaiStruk(
         imagePath: imagePath,
         daftarKategori: daftarKategori,
+        petaKategoriId: petaKategoriId,
         cancelToken: currentCancelToken,
       );
 

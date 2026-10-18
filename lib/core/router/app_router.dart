@@ -122,10 +122,13 @@ GoRouter buatAppRouter({
       GoRoute(path: '/akun', builder: (context, state) => const AuthGate()),
       GoRoute(
         path: '/pindai',
-        builder: (context, state) => BlocProvider(
-          create: (_) => sl<PindaiCubit>(),
-          child: const HalamanPindai(),
-        ),
+        builder: (context, state) {
+          final mulaiLangsung = state.uri.queryParameters['mulai'] == '1';
+          return BlocProvider(
+            create: (_) => sl<PindaiCubit>(),
+            child: HalamanPindai(mulaiLangsung: mulaiLangsung),
+          );
+        },
       ),
     ],
   );

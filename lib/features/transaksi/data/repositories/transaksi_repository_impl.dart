@@ -15,6 +15,13 @@ class TransaksiRepositoryImpl implements TransaksiRepository {
   }
 
   @override
+  Future<List<int>> simpanBanyak(List<TransaksiEntity> daftarTransaksi) {
+    return _dataSource.simpanBanyak(
+      daftarTransaksi.map(_toModel).toList(),
+    );
+  }
+
+  @override
   Future<List<TransaksiEntity>> ambilTerakhir(int batas) {
     return _dataSource.ambilTerakhir(batas);
   }
