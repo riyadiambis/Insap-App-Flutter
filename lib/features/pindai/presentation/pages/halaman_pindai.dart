@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
@@ -19,13 +22,23 @@ class HalamanPindai extends StatefulWidget {
   /// Parameter opsional untuk pengujian widget (memungkinkan injeksi pemindai tiruan)
   final Future<List<String>?> Function()? onScanDocument;
 
-  const HalamanPindai({super.key, this.onScanDocument});
+  /// Parameter opsional untuk pengujian koneksi internet (No 13)
+  final Future<bool> Function()? onCheckConnection;
+
+  const HalamanPindai({
+    super.key,
+    this.onScanDocument,
+    this.onCheckConnection,
+  });
 
   @override
   State<HalamanPindai> createState() => _HalamanPindaiState();
 }
 
 class _HalamanPindaiState extends State<HalamanPindai> {
+  bool _sedangMemindai = false;
+  DocumentScanner? _scannerAktif;
+
   @override
   void initState() {
     super.initState();
@@ -34,67 +47,143 @@ class _HalamanPindaiState extends State<HalamanPindai> {
     });
   }
 
+  @override
+  void dispose() {
+    _scannerAktif?.close();
+    super.dispose();
+  }
+
+  Future<bool> _cekKoneksi() async {
+    if (widget.onCheckConnection != null) {
+      return widget.onCheckConnection!();
+    }
+    try {
+      final hasil = await InternetAddress.lookup('generativelanguage.googleapis.com')
+          .timeout(const Duration(seconds: 3));
+      return hasil.isNotEmpty && hasil[0].rawAddress.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> _jalankanPemindaiDokumen() async {
+    if (_sedangMemindai) return;
+
     final cubit = context.read<PindaiCubit>();
+    // No 12: Kuota habis -> satu baris pemberitahuan lalu buka /catat
     if (cubit.state.sisaKuota <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Kuota pemindaian pekan ini sudah habis')),
       );
+      context.go('/catat');
       return;
     }
 
-    List<String>? images;
+    setState(() {
+      _sedangMemindai = true;
+    });
+
     try {
-      if (widget.onScanDocument != null) {
-        images = await widget.onScanDocument!();
-      } else {
-        final scanner = DocumentScanner(
-          options: DocumentScannerOptions(
-            mode: ScannerMode.full,
-            isGalleryImport: true,
-            pageLimit: 1,
-          ),
-        );
-        final result = await scanner.scanDocument();
-        images = result.images;
+      // No 13: Periksa koneksi SEBELUM pemindai dibuka (batas 3 detik)
+      final terhubung = await _cekKoneksi();
+      if (!terhubung) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tidak ada koneksi internet. Mengarahkan ke catat manual...'),
+            ),
+          );
+          context.go('/catat');
+        }
+        return;
       }
-    } catch (e) {
+
+      if (!mounted) return;
+
+      List<String>? images;
+      try {
+        if (widget.onScanDocument != null) {
+          images = await widget.onScanDocument!();
+        } else {
+          final scanner = DocumentScanner(
+            options: DocumentScannerOptions(
+              mode: ScannerMode.full,
+              isGalleryImport: true,
+              pageLimit: 1,
+            ),
+          );
+          _scannerAktif = scanner;
+          try {
+            final result = await scanner.scanDocument();
+            images = result.images;
+          } finally {
+            await scanner.close();
+            _scannerAktif = null;
+          }
+        }
+      } on PlatformException catch (e) {
+        // No 3: Menekan X di pemindai -> kembali diam-diam tanpa snackbar
+        final msg = e.message?.toLowerCase() ?? '';
+        final code = e.code.toLowerCase();
+        if (msg.contains('cancel') || code.contains('cancel')) {
+          return;
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal membuka pemindai dokumen')),
+          );
+        }
+        return;
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal membuka pemindai dokumen')),
+          );
+        }
+        return;
+      }
+
+      if (!mounted) return;
+
+      // Jika pengguna membatalkan pada antarmuka ML Kit
+      if (images == null || images.isEmpty) {
+        return;
+      }
+
+      final pathAsli = images.first;
+      String? pathSiapKirim;
+
+      try {
+        // 2. Kecilkan citra ke sisi terpanjang maksimal 1024px menggunakan dart:ui
+        pathSiapKirim = await GambarHelper.kompresDanKecilkanCitra(pathAsli);
+
+        if (!mounted) return;
+
+        // 3. Ambil daftar kategori aktif dari KategoriCubit untuk disisipkan ke prompt Gemini
+        List<String> daftarKategori = [];
+        final katState = context.read<KategoriCubit>().state;
+        if (katState is KategoriLoaded) {
+          daftarKategori = katState.kategoriList
+              .map((k) => k.nama.toLowerCase())
+              .toList();
+        }
+
+        // 4. Kirim ke Gemini AI
+        await cubit.prosesPindai(
+          imagePath: pathSiapKirim,
+          daftarKategori: daftarKategori,
+        );
+      } finally {
+        // No 16: Berkas sementara _1024.png selalu dihapus di finally setelah dikirim termasuk saat gagal
+        await GambarHelper.hapusBerkasSementara(pathSiapKirim);
+      }
+    } finally {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal membuka pemindai kamera: $e')),
-        );
+        setState(() {
+          _sedangMemindai = false;
+        });
       }
-      return;
     }
-
-    if (!mounted) return;
-
-    // Jika pengguna membatalkan pada antarmuka ML Kit
-    if (images == null || images.isEmpty) {
-      return;
-    }
-
-    final pathAsli = images.first;
-
-    // 1. Kecilkan citra ke sisi terpanjang maksimal 1024px menggunakan dart:ui (Keputusan 4)
-    final pathSiapKirim = await GambarHelper.kompresDanKecilkanCitra(pathAsli);
-
-    if (!mounted) return;
-
-    // 2. Ambil daftar kategori aktif dari KategoriCubit untuk disisipkan ke prompt Gemini
-    List<String> daftarKategori = [];
-    final katState = context.read<KategoriCubit>().state;
-    if (katState is KategoriLoaded) {
-      daftarKategori = katState.kategoriList
-          .map((k) => k.nama.toLowerCase())
-          .toList();
-    }
-
-    // 3. Kirim ke Gemini AI
-    await cubit.prosesPindai(
-      imagePath: pathSiapKirim,
-      daftarKategori: daftarKategori,
-    );
   }
 
   @override
@@ -269,8 +358,7 @@ class _HalamanPindaiState extends State<HalamanPindai> {
                                   ),
                                   const SizedBox(height: AppSpacing.kecil),
                                   Text(
-                                    'Gemini sedang membaca nominal, tanggal, dan nama toko. '
-                                    'Batas waktu pemindaian maksimal 15 detik.',
+                                    'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
                                     textAlign: TextAlign.center,
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(color: AppColors.inkSoft),
@@ -278,7 +366,7 @@ class _HalamanPindaiState extends State<HalamanPindai> {
                                   const SizedBox(height: AppSpacing.besar),
                                   TextButton(
                                     onPressed: () {
-                                      context.read<PindaiCubit>().reset();
+                                      context.read<PindaiCubit>().batalkanPindai();
                                     },
                                     child: const Text(
                                       'Batalkan',
@@ -333,7 +421,8 @@ class _HalamanPindaiState extends State<HalamanPindai> {
                                   TombolStabilo(
                                     teks: 'Coba Pindai Ulang',
                                     ikon: Icons.refresh_rounded,
-                                    onPressed: _jalankanPemindaiDokumen,
+                                    isLoading: _sedangMemindai,
+                                    onPressed: _sedangMemindai ? null : _jalankanPemindaiDokumen,
                                   ),
                                 ],
                               ),
@@ -385,7 +474,8 @@ class _HalamanPindaiState extends State<HalamanPindai> {
                                   TombolStabilo(
                                     teks: 'Buka Pemindai Struk',
                                     ikon: Icons.photo_camera_rounded,
-                                    onPressed: _jalankanPemindaiDokumen,
+                                    isLoading: _sedangMemindai,
+                                    onPressed: _sedangMemindai ? null : _jalankanPemindaiDokumen,
                                   ),
                                 ],
                               ),
