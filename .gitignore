@@ -48,4 +48,8 @@ app.*.map.json
 .widget_preview/
 .env
 docs/
-.env
+
+# Secrets and Signing
+key.properties
+*.jks
+*.keystore
