@@ -23,6 +23,8 @@ import '../cubit/beranda_cubit.dart';
 import '../cubit/beranda_state.dart';
 import '../widgets/kartu_rincian_pengeluaran.dart';
 import '../widgets/tampilan_kategori.dart';
+import '../../../pengaturan/domain/usecases/baca_status_panduan_pindai.dart';
+import '../../../pindai/presentation/widgets/dialog_panduan_pindai.dart';
 
 class HalamanBeranda extends StatelessWidget {
   final Stream<PenggunaEntity?>? streamPengguna;
@@ -556,7 +558,23 @@ class _BerandaContent extends StatelessWidget {
               const SizedBox(width: AppSpacing.sedang),
               Expanded(
                 child: KartuBukuTulis(
-                  onTap: () => context.push('/pindai'),
+                  onTap: () async {
+                    final sembunyikan =
+                        await sl<BacaStatusPanduanPindai>().call();
+                    if (!context.mounted) return;
+                    if (!sembunyikan) {
+                      await tampilkanDialogPanduanPindai(
+                        context,
+                        onLanjut: () {
+                          if (context.mounted) {
+                            context.push('/pindai?mulai=1');
+                          }
+                        },
+                      );
+                    } else {
+                      context.push('/pindai?mulai=1');
+                    }
+                  },
                   backgroundColor: AppColors.kartu,
                   shadow: AppTheme.bayanganDefault,
                   pressedShadow: AppTheme.bayanganDefaultTertekan,

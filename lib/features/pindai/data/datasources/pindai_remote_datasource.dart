@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
+
 import '../../../../core/network/gemini_client.dart';
 import '../models/hasil_pindai_model.dart';
 
@@ -8,6 +10,8 @@ abstract class PindaiRemoteDataSource {
   Future<HasilPindaiModel> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
+    CancelToken? cancelToken,
   });
 }
 
@@ -29,17 +33,39 @@ Aturan:
    koma, atau awalan "Rp".
 3. "tanggal" memakai format YYYY-MM-DD. Kalau tahun tidak tercetak,
    pakai tahun berjalan. Kalau tanggal tidak terbaca sama sekali, isi null.
-4. "kategori_usulan" hanya boleh dipilih dari daftar yang diberikan
-   pengguna. Kalau tidak ada yang cocok, pilih "lainnya".
-5. "keyakinan" adalah bilangan 0 sampai 1 yang menyatakan seberapa yakin
+4. "kategori_usulan" = kategori dengan nilai terbesar. Hanya boleh dipilih
+   dari daftar yang diberikan pengguna. Kalau tidak ada yang cocok, pilih "lainnya".
+5. Aturan kolom "barang":
+   (i) Catat tiap barang yang tercetak, nama seperti tercetak, harga = total baris itu
+       (jumlah x harga satuan) setelah potongan baris itu;
+   (ii) Baris pajak, biaya layanan, pembulatan, dan total tidak dicatat sebagai barang;
+   (iii) Kategori tiap barang wajib dari daftar, pilih yang paling sesuai dengan contoh
+       isinya, "lainnya" hanya bila tidak ada yang mendekati;
+   (iv) Kalau rincian tidak terbaca, "barang" diisi [] tapi total tetap diisi;
+   (v) "kategori_usulan" = kategori dengan nilai terbesar.
+6. "keyakinan" adalah bilangan 0 sampai 1 yang menyatakan seberapa yakin
    kamu pada hasil bacaanmu secara keseluruhan.
-6. Jangan menebak. Kolom yang tidak terbaca diisi null, bukan dikarang.
+7. Jangan menebak. Kolom yang tidak terbaca diisi null, bukan dikarang.
 ''';
+
+  static const Map<String, String> _contohKategori = {
+    'makan': 'warteg, katering, sarapan',
+    'transport': 'bensin, ojek daring, angkot',
+    'kos': 'sewa, listrik, wifi, patungan',
+    'kuliah': 'fotokopi, praktikum, buku',
+    'jajan daring': 'belanja daring, kopi kekinian',
+    'nongkrong': 'kafe, bioskop, main bareng',
+    'top up': 'permainan, langganan hiburan',
+    'darurat': 'obat, servis motor, kondangan',
+    'lainnya': 'penampung, wajib ada',
+  };
 
   @override
   Future<HasilPindaiModel> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
+    CancelToken? cancelToken,
   }) async {
     final file = File(imagePath);
     if (!await file.exists()) {
@@ -57,14 +83,63 @@ Aturan:
       mimeType = 'image/webp';
     }
 
-    final kategoriTersedia = daftarKategori.isNotEmpty
-        ? daftarKategori.join(', ')
-        : 'makan, transport, jajan daring, top up, kos, lainnya';
+    // Bangun daftar kategori beserta contoh isi sesuai KATEGORI.md
+    final listKategoriClean = daftarKategori
+        .map((k) => k.toLowerCase().trim())
+        .where((k) => k.isNotEmpty)
+        .toSet()
+        .toList();
+
+    if (!listKategoriClean.contains('lainnya')) {
+      listKategoriClean.add('lainnya');
+    }
+
+    final barisKategori = listKategoriClean.map((k) {
+      final contoh = _contohKategori[k];
+      if (contoh != null) {
+        return '- $k ($contoh)';
+      }
+      return '- $k';
+    }).join('\n');
 
     final promptPengguna = '''
 Ekstrak struk pada citra ini.
-Kategori yang tersedia: $kategoriTersedia
-''';
+Kategori yang tersedia:
+$barisKategori
+'''.trim();
+
+    // ResponseSchema terstruktur sesuai GEMINI-CONTRACT.md bagian 3
+    final responseSchema = {
+      'type': 'OBJECT',
+      'properties': {
+        'adalah_struk': {'type': 'BOOLEAN'},
+        'nama_toko': {'type': 'STRING', 'nullable': true},
+        'tanggal': {'type': 'STRING', 'nullable': true},
+        'total': {'type': 'INTEGER', 'nullable': true},
+        'kategori_usulan': {
+          'type': 'STRING',
+          'enum': listKategoriClean,
+          'nullable': true,
+        },
+        'keyakinan': {'type': 'NUMBER'},
+        'barang': {
+          'type': 'ARRAY',
+          'items': {
+            'type': 'OBJECT',
+            'properties': {
+              'nama': {'type': 'STRING'},
+              'harga': {'type': 'INTEGER'},
+              'kategori': {
+                'type': 'STRING',
+                'enum': listKategoriClean,
+              },
+            },
+            'required': ['nama', 'harga', 'kategori'],
+          },
+        },
+      },
+      'required': ['adalah_struk', 'keyakinan', 'barang'],
+    };
 
     final requestBody = {
       'system_instruction': {
@@ -75,7 +150,7 @@ Kategori yang tersedia: $kategoriTersedia
       'contents': [
         {
           'parts': [
-            {'text': promptPengguna.trim()},
+            {'text': promptPengguna},
             {
               'inline_data': {
                 'mime_type': mimeType,
@@ -87,11 +162,14 @@ Kategori yang tersedia: $kategoriTersedia
       ],
       'generationConfig': {
         'responseMimeType': 'application/json',
+        'responseSchema': responseSchema,
+        'temperature': 0,
       }
     };
 
     final response = await geminiClient.generateContent(
       requestBody: requestBody,
+      cancelToken: cancelToken,
     );
 
     final data = response.data;
@@ -128,7 +206,11 @@ Kategori yang tersedia: $kategoriTersedia
       cleanedText = cleanedText.trim();
 
       final jsonMap = jsonDecode(cleanedText) as Map<String, dynamic>;
-      return HasilPindaiModel.fromJson(jsonMap);
+      return HasilPindaiModel.fromJson(
+        jsonMap,
+        daftarKategori: listKategoriClean,
+        petaKategoriId: petaKategoriId,
+      );
     } catch (e) {
       if (e is GeminiException) rethrow;
       throw const GeminiException('Gagal membaca struk, coba lagi');

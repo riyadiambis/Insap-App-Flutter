@@ -16,6 +16,23 @@ class TransaksiLocalDataSource {
     return await db.insert('transaksi', map);
   }
 
+  /// Menyimpan sekumpulan transaksi secara atomik dalam satu transaksi basis data (Tahap 2D)
+  Future<List<int>> simpanBanyak(List<TransaksiModel> daftarTransaksi) async {
+    final db = await _dbHelper.database;
+    return await db.transaction<List<int>>((txn) async {
+      final List<int> ids = [];
+      for (final transaksi in daftarTransaksi) {
+        final map = transaksi.toMap();
+        if (transaksi.dibuatPada.isEmpty) {
+          map['dibuat_pada'] = DateTime.now().toIso8601String();
+        }
+        final id = await txn.insert('transaksi', map);
+        ids.add(id);
+      }
+      return ids;
+    });
+  }
+
   Future<List<TransaksiModel>> ambilTerakhir(int batas) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(

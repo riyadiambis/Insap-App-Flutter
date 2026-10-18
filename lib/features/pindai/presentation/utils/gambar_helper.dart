@@ -53,4 +53,17 @@ class GambarHelper {
 
     return fileTerkecil.path;
   }
+
+  /// Menghapus berkas sementara hasil pengecilan citra (No 16, FITUR-03:41, PRD.md:364).
+  static Future<void> hapusBerkasSementara(String? path) async {
+    if (path == null) return;
+    try {
+      if (path.endsWith('_1024.png')) {
+        final file = File(path);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      }
+    } catch (_) {}
+  }
 }

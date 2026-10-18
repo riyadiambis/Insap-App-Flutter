@@ -37,6 +37,10 @@ class _FakeTransaksiRepository implements TransaksiRepository {
   Future<int> simpan(TransaksiEntity transaksi) async => 1;
 
   @override
+  Future<List<int>> simpanBanyak(List<TransaksiEntity> daftarTransaksi) async =>
+      List.generate(daftarTransaksi.length, (i) => i + 1);
+
+  @override
   Future<List<TransaksiEntity>> ambilTerakhir(int batas) async => const [];
 
   @override

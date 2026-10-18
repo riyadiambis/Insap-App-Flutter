@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/network/gemini_client.dart';
@@ -13,6 +14,8 @@ class PindaiCubit extends Cubit<PindaiState> {
   final AmbilKuotaPindai ambilKuotaPindai;
   final TambahTransaksi tambahTransaksi;
 
+  CancelToken? _cancelToken;
+
   PindaiCubit({
     required this.pindaiStruk,
     required this.ambilKuotaPindai,
@@ -23,31 +26,55 @@ class PindaiCubit extends Cubit<PindaiState> {
   Future<void> inisialisasi() async {
     try {
       final kuota = await ambilKuotaPindai();
-      emit(state.copyWith(sisaKuota: kuota));
+      if (!isClosed) {
+        emit(state.copyWith(sisaKuota: kuota));
+      }
     } catch (_) {}
+  }
+
+  /// Membatalkan proses pemindaian yang sedang berjalan (No 5 & No 38)
+  void batalkanPindai() {
+    _cancelToken?.cancel('Dibatalkan oleh pengguna');
+    _cancelToken = null;
+    reset();
   }
 
   /// Memproses berkas citra struk melalui Gemini AI
   Future<void> prosesPindai({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
   }) async {
-    emit(
-      state.copyWith(
-        status: PindaiStatus.memuat,
-        pesanGalat: null,
-        tawarkanCatatManual: false,
-        imagePath: imagePath,
-      ),
-    );
+    _cancelToken?.cancel('Permintaan baru dimulai');
+    _cancelToken = CancelToken();
+    final currentCancelToken = _cancelToken;
+
+    if (!isClosed) {
+      emit(
+        state.copyWith(
+          status: PindaiStatus.memuat,
+          pesanGalat: null,
+          tawarkanCatatManual: false,
+          imagePath: imagePath,
+        ),
+      );
+    }
 
     try {
       final hasil = await pindaiStruk(
         imagePath: imagePath,
         daftarKategori: daftarKategori,
+        petaKategoriId: petaKategoriId,
+        cancelToken: currentCancelToken,
       );
 
+      if (currentCancelToken?.isCancelled ?? false) {
+        return;
+      }
+
       final kuotaTerbaru = await ambilKuotaPindai();
+
+      if (isClosed) return;
 
       if (!hasil.adalahStruk) {
         emit(
@@ -70,8 +97,11 @@ class PindaiCubit extends Cubit<PindaiState> {
         );
       }
     } on GeminiException catch (e) {
+      if (currentCancelToken?.isCancelled ?? false) return;
+      if (isClosed) return;
       final kuotaTerbaru = await ambilKuotaPindai();
-      final bool tawarkanManual = e.statusCode == 408 || e.statusCode == 503;
+      final bool tawarkanManual =
+          e.statusCode == 408 || e.statusCode == 503 || e.statusCode == 400;
       emit(
         state.copyWith(
           status: PindaiStatus.gagal,
@@ -81,6 +111,8 @@ class PindaiCubit extends Cubit<PindaiState> {
         ),
       );
     } catch (e) {
+      if (currentCancelToken?.isCancelled ?? false) return;
+      if (isClosed) return;
       final kuotaTerbaru = await ambilKuotaPindai();
       emit(
         state.copyWith(
@@ -90,6 +122,10 @@ class PindaiCubit extends Cubit<PindaiState> {
           tawarkanCatatManual: false,
         ),
       );
+    } finally {
+      if (_cancelToken == currentCancelToken) {
+        _cancelToken = null;
+      }
     }
   }
 
@@ -113,21 +149,36 @@ class PindaiCubit extends Cubit<PindaiState> {
       );
 
       await tambahTransaksi(transaksi);
-      emit(state.copyWith(status: PindaiStatus.tersimpan));
+      if (!isClosed) {
+        emit(state.copyWith(status: PindaiStatus.tersimpan));
+      }
       return true;
     } catch (e) {
-      emit(
-        state.copyWith(
-          status: PindaiStatus.gagal,
-          pesanGalat: 'Gagal menyimpan transaksi: $e',
-        ),
-      );
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            status: PindaiStatus.gagal,
+            pesanGalat: 'Gagal menyimpan transaksi: $e',
+          ),
+        );
+      }
       return false;
     }
   }
 
   /// Mengembalikan state ke kondisi awal
   void reset() {
-    emit(PindaiState(sisaKuota: state.sisaKuota));
+    _cancelToken?.cancel('Dibatalkan oleh pengguna');
+    _cancelToken = null;
+    if (!isClosed) {
+      emit(PindaiState(sisaKuota: state.sisaKuota));
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _cancelToken?.cancel('Cubit ditutup');
+    _cancelToken = null;
+    return super.close();
   }
 }

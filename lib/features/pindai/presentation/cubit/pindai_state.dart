@@ -16,7 +16,7 @@ class PindaiState extends Equatable {
   const PindaiState({
     this.status = PindaiStatus.awal,
     this.hasilPindai,
-    this.sisaKuota = 10,
+    this.sisaKuota = 0,
     this.pesanGalat,
     this.perluPeringatanKeyakinan = false,
     this.tawarkanCatatManual = false,

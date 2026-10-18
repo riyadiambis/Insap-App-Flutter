@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insap/core/network/gemini_client.dart';
 import 'package:insap/features/pindai/data/datasources/kuota_local_datasource.dart';
@@ -12,15 +13,19 @@ class _FakePindaiRemoteDataSource implements PindaiRemoteDataSource {
   List<String>? kategoriTerpanggil;
   HasilPindaiModel? hasilKembalian;
   Exception? errorToThrow;
+  CancelToken? capturedCancelToken;
 
   @override
   Future<HasilPindaiModel> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
+    CancelToken? cancelToken,
   }) async {
     pindaiDipanggil = true;
     imagePathTerpanggil = imagePath;
     kategoriTerpanggil = daftarKategori;
+    capturedCancelToken = cancelToken;
 
     if (errorToThrow != null) {
       throw errorToThrow!;
@@ -217,6 +222,22 @@ void main() {
 
       expect(fakeRemote.pindaiDipanggil, isFalse);
       expect(fakeLocal.potongKuotaDipanggil, isFalse);
+    });
+
+    test('8. Pembatalan: jika cancelToken sudah dibatalkan, kuota tidak dipotong (No 5)', () async {
+      final cancelToken = CancelToken();
+      cancelToken.cancel('Batal');
+
+      final hasil = await repository.pindaiStruk(
+        imagePath: '/path/struk.jpg',
+        daftarKategori: ['makan'],
+        cancelToken: cancelToken,
+      );
+
+      expect(hasil.adalahStruk, isTrue);
+      // Meskipun adalahStruk true, kuota tidak dipotong karena sudah dibatalkan
+      expect(fakeLocal.potongKuotaDipanggil, isFalse);
+      expect(fakeLocal.sisaKuota, 10);
     });
   });
 }

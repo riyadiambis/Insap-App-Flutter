@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insap/core/network/gemini_client.dart';
 import 'package:insap/features/pindai/domain/entities/hasil_pindai_entity.dart';
@@ -14,12 +15,16 @@ class _FakePindaiRepository implements PindaiRepository {
   int kuota = 10;
   HasilPindaiEntity? hasilKembalian;
   Exception? errorToThrow;
+  CancelToken? capturedCancelToken;
 
   @override
   Future<HasilPindaiEntity> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
+    CancelToken? cancelToken,
   }) async {
+    capturedCancelToken = cancelToken;
     if (errorToThrow != null) {
       throw errorToThrow!;
     }
@@ -80,6 +85,14 @@ class _FakeTransaksiRepository implements TransaksiRepository {
 
   @override
   Future<int> ambilKuotaPindai() async => 10;
+
+  @override
+  Future<List<int>> simpanBanyak(List<TransaksiEntity> daftarTransaksi) async {
+    if (shouldThrow) {
+      throw Exception('Database disk error');
+    }
+    return List.generate(daftarTransaksi.length, (i) => i + 1);
+  }
 }
 
 void main() {
@@ -109,9 +122,9 @@ void main() {
   });
 
   group('PindaiCubit', () {
-    test('state awal adalah PindaiState dengan status awal dan kuota 10', () {
+    test('state awal adalah PindaiState dengan status awal dan kuota awal dinamis 0 (No 12)', () {
       expect(cubit.state.status, PindaiStatus.awal);
-      expect(cubit.state.sisaKuota, 10);
+      expect(cubit.state.sisaKuota, 0);
       expect(cubit.state.hasilPindai, isNull);
     });
 
@@ -314,5 +327,80 @@ void main() {
         expect(cubit.state.hasilPindai, isNull);
       },
     );
+
+    test('batalkanPindai membatalkan CancelToken dan mereset state (No 5 & No 38)', () async {
+      fakePindaiRepo.kuota = 8;
+      await cubit.inisialisasi();
+
+      final future = cubit.prosesPindai(
+        imagePath: '/tmp/struk.png',
+        daftarKategori: ['makan'],
+      );
+
+      expect(cubit.state.status, PindaiStatus.memuat);
+      expect(fakePindaiRepo.capturedCancelToken, isNotNull);
+      expect(fakePindaiRepo.capturedCancelToken!.isCancelled, isFalse);
+
+      cubit.batalkanPindai();
+
+      expect(fakePindaiRepo.capturedCancelToken!.isCancelled, isTrue);
+      expect(cubit.state.status, PindaiStatus.awal);
+      expect(cubit.state.sisaKuota, 8);
+
+      await future;
+      // Memastikan kuota tidak berkurang dan state tetap awal
+      expect(cubit.state.status, PindaiStatus.awal);
+      expect(cubit.state.sisaKuota, 8);
+    });
+
+    test('prosesPindai dengan statusCode 400 (kunci belum aktif No 33) menawarkan catat manual', () async {
+      fakePindaiRepo.errorToThrow = const GeminiException(
+        'Pindai struk belum aktif di versi ini',
+        400,
+      );
+
+      await cubit.prosesPindai(
+        imagePath: '/tmp/struk.png',
+        daftarKategori: ['makan'],
+      );
+
+      expect(cubit.state.status, PindaiStatus.gagal);
+      expect(cubit.state.pesanGalat, 'Pindai struk belum aktif di versi ini');
+      expect(cubit.state.tawarkanCatatManual, isTrue);
+    });
+
+    test('prosesPindai dengan statusCode 408 (timeout 15 detik No 6) menawarkan catat manual', () async {
+      fakePindaiRepo.errorToThrow = const GeminiException(
+        'Waktu tunggu pemindaian habis (melebihi 15 detik)',
+        408,
+      );
+
+      await cubit.prosesPindai(
+        imagePath: '/tmp/struk.png',
+        daftarKategori: ['makan'],
+      );
+
+      expect(cubit.state.status, PindaiStatus.gagal);
+      expect(cubit.state.pesanGalat, contains('melebihi 15 detik'));
+      expect(cubit.state.tawarkanCatatManual, isTrue);
+    });
+
+    test('menutup cubit saat memuat membatalkan CancelToken dan tidak crash emit (No 38)', () async {
+      fakePindaiRepo.kuota = 6;
+      await cubit.inisialisasi();
+
+      final future = cubit.prosesPindai(
+        imagePath: '/tmp/struk.png',
+        daftarKategori: ['makan'],
+      );
+
+      expect(fakePindaiRepo.capturedCancelToken, isNotNull);
+
+      await cubit.close();
+
+      expect(fakePindaiRepo.capturedCancelToken!.isCancelled, isTrue);
+      // Menunggu future selesai, tidak boleh ada exception emit after close
+      await future;
+    });
   });
 }

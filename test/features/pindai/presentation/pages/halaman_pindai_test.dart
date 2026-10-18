@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import 'package:insap/core/network/gemini_client.dart';
 import 'package:insap/core/theme.dart';
 import 'package:insap/features/beranda/presentation/cubit/beranda_cubit.dart';
@@ -15,6 +18,7 @@ import 'package:insap/features/pindai/domain/entities/hasil_pindai_entity.dart';
 import 'package:insap/features/pindai/domain/repositories/pindai_repository.dart';
 import 'package:insap/features/pindai/domain/usecases/ambil_kuota_pindai.dart';
 import 'package:insap/features/pindai/domain/usecases/pindai_struk.dart';
+import 'package:insap/features/pindai/domain/usecases/simpan_transaksi_pindai.dart';
 import 'package:insap/features/pindai/presentation/cubit/pindai_cubit.dart';
 import 'package:insap/features/pindai/presentation/cubit/pindai_state.dart';
 import 'package:insap/features/pindai/presentation/pages/halaman_pindai.dart';
@@ -66,6 +70,10 @@ class _FakeTransaksiRepository implements TransaksiRepository {
 
   @override
   Future<int> ambilKuotaPindai() async => 10;
+
+  @override
+  Future<List<int>> simpanBanyak(List<TransaksiEntity> daftarTransaksi) async =>
+      List.generate(daftarTransaksi.length, (i) => i + 1);
 }
 
 class _FakePindaiRepository implements PindaiRepository {
@@ -77,6 +85,8 @@ class _FakePindaiRepository implements PindaiRepository {
   Future<HasilPindaiEntity> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
+    CancelToken? cancelToken,
   }) async {
     if (errorToThrow != null) {
       throw errorToThrow!;
@@ -104,11 +114,15 @@ void main() {
   late PindaiCubit pindaiCubit;
   late BerandaCubit berandaCubit;
 
-  setUp(() {
-    GetIt.instance.reset();
+  setUp(() async {
+    await GetIt.instance.reset();
     fakeKatRepo = _FakeKategoriRepository();
     fakeTransRepo = _FakeTransaksiRepository();
     fakePindaiRepo = _FakePindaiRepository();
+
+    GetIt.instance.registerSingleton<SimpanTransaksiPindai>(
+      SimpanTransaksiPindai(fakeTransRepo),
+    );
 
     kategoriCubit = KategoriCubit(ambilKategori: AmbilKategori(fakeKatRepo));
     pindaiCubit = PindaiCubit(
@@ -121,29 +135,53 @@ void main() {
     );
   });
 
-  tearDown(() {
+  tearDown(() async {
     kategoriCubit.close();
     pindaiCubit.close();
     berandaCubit.close();
-    GetIt.instance.reset();
+    await GetIt.instance.reset();
   });
 
-  Widget bangunAplikasiUji({Future<List<String>?> Function()? onScanDocument}) {
+  Widget bangunAplikasiUji({
+    Future<List<String>?> Function()? onScanDocument,
+    Future<bool> Function()? onCheckConnection,
+    bool Function()? onCheckApiKey,
+  }) {
+    final router = GoRouter(
+      initialLocation: '/pindai',
+      routes: [
+        GoRoute(
+          path: '/pindai',
+          builder: (context, state) => HalamanPindai(
+            onScanDocument: onScanDocument,
+            // Default selalu terhubung jika tidak dispesifikasikan agar tes UI tidak terhambat
+            onCheckConnection: onCheckConnection ?? () async => true,
+            onCheckApiKey: onCheckApiKey ?? () => true,
+          ),
+        ),
+        GoRoute(
+          path: '/catat',
+          builder: (context, state) =>
+              const Scaffold(body: Center(child: Text('Halaman Catat Manual'))),
+        ),
+      ],
+    );
+
     return MultiBlocProvider(
       providers: [
         BlocProvider<KategoriCubit>.value(value: kategoriCubit..muat()),
         BlocProvider<PindaiCubit>.value(value: pindaiCubit),
         BlocProvider<BerandaCubit>.value(value: berandaCubit),
       ],
-      child: MaterialApp(
+      child: MaterialApp.router(
         theme: AppTheme.lightTheme,
-        home: HalamanPindai(onScanDocument: onScanDocument),
+        routerConfig: router,
       ),
     );
   }
 
   group('HalamanPindai', () {
-    testWidgets('menampilkan panduan dan informasi sisa kuota', (tester) async {
+    testWidgets('menampilkan tombol panduan dan informasi sisa kuota', (tester) async {
       tester.view.physicalSize = const Size(460, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -155,8 +193,29 @@ void main() {
       expect(find.text('Pindai Struk'), findsOneWidget);
       expect(find.text('Kuota Pindai Pekan Ini'), findsOneWidget);
       expect(find.text('8 dari 10 tersisa'), findsOneWidget);
-      expect(find.text('Panduan Pemindaian'), findsOneWidget);
+      expect(find.text('Lihat panduan'), findsOneWidget);
       expect(find.text('Buka Pemindai Struk'), findsOneWidget);
+    });
+
+    testWidgets('No 33: Kunci Gemini kosong menampilkan snackbar dan arahkan ke catat', (tester) async {
+      tester.view.physicalSize = const Size(460, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        bangunAplikasiUji(
+          onCheckApiKey: () => false,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final tombolScan = find.text('Buka Pemindai Struk');
+      await tester.tap(tombolScan);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Pindai struk belum aktif di versi ini'), findsOneWidget);
+      expect(find.text('Halaman Catat Manual'), findsOneWidget);
     });
 
     testWidgets('pembatalan scanner oleh pengguna tidak mengubah kuota', (
@@ -188,38 +247,107 @@ void main() {
       expect(pindaiCubit.state.sisaKuota, 8);
     });
 
-    testWidgets('menampilkan tampilan memuat saat sedang menganalisis struk', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(460, 1600);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'No 3: pembatalan via PlatformException (tekan X) kembali diam-diam tanpa SnackBar galat',
+      (tester) async {
+        tester.view.physicalSize = const Size(460, 1600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      fakePindaiRepo.completer = Completer<HasilPindaiEntity>();
+        await tester.pumpWidget(
+          bangunAplikasiUji(
+            onScanDocument: () async {
+              throw PlatformException(
+                code: 'CANCELED',
+                message: 'User canceled document scan',
+              );
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      await tester.pumpWidget(bangunAplikasiUji());
-      await tester.pumpAndSettle();
+        final tombolScan = find.text('Buka Pemindai Struk');
+        await tester.tap(tombolScan);
+        await tester.pumpAndSettle();
 
-      final futurePindai = pindaiCubit.prosesPindai(
-        imagePath: '/test/struk.png',
-        daftarKategori: ['makan'],
-      );
-      await Future.microtask(() {});
-      await tester.pump();
-
-      expect(find.text('Menganalisis Struk dengan AI...'), findsOneWidget);
-      expect(find.text('Batalkan'), findsOneWidget);
-
-      fakePindaiRepo.completer!.complete(
-        const HasilPindaiEntity(adalahStruk: true, keyakinan: 0.9),
-      );
-      await futurePindai;
-      await tester.pumpAndSettle();
-    });
+        expect(find.text('Gagal membuka pemindai dokumen'), findsNothing);
+        expect(pindaiCubit.state.status, PindaiStatus.awal);
+        expect(pindaiCubit.state.sisaKuota, 8);
+      },
+    );
 
     testWidgets(
-      'menampilkan galat dan tombol catat manual saat timeout 15 detik',
+      'No 11: menampilkan tampilan memuat dan kalimat privasi tetap saat sedang menganalisis struk',
+      (tester) async {
+        tester.view.physicalSize = const Size(460, 1600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        fakePindaiRepo.completer = Completer<HasilPindaiEntity>();
+
+        await tester.pumpWidget(bangunAplikasiUji());
+        await tester.pumpAndSettle();
+
+        final futurePindai = pindaiCubit.prosesPindai(
+          imagePath: '/test/struk.png',
+          daftarKategori: ['makan'],
+        );
+        await Future.microtask(() {});
+        await tester.pump();
+
+        expect(find.text('Menganalisis Struk dengan AI...'), findsOneWidget);
+        // No 11: Verifikasi kalimat privasi tetap
+        expect(
+          find.text(
+            'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Batalkan'), findsOneWidget);
+
+        fakePindaiRepo.completer!.complete(
+          const HasilPindaiEntity(adalahStruk: true, keyakinan: 0.9),
+        );
+        await futurePindai;
+        await tester.pumpAndSettle();
+      },
+    );
+
+    testWidgets(
+      'No 5 & No 38: menekan tombol Batalkan saat memuat membatalkan proses dan kembali ke status awal',
+      (tester) async {
+        tester.view.physicalSize = const Size(460, 1600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        fakePindaiRepo.completer = Completer<HasilPindaiEntity>();
+
+        await tester.pumpWidget(bangunAplikasiUji());
+        await tester.pumpAndSettle();
+
+        unawaited(
+          pindaiCubit.prosesPindai(
+            imagePath: '/test/struk.png',
+            daftarKategori: ['makan'],
+          ),
+        );
+        await Future.microtask(() {});
+        await tester.pump();
+
+        expect(find.text('Batalkan'), findsOneWidget);
+        await tester.tap(find.text('Batalkan'));
+        await tester.pumpAndSettle();
+
+        expect(pindaiCubit.state.status, PindaiStatus.awal);
+        expect(pindaiCubit.state.sisaKuota, 8); // Kuota tidak berkurang
+      },
+    );
+
+    testWidgets(
+      'menampilkan galat dan tombol catat manual saat timeout 15 detik (No 6)',
       (tester) async {
         tester.view.physicalSize = const Size(460, 1600);
         tester.view.devicePixelRatio = 1.0;
@@ -246,6 +374,75 @@ void main() {
         );
         expect(find.text('Catat Manual Saja'), findsOneWidget);
         expect(find.text('Coba Pindai Ulang'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'No 12: kuota habis langsung menampilkan pemberitahuan dan navigasi ke /catat tanpa membuka pemindai',
+      (tester) async {
+        tester.view.physicalSize = const Size(460, 1600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        fakePindaiRepo.sisaKuota = 0;
+        bool scannerDipanggil = false;
+
+        await tester.pumpWidget(
+          bangunAplikasiUji(
+            onScanDocument: () async {
+              scannerDipanggil = true;
+              return null;
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Verifikasi teks kuota 0 dari 10 tersisa
+        expect(find.text('0 dari 10 tersisa'), findsOneWidget);
+
+        final tombolScan = find.text('Buka Pemindai Struk');
+        await tester.tap(tombolScan);
+        await tester.pumpAndSettle();
+
+        expect(scannerDipanggil, isFalse);
+        expect(find.text('Kuota pemindaian pekan ini sudah habis'), findsOneWidget);
+        expect(find.text('Halaman Catat Manual'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'No 13: tidak ada koneksi internet sebelum pemindai dibuka langsung mengarahkan ke /catat dan kuota utuh',
+      (tester) async {
+        tester.view.physicalSize = const Size(460, 1600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        bool scannerDipanggil = false;
+
+        await tester.pumpWidget(
+          bangunAplikasiUji(
+            onCheckConnection: () async => false, // Simulasi offline / mode pesawat
+            onScanDocument: () async {
+              scannerDipanggil = true;
+              return null;
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final tombolScan = find.text('Buka Pemindai Struk');
+        await tester.tap(tombolScan);
+        await tester.pumpAndSettle();
+
+        expect(scannerDipanggil, isFalse);
+        expect(
+          find.text('Tidak ada koneksi internet. Mengarahkan ke catat manual...'),
+          findsOneWidget,
+        );
+        expect(find.text('Halaman Catat Manual'), findsOneWidget);
+        expect(fakePindaiRepo.sisaKuota, 8); // Kuota tidak berkurang
       },
     );
   });

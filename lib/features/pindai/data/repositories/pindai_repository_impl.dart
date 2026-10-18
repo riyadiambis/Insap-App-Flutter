@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../../../core/network/gemini_client.dart';
 import '../../domain/entities/hasil_pindai_entity.dart';
 import '../../domain/repositories/pindai_repository.dart';
@@ -17,6 +19,8 @@ class PindaiRepositoryImpl implements PindaiRepository {
   Future<HasilPindaiEntity> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
+    CancelToken? cancelToken,
   }) async {
     // 1. Periksa ketersediaan kuota
     final sisaKuota = await localDataSource.ambilSisaKuota();
@@ -28,10 +32,12 @@ class PindaiRepositoryImpl implements PindaiRepository {
     final hasil = await remoteDataSource.pindaiStruk(
       imagePath: imagePath,
       daftarKategori: daftarKategori,
+      petaKategoriId: petaKategoriId,
+      cancelToken: cancelToken,
     );
 
-    // 3. Potong kuota HANYA jika terverifikasi sebagai struk belanja (GEMINI-CONTRACT.md)
-    if (hasil.adalahStruk) {
+    // 3. Potong kuota HANYA jika terverifikasi sebagai struk belanja DAN belum dibatalkan (GEMINI-CONTRACT.md, No 5)
+    if (hasil.adalahStruk && (cancelToken == null || !cancelToken.isCancelled)) {
       await localDataSource.potongKuota();
     }
 

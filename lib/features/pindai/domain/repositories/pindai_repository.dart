@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../entities/hasil_pindai_entity.dart';
 
 abstract class PindaiRepository {
@@ -5,6 +7,8 @@ abstract class PindaiRepository {
   Future<HasilPindaiEntity> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
+    CancelToken? cancelToken,
   });
 
   /// Mengambil sisa kuota pemindaian pekan berjalan
