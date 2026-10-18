@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insap/core/database/database_helper.dart';
 import 'package:insap/core/database/seed_pengaturan.dart';
@@ -23,6 +24,7 @@ class _FakePindaiRepository implements PindaiRepository {
   Future<HasilPindaiEntity> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    CancelToken? cancelToken,
   }) async {
     throw UnimplementedError();
   }

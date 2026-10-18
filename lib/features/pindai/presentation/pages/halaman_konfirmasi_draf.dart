@@ -14,6 +14,7 @@ import '../../../transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
 import '../../../transaksi/presentation/riwayat/widgets/riwayat_helper.dart';
 import '../../domain/entities/hasil_pindai_entity.dart';
 import '../cubit/pindai_cubit.dart';
+import '../utils/cocokkan_kategori.dart';
 
 /// Layar konfirmasi draf transaksi hasil pemindaian Gemini AI (F-10, P04-Form).
 /// Pengguna dapat meninjau, menyunting nominal, nama toko, tanggal, dan kategori sebelum disimpan.
@@ -66,30 +67,21 @@ class _HalamanKonfirmasiDrafState extends State<HalamanKonfirmasiDraf> {
   void _inisialisasiKategori(List<KategoriEntity> list) {
     if (list.isEmpty) return;
 
-    final usulan = widget.hasilPindai.kategoriUsulan?.toLowerCase().trim();
-    int? matchedId;
+    final daftarNama = list.map((k) => k.nama).toList();
+    final namaCocok = cocokkanKategori(
+      widget.hasilPindai.kategoriUsulan,
+      daftarNama,
+    );
 
-    if (usulan != null && usulan.isNotEmpty) {
-      for (final k in list) {
-        if (k.id == null) continue;
-        final nama = k.nama.toLowerCase();
-        if (nama == usulan || nama.contains(usulan) || usulan.contains(nama)) {
-          matchedId = k.id;
-          break;
-        }
+    KategoriEntity? matched;
+    for (final k in list) {
+      if (k.nama.trim().toLowerCase() == namaCocok) {
+        matched = k;
+        break;
       }
     }
 
-    if (matchedId != null) {
-      _kategoriIdTerpilih = matchedId;
-    } else {
-      for (final k in list) {
-        if (k.id != null) {
-          _kategoriIdTerpilih = k.id;
-          break;
-        }
-      }
-    }
+    _kategoriIdTerpilih = matched?.id ?? list.first.id;
   }
 
   @override

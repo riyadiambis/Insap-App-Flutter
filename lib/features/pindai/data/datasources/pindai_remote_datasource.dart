@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
+
 import '../../../../core/network/gemini_client.dart';
 import '../models/hasil_pindai_model.dart';
 
@@ -8,6 +10,7 @@ abstract class PindaiRemoteDataSource {
   Future<HasilPindaiModel> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    CancelToken? cancelToken,
   });
 }
 
@@ -40,6 +43,7 @@ Aturan:
   Future<HasilPindaiModel> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    CancelToken? cancelToken,
   }) async {
     final file = File(imagePath);
     if (!await file.exists()) {
@@ -57,9 +61,7 @@ Aturan:
       mimeType = 'image/webp';
     }
 
-    final kategoriTersedia = daftarKategori.isNotEmpty
-        ? daftarKategori.join(', ')
-        : 'makan, transport, jajan daring, top up, kos, lainnya';
+    final kategoriTersedia = daftarKategori.join(', ');
 
     final promptPengguna = '''
 Ekstrak struk pada citra ini.
@@ -92,6 +94,7 @@ Kategori yang tersedia: $kategoriTersedia
 
     final response = await geminiClient.generateContent(
       requestBody: requestBody,
+      cancelToken: cancelToken,
     );
 
     final data = response.data;

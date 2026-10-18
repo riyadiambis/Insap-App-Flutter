@@ -1,3 +1,4 @@
+import '../../../../core/network/gemini_client.dart';
 import '../../domain/entities/hasil_pindai_entity.dart';
 
 /// Model data untuk memetakan balasan JSON dari Gemini API ke entitas domain (GEMINI-CONTRACT.md).
@@ -13,14 +14,12 @@ class HasilPindaiModel extends HasilPindaiEntity {
 
   /// Factory untuk memetakan Map JSON dari Gemini API secara aman
   factory HasilPindaiModel.fromJson(Map<String, dynamic> json) {
-    // 1. Parsing adalah_struk
-    bool adalahStruk = false;
+    // 1. Parsing adalah_struk (wajib boolean, No 15)
     final rawStruk = json['adalah_struk'];
-    if (rawStruk is bool) {
-      adalahStruk = rawStruk;
-    } else if (rawStruk is String) {
-      adalahStruk = rawStruk.trim().toLowerCase() == 'true';
+    if (rawStruk is! bool) {
+      throw const GeminiException('Gagal membaca struk, coba lagi');
     }
+    final bool adalahStruk = rawStruk;
 
     // 2. Parsing nama_toko
     String? namaToko;

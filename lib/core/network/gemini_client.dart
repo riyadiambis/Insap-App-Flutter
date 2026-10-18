@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 
 /// Pengecualian khusus ketika terjadi kegagalan jaringan atau komunikasi dengan Gemini API
@@ -51,30 +53,50 @@ class GeminiClient {
   Future<Response<Map<String, dynamic>>> generateContent({
     required Map<String, dynamic> requestBody,
     String? customApiKey,
+    CancelToken? cancelToken,
   }) async {
     final key = customApiKey ?? apiKey;
+    if (key.trim().isEmpty) {
+      throw const GeminiException(
+        'Pindai struk belum aktif di versi ini',
+        400,
+      );
+    }
+
     final path = '/models/$model:generateContent';
 
     try {
-      final response = await dio.post<Map<String, dynamic>>(
-        path,
-        data: requestBody,
-        queryParameters: {
-          if (key.isNotEmpty) 'key': key,
-        },
-      );
+      final response = await dio
+          .post<Map<String, dynamic>>(
+            path,
+            data: requestBody,
+            queryParameters: {
+              'key': key,
+            },
+            cancelToken: cancelToken,
+          )
+          .timeout(const Duration(seconds: batasWaktuDetik));
       return response;
+    } on TimeoutException {
+      throw const GeminiException(
+        'Waktu tunggu pemindaian habis (melebihi 15 detik)',
+        408,
+      );
     } on DioException catch (e) {
       throw _tanganiDioError(e);
     } catch (e) {
+      if (e is GeminiException) rethrow;
       throw GeminiException('Terjadi galat tak terduga: $e');
     }
   }
 
   GeminiException _tanganiDioError(DioException e) {
-    if (e.type == DioExceptionType.connectionTimeout ||
+    if (e.type == DioExceptionType.cancel) {
+      return const GeminiException('Permintaan dibatalkan', 499);
+    } else if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
-        e.type == DioExceptionType.sendTimeout) {
+        e.type == DioExceptionType.sendTimeout ||
+        e.error is TimeoutException) {
       return const GeminiException(
         'Waktu tunggu pemindaian habis (melebihi 15 detik)',
         408,
