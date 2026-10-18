@@ -1,7 +1,7 @@
 import 'models/pengaturan.dart';
 
-List<Pengaturan> buatSeedPengaturan() {
-  final DateTime sekarang = DateTime.now();
+List<Pengaturan> buatSeedPengaturan({DateTime? waktuSekarang}) {
+  final DateTime sekarang = waktuSekarang ?? DateTime.now();
   final DateTime seninPekanIni =
       sekarang.subtract(Duration(days: sekarang.weekday - 1));
   final String kuotaPeriodeMulai =

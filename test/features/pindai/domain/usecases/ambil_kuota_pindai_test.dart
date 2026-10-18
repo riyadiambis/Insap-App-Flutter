@@ -68,34 +68,43 @@ void main() {
       await folderSementara.delete(recursive: true);
     });
 
+    final waktuSeninAwal = DateTime(2026, 10, 12, 10, 0);
+
     setUp(() async {
-      // Kembalikan seed pengaturan awal
+      // Kembalikan seed pengaturan awal dengan waktu Senin tetap
       await db.delete('pengaturan');
-      for (final p in buatSeedPengaturan()) {
+      for (final p in buatSeedPengaturan(waktuSekarang: waktuSeninAwal)) {
         await db.insert('pengaturan', p.toMap());
       }
     });
 
     test('kuota awal pada saat aplikasi baru dibuka adalah 10', () async {
-      final sisa = await dataSource.ambilSisaKuota();
+      final sisa =
+          await dataSource.ambilSisaKuota(waktuSekarang: waktuSeninAwal);
       expect(sisa, 10);
     });
 
     test('potongKuota berhasil mengurangi kuota bertahap', () async {
-      await dataSource.potongKuota();
-      expect(await dataSource.ambilSisaKuota(), 9);
+      await dataSource.potongKuota(waktuSekarang: waktuSeninAwal);
+      expect(
+        await dataSource.ambilSisaKuota(waktuSekarang: waktuSeninAwal),
+        9,
+      );
 
-      await dataSource.potongKuota();
-      expect(await dataSource.ambilSisaKuota(), 8);
+      await dataSource.potongKuota(waktuSekarang: waktuSeninAwal);
+      expect(
+        await dataSource.ambilSisaKuota(waktuSekarang: waktuSeninAwal),
+        8,
+      );
     });
 
     test('tidak melakukan reset kuota jika masih di dalam pekan yang sama', () async {
       // Kurangi kuota hingga 7 pada hari Senin
       final senin = DateTime(2026, 10, 12, 10, 0); // Senin
       await dataSource.ambilSisaKuota(waktuSekarang: senin);
-      await dataSource.potongKuota();
-      await dataSource.potongKuota();
-      await dataSource.potongKuota();
+      await dataSource.potongKuota(waktuSekarang: senin);
+      await dataSource.potongKuota(waktuSekarang: senin);
+      await dataSource.potongKuota(waktuSekarang: senin);
       expect(await dataSource.ambilSisaKuota(waktuSekarang: senin), 7);
 
       // Cek pada hari Kamis di pekan yang sama
@@ -111,7 +120,7 @@ void main() {
       final pekanLama = DateTime(2026, 10, 12, 10, 0);
       await dataSource.ambilSisaKuota(waktuSekarang: pekanLama);
       for (int i = 0; i < 5; i++) {
-        await dataSource.potongKuota();
+        await dataSource.potongKuota(waktuSekarang: pekanLama);
       }
       expect(await dataSource.ambilSisaKuota(waktuSekarang: pekanLama), 5);
 
@@ -130,6 +139,16 @@ void main() {
         whereArgs: ['kuota_periode_mulai'],
       );
       expect(result.first['nilai'], '2026-10-19');
+    });
+
+    test('berjalan konsisten pada hari Minggu maupun Senin tanpa gagal', () async {
+      final minggu = DateTime(2026, 10, 18, 23, 59);
+      final sisaMinggu = await dataSource.ambilSisaKuota(waktuSekarang: minggu);
+      expect(sisaMinggu, 10);
+
+      final senin = DateTime(2026, 10, 19, 0, 1);
+      final sisaSenin = await dataSource.ambilSisaKuota(waktuSekarang: senin);
+      expect(sisaSenin, 10);
     });
   });
 }

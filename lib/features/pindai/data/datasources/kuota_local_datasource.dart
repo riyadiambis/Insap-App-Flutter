@@ -4,7 +4,7 @@ import '../../../../core/database/database_helper.dart';
 
 abstract class KuotaLocalDataSource {
   Future<int> ambilSisaKuota({DateTime? waktuSekarang});
-  Future<void> potongKuota();
+  Future<void> potongKuota({DateTime? waktuSekarang});
   Future<void> resetKuotaKeAwal({DateTime? waktuSekarang});
 }
 
@@ -61,8 +61,8 @@ class KuotaLocalDataSourceImpl implements KuotaLocalDataSource {
   }
 
   @override
-  Future<void> potongKuota() async {
-    final sisa = await ambilSisaKuota();
+  Future<void> potongKuota({DateTime? waktuSekarang}) async {
+    final sisa = await ambilSisaKuota(waktuSekarang: waktuSekarang);
     if (sisa <= 0) return;
 
     final db = await _dbHelper.database;
