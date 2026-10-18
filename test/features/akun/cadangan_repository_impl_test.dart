@@ -52,11 +52,12 @@ void main() {
     });
   }
 
-  Future<int> tambahRefleksi(int mingguKe) {
+  Future<int> tambahRefleksi(int mingguKe, {String catatan = 'refleksi'}) {
     return db.insert('refleksi_mingguan', {
       'tahun': 2026,
       'minggu_ke': mingguKe,
       'realisasi': 300000,
+      'catatan_refleksi': catatan,
       'dibuat_pada': '2026-10-14T08:00:00.000',
     });
   }
@@ -101,6 +102,7 @@ void main() {
 
         // Data lokal hilang, lalu dipulihkan dari awan
         await db.delete('transaksi');
+        await db.delete('refleksi_mingguan');
         final info = await repo.pulihkanData(uid);
 
         expect(await idLokal('transaksi'), {1, 3});
@@ -199,14 +201,47 @@ void main() {
     });
 
     test(
-      'pulihkanData berhasil saat transaksi lokal kosong dan awan berisi data',
+      'pulihkanData ditolak saat hanya refleksi_mingguan yang berisi data lokal',
+      () async {
+        await tambahTransaksi(jumlah: 25000, catatan: 'transaksi awan');
+        await tambahRefleksi(40);
+        await repo.cadangkanData(uid);
+
+        await pasangUlangAplikasi();
+        // Hanya tambahkan refleksi lokal, tabel transaksi dibiarkan kosong
+        await tambahRefleksi(42, catatan: 'refleksi lokal baru');
+        expect(await db.query('transaksi'), isEmpty);
+        expect(await db.query('refleksi_mingguan'), isNotEmpty);
+
+        await expectLater(
+          repo.pulihkanData(uid),
+          throwsA(
+            isA<PerangkatTidakKosongException>().having(
+              (e) => e.pesan,
+              'pesan',
+              contains('Data di perangkat ini masih ada'),
+            ),
+          ),
+        );
+
+        // Pastikan data refleksi lokal tetap utuh, tidak tertimpa
+        final refleksiSesudah = await db.query('refleksi_mingguan');
+        expect(refleksiSesudah, hasLength(1));
+        expect(refleksiSesudah.first['catatan_refleksi'], 'refleksi lokal baru');
+      },
+    );
+
+    test(
+      'pulihkanData berhasil saat transaksi dan refleksi lokal kosong dan awan berisi data',
       () async {
         await tambahTransaksi(jumlah: 35000, catatan: 'transaksi awan');
         await tambahRefleksi(40);
         await repo.cadangkanData(uid);
 
         await db.delete('transaksi');
+        await db.delete('refleksi_mingguan');
         expect(await db.query('transaksi'), isEmpty);
+        expect(await db.query('refleksi_mingguan'), isEmpty);
 
         final info = await repo.pulihkanData(uid);
         expect(info.jumlahTransaksi, 1);

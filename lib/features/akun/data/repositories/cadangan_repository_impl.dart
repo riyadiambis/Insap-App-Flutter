@@ -258,7 +258,8 @@ class CadanganRepositoryImpl implements CadanganRepository {
   Future<CadanganInfo> pulihkanData(String uid) async {
     final db = await _databaseHelper.database;
     final transaksiLokal = await db.query('transaksi');
-    if (transaksiLokal.isNotEmpty) {
+    final refleksiLokal = await db.query('refleksi_mingguan');
+    if (transaksiLokal.isNotEmpty || refleksiLokal.isNotEmpty) {
       throw const PerangkatTidakKosongException();
     }
 
