@@ -116,10 +116,15 @@ class _FakeRefleksiRepository implements RefleksiRepository {
   }
 
   @override
-  Future<int?> bacaTargetPekanDepan() async => targetPekanDepan;
+  Future<int?> bacaTargetPekanDepan({int? tahun, int? mingguKe}) async =>
+      targetPekanDepan;
 
   @override
-  Future<void> simpanTargetPekanDepan(int? target) async {
+  Future<void> simpanTargetPekanDepan(
+    int? target, {
+    int? tahunTujuan,
+    int? mingguTujuan,
+  }) async {
     targetPekanDepan = target;
   }
 }

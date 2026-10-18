@@ -1,3 +1,4 @@
+import '../../../transaksi/domain/repositories/transaksi_repository.dart';
 import '../../../../core/utils/iso_week.dart';
 import '../entities/refleksi_mingguan_entity.dart';
 import '../repositories/refleksi_repository.dart';
@@ -5,14 +6,18 @@ import '../repositories/refleksi_repository.dart';
 // F-08: simpan atau perbarui refleksi pekan berjalan dan simpan target pekan depan
 class SimpanRefleksi {
   final RefleksiRepository repository;
+  final TransaksiRepository? transaksiRepository;
   final DateTime Function() sekarang;
 
-  SimpanRefleksi(this.repository, {DateTime Function()? sekarang})
-    : sekarang = sekarang ?? DateTime.now;
+  SimpanRefleksi(
+    this.repository, {
+    this.transaksiRepository,
+    DateTime Function()? sekarang,
+  }) : sekarang = sekarang ?? DateTime.now;
 
   Future<RefleksiMingguanEntity> call({
     required String catatanRefleksi,
-    required int realisasi,
+    int realisasi = 0,
     int? targetPekanDepan,
     int? targetPengeluaranPekanIni,
     DateTime? tanggalAcuan,
@@ -22,9 +27,6 @@ class SimpanRefleksi {
     final catatanBersih = catatanRefleksi.trim();
     if (catatanBersih.isEmpty) {
       throw ArgumentError('Catatan perbaikan tidak boleh kosong.');
-    }
-    if (realisasi < 0) {
-      throw ArgumentError('Realisasi pengeluaran tidak boleh negatif.');
     }
     if (targetPekanDepan != null && targetPekanDepan < 0) {
       throw ArgumentError('Target pekan depan tidak boleh negatif.');
@@ -38,13 +40,29 @@ class SimpanRefleksi {
 
     final existing = await repository.ambilPerMinggu(tahunTarget, mingguTarget);
 
-    // salin target pekan ini dari kunci target_pekan_depan sebelum kunci itu
-    // diperbarui dengan target baru untuk pekan berikutnya (Jawaban PM 1)
+    // salin target pekan ini dari kunci target_pekan_depan jika belum pernah disimpan
     final int? targetPekanIni =
         targetPengeluaranPekanIni ??
         (existing != null
             ? existing.targetPengeluaran
-            : await repository.bacaTargetPekanDepan());
+            : await repository.bacaTargetPekanDepan(
+                tahun: tahunTarget,
+                mingguKe: mingguTarget,
+              ));
+
+    // hitung ulang realisasi dari transaksi di basis data untuk pekan tersebut
+    int realisasiFinal = realisasi;
+    if (transaksiRepository != null) {
+      final daftarTransaksi = await transaksiRepository!.ambilDaftar(
+        tanggalMulai: formatTanggalIso(pekanIni.awal),
+        tanggalAkhir: formatTanggalIso(pekanIni.akhir),
+      );
+      realisasiFinal = daftarTransaksi.fold<int>(0, (sum, t) => sum + t.jumlah);
+    }
+
+    if (realisasiFinal < 0) {
+      throw ArgumentError('Realisasi pengeluaran tidak boleh negatif.');
+    }
 
     final String waktuSimpan = acuan.toIso8601String();
 
@@ -53,15 +71,26 @@ class SimpanRefleksi {
       tahun: tahunTarget,
       mingguKe: mingguTarget,
       targetPengeluaran: targetPekanIni,
-      realisasi: realisasi,
+      realisasi: realisasiFinal,
       catatanRefleksi: catatanBersih,
       dibuatPada: waktuSimpan,
     );
 
     final idTersimpan = await repository.simpanRefleksi(entity);
 
+    // Simpan target bersama pekan ISO tujuannya (tepat pekan berikutnya),
+    // atau hapus dari pengaturan bila kolom target dikosongkan
     if (targetPekanDepan != null && targetPekanDepan > 0) {
-      await repository.simpanTargetPekanDepan(targetPekanDepan);
+      final DateTime pekanDepan = pekanIni.awal.add(const Duration(days: 7));
+      final int tahunDepan = pekanDepan.add(const Duration(days: 3)).year;
+      final int mingguDepan = isoWeekNumber(pekanDepan);
+      await repository.simpanTargetPekanDepan(
+        targetPekanDepan,
+        tahunTujuan: tahunDepan,
+        mingguTujuan: mingguDepan,
+      );
+    } else {
+      await repository.simpanTargetPekanDepan(null);
     }
 
     return entity.copyWith(id: existing?.id ?? idTersimpan);

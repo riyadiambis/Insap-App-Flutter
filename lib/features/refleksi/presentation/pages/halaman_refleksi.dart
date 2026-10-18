@@ -436,7 +436,7 @@ class _KontenRefleksi extends StatelessWidget {
           const SizedBox(height: AppSpacing.besar),
           FormIsianRefleksi(
             catatanAwal: data.refleksiTersimpan?.catatanRefleksi,
-            targetAwal: data.targetPekanDepan,
+            targetPekanIni: data.targetPekanIni,
             sedangMenyimpan: sedangMenyimpan,
             onSimpan: (catatan, targetPekanDepan) {
               context.read<RefleksiCubit>().simpan(

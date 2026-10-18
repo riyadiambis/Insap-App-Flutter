@@ -141,11 +141,13 @@ class AmbilRefleksiPekan {
       tahun,
       mingguKe,
     );
-    final targetDariPengaturan = await refleksiRepository
-        .bacaTargetPekanDepan();
+    final targetDariPengaturan = await refleksiRepository.bacaTargetPekanDepan(
+      tahun: tahun,
+      mingguKe: mingguKe,
+    );
 
     // bila refleksi pekan ini sudah disimpan, pakai target_pengeluaran dari baris itu.
-    // bila belum pernah disimpan, salin dari kunci target_pekan_depan (Jawaban PM 1).
+    // bila belum pernah disimpan, salin dari target yang dicadangkan tepat dari pekan sebelumnya.
     final int? targetPekanIni = refleksiTersimpan != null
         ? refleksiTersimpan.targetPengeluaran
         : targetDariPengaturan;
