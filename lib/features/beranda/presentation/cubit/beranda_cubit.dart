@@ -1,8 +1,11 @@
+// ignore_for_file: prefer_initializing_formals
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/utils/iso_week.dart';
 import '../../../pengaturan/domain/usecases/ambil_target_bulanan.dart';
 import '../../../pengaturan/domain/usecases/hitung_perbandingan_target.dart';
 import '../../../pengaturan/domain/usecases/simpan_target_bulanan.dart';
+import '../../../refleksi/domain/repositories/refleksi_repository.dart';
 import '../../../transaksi/domain/entities/rincian_pengeluaran_entity.dart';
 import '../../../transaksi/domain/usecases/ambil_rincian_kategori.dart';
 import '../../../transaksi/domain/usecases/ambil_ringkasan_pekan.dart';
@@ -16,6 +19,8 @@ class BerandaCubit extends Cubit<BerandaState> {
   final AmbilTargetBulanan? ambilTargetBulanan;
   final SimpanTargetBulanan? simpanTargetBulanan;
   final HitungPerbandinganTarget hitungPerbandinganTarget;
+  final RefleksiRepository? _refleksiRepository;
+  final DateTime Function() _sekarang;
 
   BerandaCubit({
     required this.ambilRingkasanPekan,
@@ -23,7 +28,11 @@ class BerandaCubit extends Cubit<BerandaState> {
     this.ambilTargetBulanan,
     this.simpanTargetBulanan,
     this.hitungPerbandinganTarget = const HitungPerbandinganTarget(),
-  }) : super(const BerandaInitial());
+    RefleksiRepository? refleksiRepository,
+    DateTime Function()? sekarang,
+  }) : _refleksiRepository = refleksiRepository,
+       _sekarang = sekarang ?? DateTime.now,
+       super(const BerandaInitial());
 
   Future<void> muatRingkasan() async {
     emit(const BerandaLoading());
@@ -43,11 +52,23 @@ class BerandaCubit extends Cubit<BerandaState> {
         targetBulanan: target,
       );
 
+      bool refleksiPekanIniTersimpan = false;
+      if (_refleksiRepository != null) {
+        final waktu = _sekarang();
+        final rentangPekan = rentangMingguIso(waktu);
+        final int tahun = rentangPekan.awal.add(const Duration(days: 3)).year;
+        final int mingguKe = isoWeekNumber(waktu);
+        final ref =
+            await _refleksiRepository.ambilPerMinggu(tahun, mingguKe);
+        refleksiPekanIniTersimpan = ref != null;
+      }
+
       emit(BerandaLoaded(
         ringkasan,
         rincian,
         targetBulanan: target,
         perbandinganTarget: perbandingan,
+        refleksiPekanIniTersimpan: refleksiPekanIniTersimpan,
       ));
     } catch (e) {
       emit(BerandaError(e.toString()));

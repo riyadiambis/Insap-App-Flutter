@@ -94,9 +94,6 @@ class _FakeTransaksiRepo implements TransaksiRepository {
   Future<int> hapus(int id) async => 0;
 
   @override
-  Future<int> perbarui(TransaksiEntity transaksi) async => 0;
-
-  @override
   Future<int> ambilKuotaPindai() async => 10;
 
   @override

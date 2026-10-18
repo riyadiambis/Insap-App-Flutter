@@ -50,7 +50,7 @@ class _FakeKuotaLocalDataSource implements KuotaLocalDataSource {
   }
 
   @override
-  Future<void> potongKuota() async {
+  Future<void> potongKuota({DateTime? waktuSekarang}) async {
     potongKuotaDipanggil = true;
     if (sisaKuota > 0) {
       sisaKuota--;

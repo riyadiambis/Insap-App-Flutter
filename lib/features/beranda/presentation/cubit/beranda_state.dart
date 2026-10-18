@@ -27,11 +27,14 @@ class BerandaLoaded extends BerandaState {
   final int? targetBulanan;
   final PerbandinganTargetEntity perbandinganTarget;
 
+  final bool refleksiPekanIniTersimpan;
+
   BerandaLoaded(
     this.ringkasan,
     this.rincian, {
     this.targetBulanan,
     PerbandinganTargetEntity? perbandinganTarget,
+    this.refleksiPekanIniTersimpan = false,
   }) : perbandinganTarget = perbandinganTarget ??
             PerbandinganTargetEntity.hitung(
               totalBulanIni: rincian.totalBulanIni,
@@ -44,6 +47,7 @@ class BerandaLoaded extends BerandaState {
         rincian,
         targetBulanan,
         perbandinganTarget,
+        refleksiPekanIniTersimpan,
       ];
 }
 

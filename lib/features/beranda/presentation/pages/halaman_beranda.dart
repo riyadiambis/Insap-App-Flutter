@@ -29,8 +29,14 @@ import '../../../pindai/presentation/widgets/dialog_panduan_pindai.dart';
 class HalamanBeranda extends StatelessWidget {
   final Stream<PenggunaEntity?>? streamPengguna;
   final PenggunaEntity? penggunaAwal;
+  final DateTime Function()? waktuSekarang;
 
-  const HalamanBeranda({super.key, this.streamPengguna, this.penggunaAwal});
+  const HalamanBeranda({
+    super.key,
+    this.streamPengguna,
+    this.penggunaAwal,
+    this.waktuSekarang,
+  });
 
   static String ambilNamaDepan(String? namaTampilan) {
     if (namaTampilan == null) return 'Kawan';
@@ -94,6 +100,9 @@ class HalamanBeranda extends StatelessWidget {
                         rincian: state.rincian,
                         pengguna: pengguna,
                         perbandinganTarget: state.perbandinganTarget,
+                        refleksiPekanIniTersimpan:
+                            state.refleksiPekanIniTersimpan,
+                        waktuSekarang: waktuSekarang,
                       );
                     }
                     return const SizedBox();
@@ -113,12 +122,16 @@ class _BerandaContent extends StatelessWidget {
   final RincianPengeluaranEntity rincian;
   final PenggunaEntity? pengguna;
   final PerbandinganTargetEntity? perbandinganTarget;
+  final bool refleksiPekanIniTersimpan;
+  final DateTime Function()? waktuSekarang;
 
   const _BerandaContent({
     required this.ringkasan,
     required this.rincian,
     this.pengguna,
     this.perbandinganTarget,
+    this.refleksiPekanIniTersimpan = false,
+    this.waktuSekarang,
   });
 
   Widget _buildGreetingHeader(BuildContext context, String teksRentang) {
@@ -408,8 +421,13 @@ class _BerandaContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rentangPekan = rentangMingguIso(DateTime.now());
+    final waktu = (waktuSekarang != null ? waktuSekarang!() : DateTime.now());
+    final rentangPekan = rentangMingguIso(waktu);
     final teksRentang = formatRentangMinggu(rentangPekan);
+    final bool akhirPekan =
+        waktu.weekday == DateTime.saturday || waktu.weekday == DateTime.sunday;
+    final bool tampilkanBannerRefleksi =
+        akhirPekan && !refleksiPekanIniTersimpan;
 
     final bool tabelTransaksiKosong = ringkasan.transaksiTerakhir.isEmpty &&
         ringkasan.totalMingguIni == 0 &&
@@ -712,6 +730,56 @@ class _BerandaContent extends StatelessWidget {
             ],
           ),
         ),
+        if (tampilkanBannerRefleksi) ...[
+          const SizedBox(height: AppSpacing.besar),
+          KartuBukuTulis(
+            key: const Key('banner_refleksi_beranda'),
+            onTap: () => context.go('/refleksi'),
+            backgroundColor: AppColors.kartu,
+            padding: const EdgeInsets.all(AppSpacing.sedang),
+            radius: AppSizes.radiusTombol,
+            child: Row(
+              children: [
+                Container(
+                  width: AppSizes.kotakIkonAksi,
+                  height: AppSizes.kotakIkonAksi,
+                  decoration: BoxDecoration(
+                    color: AppColors.stabilo,
+                    border: Border.all(
+                      color: AppColors.ink,
+                      width: AppSizes.borderTipis,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      AppSizes.radiusKotakIkonAksi,
+                    ),
+                    boxShadow: const [AppTheme.bayanganKecilGelap],
+                  ),
+                  child: const Icon(
+                    Icons.auto_stories_outlined,
+                    size: AppSizes.ikonAksi,
+                    color: AppColors.ink,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sedang),
+                Expanded(
+                  child: Text(
+                    'Pekan ini belum direfleksikan. Luangkan 2 menit, yuk.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.ink,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.kecil),
+                const Icon(
+                  Icons.arrow_forward_rounded,
+                  size: AppSizes.ikonKecil,
+                  color: AppColors.ink,
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: AppSpacing.besar),
         // Kartu Rincian Pengeluaran
         KartuRincianPengeluaran(

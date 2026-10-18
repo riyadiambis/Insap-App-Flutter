@@ -106,6 +106,7 @@ void setupInjectionContainer() {
       ambilTargetBulanan: sl(),
       simpanTargetBulanan: sl(),
       hitungPerbandinganTarget: sl(),
+      refleksiRepository: sl(),
     ),
   );
 
