@@ -110,6 +110,10 @@ class _FakeRefleksiRepository implements RefleksiRepository {
   ) async => refleksiTersimpan;
 
   @override
+  Future<List<RefleksiMingguanEntity>> ambilSemuaRefleksi() async =>
+      refleksiTersimpan != null ? [refleksiTersimpan!] : [];
+
+  @override
   Future<int> simpanRefleksi(RefleksiMingguanEntity refleksi) async {
     refleksiTersimpan = refleksi.copyWith(id: 1);
     return 1;

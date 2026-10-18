@@ -23,6 +23,17 @@ class _InMemoryRefleksiRepository implements RefleksiRepository {
   }
 
   @override
+  Future<List<RefleksiMingguanEntity>> ambilSemuaRefleksi() async {
+    final list = _rows.values.toList();
+    list.sort((a, b) {
+      final thn = b.tahun.compareTo(a.tahun);
+      if (thn != 0) return thn;
+      return b.mingguKe.compareTo(a.mingguKe);
+    });
+    return list;
+  }
+
+  @override
   Future<int> simpanRefleksi(RefleksiMingguanEntity refleksi) async {
     final key = '${refleksi.tahun}-${refleksi.mingguKe}';
     final existing = _rows[key];

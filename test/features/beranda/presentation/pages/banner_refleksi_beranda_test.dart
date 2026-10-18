@@ -85,6 +85,10 @@ class _FakeRefleksiRepository implements RefleksiRepository {
       dataRefleksi;
 
   @override
+  Future<List<RefleksiMingguanEntity>> ambilSemuaRefleksi() async =>
+      dataRefleksi != null ? [dataRefleksi!] : [];
+
+  @override
   Future<int?> bacaTargetPekanDepan({int? tahun, int? mingguKe}) async => null;
 
   @override

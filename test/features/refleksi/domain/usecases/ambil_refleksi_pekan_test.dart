@@ -105,6 +105,10 @@ class _FakeRefleksiRepository implements RefleksiRepository {
   }
 
   @override
+  Future<List<RefleksiMingguanEntity>> ambilSemuaRefleksi() async =>
+      refleksiTersimpan != null ? [refleksiTersimpan!] : [];
+
+  @override
   Future<int> simpanRefleksi(RefleksiMingguanEntity refleksi) async => 1;
 
   @override
