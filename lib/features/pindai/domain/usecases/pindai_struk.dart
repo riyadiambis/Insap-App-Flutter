@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../entities/hasil_pindai_entity.dart';
 import '../repositories/pindai_repository.dart';
 
@@ -10,10 +12,12 @@ class PindaiStruk {
   Future<HasilPindaiEntity> call({
     required String imagePath,
     required List<String> daftarKategori,
+    CancelToken? cancelToken,
   }) {
     return repository.pindaiStruk(
       imagePath: imagePath,
       daftarKategori: daftarKategori,
+      cancelToken: cancelToken,
     );
   }
 }
