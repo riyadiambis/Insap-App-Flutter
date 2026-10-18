@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import '../../../../core/utils/iso_week.dart';
 import '../../../kategori/domain/entities/kategori_entity.dart';
 import '../../../kategori/domain/repositories/kategori_repository.dart';
+import '../../../pengaturan/domain/usecases/ambil_target_bulanan.dart';
 import '../../../transaksi/domain/entities/transaksi_entity.dart';
 import '../../../transaksi/domain/repositories/transaksi_repository.dart';
 import '../entities/agregat_kakeibo_entity.dart';
@@ -18,6 +19,8 @@ class DataRefleksiPekan extends Equatable {
   final RefleksiMingguanEntity? refleksiTersimpan;
   final int? targetPekanIni;
   final int? targetPekanDepan;
+  final int? targetBulanan;
+  final RefleksiMingguanEntity? refleksiPekanLalu;
 
   const DataRefleksiPekan({
     required this.tahun,
@@ -28,6 +31,8 @@ class DataRefleksiPekan extends Equatable {
     this.refleksiTersimpan,
     this.targetPekanIni,
     this.targetPekanDepan,
+    this.targetBulanan,
+    this.refleksiPekanLalu,
   });
 
   // selisih realisasi pekan ini terhadap target pekan ini (positif = lewat target)
@@ -44,6 +49,8 @@ class DataRefleksiPekan extends Equatable {
     refleksiTersimpan,
     targetPekanIni,
     targetPekanDepan,
+    targetBulanan,
+    refleksiPekanLalu,
   ];
 }
 
@@ -52,12 +59,14 @@ class AmbilRefleksiPekan {
   final RefleksiRepository refleksiRepository;
   final TransaksiRepository transaksiRepository;
   final KategoriRepository kategoriRepository;
+  final AmbilTargetBulanan? ambilTargetBulanan;
   final DateTime Function() sekarang;
 
   AmbilRefleksiPekan({
     required this.refleksiRepository,
     required this.transaksiRepository,
     required this.kategoriRepository,
+    this.ambilTargetBulanan,
     DateTime Function()? sekarang,
   }) : sekarang = sekarang ?? DateTime.now;
 
@@ -152,6 +161,28 @@ class AmbilRefleksiPekan {
         ? refleksiTersimpan.targetPengeluaran
         : targetDariPengaturan;
 
+    // Ambil refleksi pekan lalu untuk Kartu Pekan Lalu (K3)
+    final int tahunLalu = pekanLalu.awal.add(const Duration(days: 3)).year;
+    final int mingguLalu = isoWeekNumber(acuan.subtract(const Duration(days: 7)));
+    final refleksiPekanLalu = await refleksiRepository.ambilPerMinggu(
+      tahunLalu,
+      mingguLalu,
+    );
+
+    // Ambil target pekan depan yang sudah disimpan saat refleksi pekan ini diisi
+    final DateTime acuanDepan = pekanIni.awal.add(const Duration(days: 7));
+    final RentangMinggu pekanDepan = rentangMingguIso(acuanDepan);
+    final int tahunDepan = pekanDepan.awal.add(const Duration(days: 3)).year;
+    final int mingguDepan = isoWeekNumber(acuanDepan);
+    final targetPekanDepan = await refleksiRepository.bacaTargetPekanDepan(
+      tahun: tahunDepan,
+      mingguKe: mingguDepan,
+    );
+
+    // Target bulanan untuk teks bantu per pekan (K2)
+    final int? targetBulanan =
+        ambilTargetBulanan != null ? await ambilTargetBulanan!() : null;
+
     return DataRefleksiPekan(
       tahun: tahun,
       mingguKe: mingguKe,
@@ -160,7 +191,9 @@ class AmbilRefleksiPekan {
       agregat: agregat,
       refleksiTersimpan: refleksiTersimpan,
       targetPekanIni: targetPekanIni,
-      targetPekanDepan: targetDariPengaturan,
+      targetPekanDepan: targetPekanDepan,
+      targetBulanan: targetBulanan,
+      refleksiPekanLalu: refleksiPekanLalu,
     );
   }
 }

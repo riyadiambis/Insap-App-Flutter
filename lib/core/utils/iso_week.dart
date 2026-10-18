@@ -28,6 +28,14 @@ RentangMinggu rentangMingguIso(DateTime date) {
   return RentangMinggu(awal: awal, akhir: akhir);
 }
 
+RentangMinggu rentangMingguDariIso(int tahun, int mingguKe) {
+  final jan4 = DateTime(tahun, 1, 4);
+  final seninPekan1 = DateTime(jan4.year, jan4.month, jan4.day).subtract(Duration(days: jan4.weekday - 1));
+  final awal = seninPekan1.add(Duration(days: (mingguKe - 1) * 7));
+  final akhir = DateTime(awal.year, awal.month, awal.day, 23, 59, 59, 999).add(const Duration(days: 6));
+  return RentangMinggu(awal: awal, akhir: akhir);
+}
+
 // format yyyy-MM-dd doang, tanpa jam. jangan pakai toIso8601String()
 // mentah, nanti kebawa jam dan bikin BETWEEN meleset (Jebakan 1, ISSUE-02)
 String formatTanggalIso(DateTime date) {
