@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'barang_pindai.dart';
+
 /// Entitas domain yang merepresentasikan hasil ekstraksi OCR AI dari struk belanja (F-09, GEMINI-CONTRACT).
 class HasilPindaiEntity extends Equatable {
   final bool adalahStruk;
@@ -8,6 +10,8 @@ class HasilPindaiEntity extends Equatable {
   final int? total;
   final String? kategoriUsulan;
   final double keyakinan;
+  final List<BarangPindai> barang;
+  final bool totalDihitungDariBarang;
 
   const HasilPindaiEntity({
     required this.adalahStruk,
@@ -16,6 +20,8 @@ class HasilPindaiEntity extends Equatable {
     this.total,
     this.kategoriUsulan,
     required this.keyakinan,
+    this.barang = const [],
+    this.totalDihitungDariBarang = false,
   });
 
   @override
@@ -26,5 +32,7 @@ class HasilPindaiEntity extends Equatable {
         total,
         kategoriUsulan,
         keyakinan,
+        barang,
+        totalDihitungDariBarang,
       ];
 }

@@ -19,6 +19,7 @@ class PindaiRepositoryImpl implements PindaiRepository {
   Future<HasilPindaiEntity> pindaiStruk({
     required String imagePath,
     required List<String> daftarKategori,
+    Map<String, int>? petaKategoriId,
     CancelToken? cancelToken,
   }) async {
     // 1. Periksa ketersediaan kuota
@@ -31,6 +32,7 @@ class PindaiRepositoryImpl implements PindaiRepository {
     final hasil = await remoteDataSource.pindaiStruk(
       imagePath: imagePath,
       daftarKategori: daftarKategori,
+      petaKategoriId: petaKategoriId,
       cancelToken: cancelToken,
     );
 
