@@ -186,8 +186,25 @@ class _HalamanPindaiState extends State<HalamanPindai> {
       String? pathSiapKirim;
 
       try {
+        final stopwatchPengecilan = Stopwatch()..start();
         // 2. Kecilkan citra ke sisi terpanjang maksimal 1024px menggunakan dart:ui
         pathSiapKirim = await GambarHelper.kompresDanKecilkanCitra(pathAsli);
+        stopwatchPengecilan.stop();
+        final msPengecilan = stopwatchPengecilan.elapsedMilliseconds;
+
+        double ukuranKb = 0;
+        try {
+          final fileSiapKirim = File(pathSiapKirim);
+          if (await fileSiapKirim.exists()) {
+            ukuranKb = (await fileSiapKirim.length()) / 1024.0;
+          }
+        } catch (_) {}
+
+        if (kDebugMode) {
+          debugPrint(
+            '[Pindai Struk][Debug] Lama mengecilkan citra: ${msPengecilan}ms | Ukuran berkas dikirim: ${ukuranKb.toStringAsFixed(2)}KB',
+          );
+        }
 
         if (!mounted) return;
 
@@ -205,12 +222,21 @@ class _HalamanPindaiState extends State<HalamanPindai> {
           };
         }
 
+        final stopwatchMenunggu = Stopwatch()..start();
         // 4. Kirim ke Gemini AI
         await cubit.prosesPindai(
           imagePath: pathSiapKirim,
           daftarKategori: daftarKategori,
           petaKategoriId: petaKategoriId,
         );
+        stopwatchMenunggu.stop();
+        final msMenunggu = stopwatchMenunggu.elapsedMilliseconds;
+
+        if (kDebugMode) {
+          debugPrint(
+            '[Pindai Struk][Debug] Lama menunggu jawaban Gemini: ${msMenunggu}ms',
+          );
+        }
       } finally {
         // No 16: Berkas sementara _1024.png selalu dihapus di finally setelah dikirim termasuk saat gagal
         await GambarHelper.hapusBerkasSementara(pathSiapKirim);
