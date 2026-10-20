@@ -183,9 +183,9 @@ void main() {
       expect(fakeLocal.sisaKuota, 9);
     });
 
-    test('6. Batas waktu lewat 15 detik: batalkan dengan galat timeout, kuota aman', () async {
+    test('6. Batas waktu lewat 90 detik: batalkan dengan galat timeout, kuota aman', () async {
       fakeRemote.errorToThrow = const GeminiException(
-        'Waktu tunggu pemindaian habis (melebihi 15 detik)',
+        'Waktu tunggu pemindaian habis (melebihi 90 detik)',
         408,
       );
 

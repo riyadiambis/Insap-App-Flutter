@@ -347,7 +347,78 @@ void main() {
     );
 
     testWidgets(
-      'menampilkan galat dan tombol catat manual saat timeout 15 detik (No 6)',
+      'K2 (ISSUE-32): teks di layar memuat berubah bertahap pada detik ke-15 dan ke-45, kalimat privasi dan batalkan tetap tampil',
+      (tester) async {
+        tester.view.physicalSize = const Size(460, 1600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        fakePindaiRepo.completer = Completer<HasilPindaiEntity>();
+
+        await tester.pumpWidget(bangunAplikasiUji());
+        await tester.pumpAndSettle();
+
+        unawaited(
+          pindaiCubit.prosesPindai(
+            imagePath: '/test/struk.png',
+            daftarKategori: ['makan'],
+          ),
+        );
+        await Future.microtask(() {});
+        await tester.pump();
+
+        // Sebelum 15 detik: teks awal
+        expect(find.text('Menganalisis Struk dengan AI...'), findsOneWidget);
+        expect(
+          find.text(
+            'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Batalkan'), findsOneWidget);
+
+        // Sesudah 15 detik: teks kedua
+        await tester.pump(const Duration(seconds: 15));
+        expect(
+          find.text('Struknya agak panjang, masih dibaca...'),
+          findsOneWidget,
+        );
+        expect(
+          find.text(
+            'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Batalkan'), findsOneWidget);
+
+        // Sesudah 45 detik: teks ketiga
+        await tester.pump(const Duration(seconds: 30));
+        expect(
+          find.text(
+            'Masih menunggu jawaban. Kalau terlalu lama, ketuk Batalkan lalu catat manual.',
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.text(
+            'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Batalkan'), findsOneWidget);
+
+        // Mengetuk Batalkan tetap berfungsi dan membatalkan proses
+        await tester.tap(find.text('Batalkan'));
+        await tester.pumpAndSettle();
+
+        expect(pindaiCubit.state.status, PindaiStatus.awal);
+        expect(pindaiCubit.state.sisaKuota, 8);
+      },
+    );
+
+    testWidgets(
+      'menampilkan galat dan tombol catat manual saat timeout 90 detik (No 6)',
       (tester) async {
         tester.view.physicalSize = const Size(460, 1600);
         tester.view.devicePixelRatio = 1.0;
@@ -355,7 +426,7 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
 
         fakePindaiRepo.errorToThrow = const GeminiException(
-          'Waktu tunggu pemindaian habis (melebihi 15 detik)',
+          'Waktu tunggu pemindaian habis (melebihi 90 detik)',
           408,
         );
 
@@ -369,7 +440,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.text('Waktu tunggu pemindaian habis (melebihi 15 detik)'),
+          find.text('Waktu tunggu pemindaian habis (melebihi 90 detik)'),
           findsOneWidget,
         );
         expect(find.text('Catat Manual Saja'), findsOneWidget);

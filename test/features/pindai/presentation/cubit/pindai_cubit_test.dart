@@ -203,7 +203,7 @@ void main() {
       'prosesPindai batas waktu habis (408) menawarkan pencatatan manual',
       () async {
         fakePindaiRepo.errorToThrow = const GeminiException(
-          'Waktu tunggu pemindaian habis (melebihi 15 detik)',
+          'Waktu tunggu pemindaian habis (melebihi 90 detik)',
           408,
         );
 
@@ -213,7 +213,7 @@ void main() {
         );
 
         expect(cubit.state.status, PindaiStatus.gagal);
-        expect(cubit.state.pesanGalat, contains('melebihi 15 detik'));
+        expect(cubit.state.pesanGalat, contains('melebihi 90 detik'));
         expect(cubit.state.tawarkanCatatManual, isTrue);
       },
     );
@@ -369,9 +369,9 @@ void main() {
       expect(cubit.state.tawarkanCatatManual, isTrue);
     });
 
-    test('prosesPindai dengan statusCode 408 (timeout 15 detik No 6) menawarkan catat manual', () async {
+    test('prosesPindai dengan statusCode 408 (timeout 90 detik No 6) menawarkan catat manual', () async {
       fakePindaiRepo.errorToThrow = const GeminiException(
-        'Waktu tunggu pemindaian habis (melebihi 15 detik)',
+        'Waktu tunggu pemindaian habis (melebihi 90 detik)',
         408,
       );
 
@@ -381,7 +381,7 @@ void main() {
       );
 
       expect(cubit.state.status, PindaiStatus.gagal);
-      expect(cubit.state.pesanGalat, contains('melebihi 15 detik'));
+      expect(cubit.state.pesanGalat, contains('melebihi 90 detik'));
       expect(cubit.state.tawarkanCatatManual, isTrue);
     });
 

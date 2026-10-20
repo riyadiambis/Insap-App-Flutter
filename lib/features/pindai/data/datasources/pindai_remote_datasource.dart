@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 
 import '../../../../core/network/gemini_client.dart';
@@ -167,10 +168,20 @@ $barisKategori
       }
     };
 
+    final stopwatchApi = Stopwatch()..start();
     final response = await geminiClient.generateContent(
       requestBody: requestBody,
       cancelToken: cancelToken,
     );
+    stopwatchApi.stop();
+    final lamaMenungguMs = stopwatchApi.elapsedMilliseconds;
+
+    if (kDebugMode) {
+      final kb = (bytes.lengthInBytes / 1024.0).toStringAsFixed(2);
+      debugPrint(
+        '[Pindai Datasource][Debug] Ukuran berkas dikirim: ${kb}KB | Lama menunggu jawaban API: ${lamaMenungguMs}ms',
+      );
+    }
 
     final data = response.data;
     if (data == null) {
