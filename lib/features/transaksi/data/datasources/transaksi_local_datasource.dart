@@ -1,3 +1,4 @@
+import '../../../../core/constants/kuota_constants.dart';
 import '../../../../core/database/database_helper.dart';
 import '../models/transaksi_model.dart';
 
@@ -65,7 +66,7 @@ class TransaksiLocalDataSource {
   // Nilai cadangan kalau baris belum ada atau nilainya rusak. Disamakan
   // dengan nilai awal kuota_pindai_sisa di seed_pengaturan.dart (Jebakan
   // 3, ISSUE-02), supaya kedua kasus gagal berperilaku sama.
-  static const int _kuotaPindaiCadangan = 10;
+  static const int _kuotaPindaiCadangan = kuotaPindaiPekanan;
 
   Future<int> ambilKuotaPindai() async {
     final db = await _dbHelper.database;
@@ -79,7 +80,11 @@ class TransaksiLocalDataSource {
 
     if (result.isNotEmpty) {
       final val = result.first['nilai'] as String?;
-      return int.tryParse(val ?? '') ?? _kuotaPindaiCadangan;
+      final sisa = int.tryParse(val ?? '') ?? _kuotaPindaiCadangan;
+      if (sisa > _kuotaPindaiCadangan) {
+        return _kuotaPindaiCadangan;
+      }
+      return sisa;
     }
     return _kuotaPindaiCadangan;
   }

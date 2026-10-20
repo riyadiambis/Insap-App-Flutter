@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
+import '../../../../core/constants/kuota_constants.dart';
 import '../../../../core/database/database_helper.dart';
 
 abstract class KuotaLocalDataSource {
@@ -10,7 +11,7 @@ abstract class KuotaLocalDataSource {
 
 class KuotaLocalDataSourceImpl implements KuotaLocalDataSource {
   final DatabaseHelper _dbHelper;
-  static const int kuotaMaksimal = 10;
+  static const int kuotaMaksimal = kuotaPindaiPekanan;
 
   KuotaLocalDataSourceImpl(this._dbHelper);
 
@@ -54,7 +55,11 @@ class KuotaLocalDataSourceImpl implements KuotaLocalDataSource {
 
     if (resultSisa.isNotEmpty) {
       final val = resultSisa.first['nilai'] as String?;
-      return int.tryParse(val ?? '') ?? kuotaMaksimal;
+      final sisa = int.tryParse(val ?? '') ?? kuotaMaksimal;
+      if (sisa > kuotaMaksimal) {
+        return kuotaMaksimal;
+      }
+      return sisa;
     }
 
     return kuotaMaksimal;
