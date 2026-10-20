@@ -192,41 +192,72 @@ Aplikasi ini dibangun menggunakan tumpukan teknologi berikut:
 - **Injeksi Dependensi:** `get_it` (`^9.3.0`) sebagai penyedia layanan (*service locator*)
 - **Navigasi:** `go_router` (`^18.0.1`) dengan dukungan `StatefulShellRoute`
 - **Basis Data Lokal:** SQLite melalui pustaka `sqflite` (`^2.4.4`) dan `path` (`^1.9.1`)
+- **Jaringan & Layanan AI:**
+  - `dio` (`^5.11.1`) sebagai klien HTTP REST API
+  - Google Gemini API: REST API v1beta dengan model bawaan `gemini-3.5-flash-lite` (didefinisikan di `lib/core/network/gemini_client.dart`)
+  - `google_mlkit_document_scanner` (`^0.6.1`) untuk deteksi dan pemindaian dokumen fisik via kamera atau galeri
 - **Layanan Awan & Autentikasi:**
   - `firebase_core` (`^3.12.1`)
   - `firebase_auth` (`^5.5.1`)
   - `cloud_firestore` (`^5.6.5`)
   - `google_sign_in` (`^6.3.0`)
-- **Pustaka Pendukung:** `equatable` (`^3.0.0`) untuk perbandingan objek state dan `google_fonts` (`^8.2.1`) untuk tipografi
+- **Pustaka Pendukung & Aset:**
+  - `equatable` (`^3.0.0`) untuk perbandingan objek state
+  - `cupertino_icons` (`^1.0.8`)
+  - Tipografi lokal: font Baloo 2 dan Nunito yang dimuat langsung dari aset aplikasi
 
 ## Cara Menjalankan
 
 > **CATATAN PENTING: Aplikasi HANYA jalan di Android (emulator atau HP fisik). Chrome, Edge, dan Windows tidak didukung karena sqflite tidak berjalan di sana.**
 
-Ikuti langkah-langkah berikut untuk menjalankan aplikasi:
+Berkas APK aplikasi dikumpulkan lewat Google Drive tugas kelas sesuai ketentuan pengumpulan mata kuliah.
+
+Ikuti langkah-langkah berikut untuk menjalankan atau mengompilasi aplikasi:
 
 1. Unduh seluruh dependensi proyek:
    ```bash
    flutter pub get
    ```
-2. Nyalakan emulator Android melalui Android Studio, atau hubungkan HP Android ke komputer dengan mengaktifkan mode *USB Debugging*.
-3. Periksa perangkat yang terhubung dan catat ID perangkat target:
+2. Konfigurasi Kunci API Gemini:
+   Salin berkas contoh `.env.example` menjadi `.env`:
+   ```bash
+   copy .env.example .env
+   ```
+   Buka berkas `.env` dan isi variabel `GEMINI_API_KEY` dengan kunci API milik Anda dari Google AI Studio.
+   *Catatan:* Bila aplikasi dijalankan tanpa berkas `.env`, seluruh fitur manual dan lokal tetap berfungsi normal, namun fitur pemindai struk akan memunculkan pesan "Pindai struk belum aktif di versi ini" ketika dibuka.
+3. Nyalakan emulator Android melalui Android Studio, atau hubungkan HP Android ke komputer dengan mengaktifkan mode *USB Debugging*.
+4. Periksa perangkat yang terhubung dan catat ID perangkat target:
    ```bash
    flutter devices
    ```
-4. Jalankan aplikasi ke perangkat Android yang dipilih:
+5. Jalankan aplikasi ke perangkat Android yang dipilih:
    ```bash
-   flutter run -d <id-perangkat>
+   flutter run --dart-define-from-file=.env -d <id-perangkat>
    ```
+6. Membangun Berkas APK:
+   Untuk mengompilasi berkas APK rilis:
+   ```bash
+   flutter build apk --release --dart-define-from-file=.env
+   ```
+   Hasil keluaran berkas APK berada di lokasi:
+   `build\app\outputs\flutter-apk\app-release.apk`
+
+   *Catatan Build Demo Pameran:* Flag `KUOTA_PINDAI_PEKANAN` hanya digunakan khusus untuk build demo pameran (misalnya memberikan 200 pemindaian):
+   ```bash
+   flutter build apk --release --dart-define-from-file=.env --dart-define=KUOTA_PINDAI_PEKANAN=200
+   ```
+   Pada build biasa, kuota otomatis bernilai bawaan 10 per pekan tanpa perlu menambahkan flag tersebut.
 
 ## Struktur Folder
 
 Struktur folder utama di dalam direktori `lib/` disusun sebagai berikut:
 
-- `lib/core/`: Fondasi aplikasi lintas fitur yang mencakup tema, basis data lokal, navigasi, injeksi dependensi, utilitas, dan widget global.
+- `lib/core/`: Fondasi aplikasi lintas fitur yang mencakup tema, basis data lokal, jaringan, konstanta, navigasi, injeksi dependensi, utilitas, dan widget global.
   - `lib/core/bloc/`: Pengamat (*observer*) global untuk memantau perubahan state Cubit.
+  - `lib/core/constants/`: Konstanta aplikasi seperti batasan kuota pemindaian struk per pekan (`kuota_constants.dart`).
   - `lib/core/database/`: Pengelola SQLite (DatabaseHelper), model tabel, dan data awal (*seeding*).
   - `lib/core/di/`: Konfigurasi pendaftaran injeksi dependensi menggunakan get_it.
+  - `lib/core/network/`: Klien jaringan REST API (`GeminiClient`) berbasis dio untuk pemanggilan Gemini API.
   - `lib/core/router/`: Konfigurasi rute navigasi dan tata letak utama (AppShell) menggunakan go_router.
   - `lib/core/utils/`: Fungsi pembantu umum seperti ekstensi format mata uang Rupiah dan penanggalan pekan ISO.
   - `lib/core/widgets/`: Komponen antarmuka yang dapat digunakan bersama di berbagai fitur.
@@ -235,8 +266,10 @@ Struktur folder utama di dalam direktori `lib/` disusun sebagai berikut:
   - `lib/features/transaksi/`: Lapisan data, domain (use case), dan presentasi untuk form catat transaksi serta riwayat transaksi.
   - `lib/features/kategori/`: Lapisan data, domain, dan presentasi untuk pengelolaan kategori pengeluaran.
   - `lib/features/perkenalan/`: Antarmuka alur perkenalan awal (*onboarding*) untuk pengguna baru.
-  - `lib/features/refleksi/`: Antarmuka dan alur evaluasi pengeluaran mingguan berbasis metode Kakeibo.
+  - `lib/features/refleksi/`: Lapisan data, domain, dan presentasi untuk evaluasi pengeluaran mingguan berbasis metode Kakeibo dan riwayat refleksi.
+  - `lib/features/pindai/`: Lapisan data, domain, dan presentasi untuk pemindaian struk fisik dengan ML Kit, integrasi AI Gemini, serta konfirmasi draf transaksi.
   - `lib/features/akun/`: Lapisan data, domain, dan presentasi untuk autentikasi akun Firebase Auth dan pencadangan awan Cloud Firestore (F-17 & F-13).
+  - `lib/features/pengaturan/`: Pengaturan preferensi aplikasi dan pengelolaan status data perangkat.
 
 ## Cara Menghubungkan Firebase (Auth & Cloud Firestore)
 
