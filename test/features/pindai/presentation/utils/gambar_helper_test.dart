@@ -23,11 +23,11 @@ void main() {
       // ignore: avoid_print
       print('Berkas Asli: $pathUji');
       // ignore: avoid_print
-      print('Ukuran Asli: ${ukuranAsliByte} byte (${ukuranAsliKb.toStringAsFixed(2)} KB)');
+      print('Ukuran Asli: $ukuranAsliByte byte (${ukuranAsliKb.toStringAsFixed(2)} KB)');
       // ignore: avoid_print
       print('Berkas Hasil: $pathHasil');
       // ignore: avoid_print
-      print('Ukuran Hasil PNG 1024px: ${ukuranHasilByte} byte (${ukuranHasilKb.toStringAsFixed(2)} KB)');
+      print('Ukuran Hasil PNG 1024px: $ukuranHasilByte byte (${ukuranHasilKb.toStringAsFixed(2)} KB)');
       // ignore: avoid_print
       print('====================================================');
 
