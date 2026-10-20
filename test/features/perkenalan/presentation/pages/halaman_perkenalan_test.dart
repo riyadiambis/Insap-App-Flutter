@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:insap/core/theme.dart';
 import 'package:insap/core/widgets/kartu_buku_tulis.dart';
 import 'package:insap/core/widgets/tombol_stabilo.dart';
 import 'package:insap/features/pengaturan/domain/repositories/pengaturan_repository.dart';
@@ -76,95 +77,201 @@ void main() {
     );
   }
 
-  testWidgets(
-      'tombol Lewati tampil di 3 layar dan layar 3 memuat kata refleksi',
-      (tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.0;
+  const judulLayar = [
+    'Kenalan dengan Insap',
+    'Catat dalam hitungan detik',
+    'Biar AI yang baca struknya',
+    'Tutup pekan dengan refleksi',
+    'Semua catatan ada di Riwayat',
+  ];
+
+  const isiLayar = [
+    'Insap mengajakmu sadar ke mana uangmu pergi, ala Kakeibo dari Jepang: catat, lihat, lalu renungkan tiap pekan.',
+    'Ketuk Catat Cepat, isi nominal, pilih kategori, lalu simpan.',
+    'Foto struk belanjamu. AI membaca tiap barang, kamu cukup periksa lalu simpan.',
+    'Tiap akhir pekan, lihat ke mana uangmu pergi dan tulis satu hal yang mau diperbaiki.',
+    'Cari dan saring catatanmu kapan saja. Masuk akun kalau mau mencadangkan data.',
+  ];
+
+  const ikonLayar = [
+    Icons.menu_book,
+    Icons.edit,
+    Icons.photo_camera,
+    Icons.lightbulb,
+    Icons.receipt_long,
+  ];
+
+  void ukuranLayar(WidgetTester tester, Size ukuran, {double rasio = 1.0}) {
+    tester.view.physicalSize = ukuran;
+    tester.view.devicePixelRatio = rasio;
     addTearDown(() => tester.view.resetPhysicalSize());
     addTearDown(() => tester.view.resetDevicePixelRatio());
+  }
+
+  Future<void> lanjut(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('tombol_lanjut')));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('lima layar sambutan tampil berurutan dengan judul, isi, dan ikon',
+      (tester) async {
+    ukuranLayar(tester, const Size(1080, 2400), rasio: 2.0);
 
     await tester.pumpWidget(buatHalamanUji());
     await tester.pumpAndSettle();
 
-    // Layar 1
-    expect(find.byKey(const Key('tombol_lewati')), findsOneWidget);
-    expect(find.text('KENALAN DULU'), findsOneWidget);
-    expect(
-      find.textContaining('Sadar Sebelum', findRichText: true),
-      findsOneWidget,
-    );
-    expect(find.textContaining('Boncos', findRichText: true), findsOneWidget);
-    expect(
-      find.textContaining(
-        'Insap bantu kamu sadar uangmu habis',
-        findRichText: true,
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('ke mana', findRichText: true),
-      findsOneWidget,
-    );
+    for (var i = 0; i < judulLayar.length; i++) {
+      expect(find.text(judulLayar[i]), findsOneWidget, reason: 'judul layar ${i + 1}');
+      expect(find.text(isiLayar[i]), findsOneWidget, reason: 'isi layar ${i + 1}');
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('kotak_ilustrasi_sambutan')),
+          matching: find.byIcon(ikonLayar[i]),
+        ),
+        findsOneWidget,
+        reason: 'ikon layar ${i + 1}',
+      );
+      expect(find.byKey(const Key('tombol_lewati')), findsOneWidget);
+      if (i < judulLayar.length - 1) await lanjut(tester);
+    }
+  });
 
-    // Geser ke Layar 2 via tombol Lanjut
-    await tester.tap(find.byKey(const Key('tombol_lanjut')));
+  testWidgets('kotak ilustrasi berukuran 132x132 dengan warna sesuai layar',
+      (tester) async {
+    ukuranLayar(tester, const Size(411, 914));
+
+    await tester.pumpWidget(buatHalamanUji());
     await tester.pumpAndSettle();
 
-    // Layar 2
-    expect(find.byKey(const Key('tombol_lewati')), findsOneWidget);
-    expect(find.text('CATAT'), findsOneWidget);
-    expect(
-      find.textContaining('Catat Cepat', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('Dua Langkah', findRichText: true),
-      findsOneWidget,
-    );
-    expect(find.byType(KotakLangkah), findsNWidgets(2));
-    expect(find.text('Isi nominal'), findsOneWidget);
-    expect(find.text('Contoh Rp15.000'), findsOneWidget);
-    expect(find.text('Pilih kategori'), findsOneWidget);
-    expect(
-      find.text('Makan, transport, nongkrong, dan lainnya'),
-      findsOneWidget,
-    );
+    const warna = [
+      AppColors.ilustrasiJingga,
+      AppColors.stabilo,
+      AppColors.aiBiru,
+      AppColors.ilustrasiUngu,
+      AppColors.ilustrasiHijau,
+    ];
 
-    // Geser ke Layar 3 via tombol Lanjut
-    await tester.tap(find.byKey(const Key('tombol_lanjut')));
+    for (var i = 0; i < warna.length; i++) {
+      final kotak = find.byKey(const Key('kotak_ilustrasi_sambutan'));
+      expect(tester.getSize(kotak), const Size(132, 132));
+      final dekor = tester.widget<Container>(kotak).decoration as BoxDecoration;
+      expect(dekor.color, warna[i]);
+      if (i < warna.length - 1) await lanjut(tester);
+    }
+  });
+
+  testWidgets('layar 5 diikuti layar target bulanan lewat tombol Lanjut',
+      (tester) async {
+    ukuranLayar(tester, const Size(1080, 2400), rasio: 2.0);
+
+    await tester.pumpWidget(buatHalamanUji());
     await tester.pumpAndSettle();
 
-    // Layar 3
-    expect(find.byKey(const Key('tombol_lewati')), findsOneWidget);
-    expect(find.text('TIAP AKHIR PEKAN'), findsOneWidget);
-    expect(
-      find.textContaining('Refleksi', findRichText: true),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('Mingguan', findRichText: true),
-      findsOneWidget,
-    );
-    expect(find.byType(KotakLangkah), findsNWidgets(3));
-    expect(find.text('Lihat ulang'), findsOneWidget);
-    expect(find.text('Pengeluaran sepekan terakhir'), findsOneWidget);
-    expect(find.text('Butuh atau pengen?'), findsOneWidget);
-    expect(
-      find.text('Tandai belanja yang sebenarnya bisa ditahan'),
-      findsOneWidget,
-    );
-    expect(find.text('Tetapkan target'), findsOneWidget);
-    expect(find.text('Batas pengeluaran untuk pekan depan'), findsOneWidget);
-    expect(find.text('Santai, tanpa menghakimi.'), findsOneWidget);
+    for (var i = 0; i < 4; i++) {
+      await lanjut(tester);
+    }
+    expect(find.text(judulLayar.last), findsOneWidget);
+    expect(find.byKey(const Key('kolom_target_bulanan')), findsNothing);
+
+    await lanjut(tester);
+    expect(find.byKey(const Key('kolom_target_bulanan')), findsOneWidget);
+    expect(find.byKey(const Key('tombol_simpan_target')), findsOneWidget);
+  });
+
+  testWidgets('Kembali nonaktif di layar 1, aktif di layar berikutnya dan mundur satu layar',
+      (tester) async {
+    ukuranLayar(tester, const Size(1080, 2400), rasio: 2.0);
+
+    await tester.pumpWidget(buatHalamanUji());
+    await tester.pumpAndSettle();
+
+    KartuBukuTulis kembali() => tester.widget<KartuBukuTulis>(
+          find.descendant(
+            of: find.byKey(const Key('tombol_kembali')),
+            matching: find.byType(KartuBukuTulis),
+          ),
+        );
+
+    expect(find.text('Kembali'), findsOneWidget);
+    expect(kembali().onTap, isNull);
+
+    // ketuk tombol nonaktif tidak memindahkan layar
+    await tester.tap(find.byKey(const Key('tombol_kembali')));
+    await tester.pumpAndSettle();
+    expect(find.text(judulLayar[0]), findsOneWidget);
+
+    await lanjut(tester);
+    expect(find.text(judulLayar[1]), findsOneWidget);
+    expect(kembali().onTap, isNotNull);
+
+    await tester.tap(find.byKey(const Key('tombol_kembali')));
+    await tester.pumpAndSettle();
+    expect(find.text(judulLayar[0]), findsOneWidget);
+    expect(kembali().onTap, isNull);
+  });
+
+  testWidgets('tombol Kembali dan Lanjut sama lebar dan tingginya minimal 48',
+      (tester) async {
+    ukuranLayar(tester, const Size(411, 914));
+
+    await tester.pumpWidget(buatHalamanUji());
+    await tester.pumpAndSettle();
+
+    final kembali = tester.getSize(find.byKey(const Key('tombol_kembali')));
+    final lanjutUkuran = tester.getSize(find.byKey(const Key('tombol_lanjut')));
+    expect(kembali.width, closeTo(lanjutUkuran.width, 0.5));
+    expect(kembali.height, greaterThanOrEqualTo(48));
+    expect(lanjutUkuran.height, greaterThanOrEqualTo(48));
+  });
+
+  testWidgets('indikator titik: lima titik, satu pil ink aktif yang berpindah',
+      (tester) async {
+    ukuranLayar(tester, const Size(411, 914));
+
+    await tester.pumpWidget(buatHalamanUji());
+    await tester.pumpAndSettle();
+
+    Finder titik() => find.byWidgetPredicate(
+          (w) =>
+              w is AnimatedContainer &&
+              w.constraints?.maxHeight == AppSizes.tinggiTitikSambutan,
+        );
+
+    double lebarTitik(int i) => tester
+        .widget<AnimatedContainer>(titik().at(i))
+        .constraints!
+        .maxWidth;
+
+    expect(titik(), findsNWidgets(5));
+    expect(lebarTitik(0), AppSizes.lebarTitikAktifSambutan);
+    expect(lebarTitik(1), AppSizes.tinggiTitikSambutan);
+
+    await lanjut(tester);
+    expect(lebarTitik(0), AppSizes.tinggiTitikSambutan);
+    expect(lebarTitik(1), AppSizes.lebarTitikAktifSambutan);
+  });
+
+  testWidgets('Lewati dari layar 1 dan layar 3 langsung membuka layar target',
+      (tester) async {
+    ukuranLayar(tester, const Size(1080, 2400), rasio: 2.0);
+
+    await tester.pumpWidget(buatHalamanUji());
+    await tester.pumpAndSettle();
+
+    await lanjut(tester);
+    await lanjut(tester);
+    expect(find.text(judulLayar[2]), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('tombol_lewati')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('kolom_target_bulanan')), findsOneWidget);
+    expect(find.byKey(const Key('tombol_nanti_saja')), findsOneWidget);
   });
 
   testWidgets('tombol Lewati langsung membuka layar target pengeluaran',
       (tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.0;
-    addTearDown(() => tester.view.resetPhysicalSize());
-    addTearDown(() => tester.view.resetDevicePixelRatio());
+    ukuranLayar(tester, const Size(1080, 2400), rasio: 2.0);
 
     await tester.pumpWidget(buatHalamanUji());
     await tester.pumpAndSettle();
@@ -180,122 +287,50 @@ void main() {
     expect(find.byKey(const Key('tombol_nanti_saja')), findsOneWidget);
   });
 
-  testWidgets(
-      'bebas overflow pada layar kecil 360x640 untuk ketiga layar perkenalan dan tinggi kartu sama',
+  testWidgets('perkenalan selesai: penanda tersimpan dan tidak kembali ke sambutan',
       (tester) async {
-    tester.view.physicalSize = const Size(360, 640);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(() => tester.view.resetPhysicalSize());
-    addTearDown(() => tester.view.resetDevicePixelRatio());
+    ukuranLayar(tester, const Size(1080, 2400), rasio: 2.0);
 
     await tester.pumpWidget(buatHalamanUji());
     await tester.pumpAndSettle();
 
-    // Layar 1
-    expect(find.text('KENALAN DULU'), findsOneWidget);
-    expect(
-      find.textContaining('Sadar Sebelum', findRichText: true),
-      findsOneWidget,
-    );
-    expect(find.textContaining('Boncos', findRichText: true), findsOneWidget);
-    expect(tester.takeException(), isNull);
-
-    final tinggiKartuLayar1 =
-        tester.getSize(find.byType(KartuBukuTulis).first).height;
-    expect(tinggiKartuLayar1, greaterThan(0));
-
-    // Pindah ke Layar 2
-    await tester.tap(find.byKey(const Key('tombol_lanjut')));
+    for (var i = 0; i < 5; i++) {
+      await lanjut(tester);
+    }
+    await tester.tap(find.byKey(const Key('tombol_nanti_saja')));
     await tester.pumpAndSettle();
 
-    // Layar 2
-    expect(find.text('CATAT'), findsOneWidget);
-    expect(find.byType(KotakLangkah), findsNWidgets(2));
-    expect(find.text('Isi nominal'), findsOneWidget);
-    expect(find.text('Contoh Rp15.000'), findsOneWidget);
-    expect(find.text('Pilih kategori'), findsOneWidget);
-    expect(
-      find.text('Makan, transport, nongkrong, dan lainnya'),
-      findsOneWidget,
-    );
-    expect(tester.takeException(), isNull);
-
-    final tinggiKartuLayar2 =
-        tester.getSize(find.byType(KartuBukuTulis).first).height;
-    expect(tinggiKartuLayar2, equals(tinggiKartuLayar1));
-
-    // Pindah ke Layar 3
-    await tester.tap(find.byKey(const Key('tombol_lanjut')));
-    await tester.pumpAndSettle();
-
-    // Layar 3
-    expect(find.text('TIAP AKHIR PEKAN'), findsOneWidget);
-    expect(find.byType(KotakLangkah), findsNWidgets(3));
-    expect(find.text('Lihat ulang'), findsOneWidget);
-    expect(find.text('Pengeluaran sepekan terakhir'), findsOneWidget);
-    expect(find.text('Butuh atau pengen?'), findsOneWidget);
-    expect(
-      find.text('Tandai belanja yang sebenarnya bisa ditahan'),
-      findsOneWidget,
-    );
-    expect(find.text('Tetapkan target'), findsOneWidget);
-    expect(find.text('Batas pengeluaran untuk pekan depan'), findsOneWidget);
-    expect(find.text('Santai, tanpa menghakimi.'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-
-    final tinggiKartuLayar3 =
-        tester.getSize(find.byType(KartuBukuTulis).first).height;
-    expect(tinggiKartuLayar3, equals(tinggiKartuLayar1));
+    expect(repo._sudahOnboarding, isTrue);
+    expect(find.text('Beranda Dummy'), findsOneWidget);
+    expect(find.text(judulLayar[0]), findsNothing);
   });
 
-  testWidgets(
-      'bebas overflow pada layar standar 411x914 untuk ketiga layar perkenalan',
-      (tester) async {
-    tester.view.physicalSize = const Size(411, 914);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(() => tester.view.resetPhysicalSize());
-    addTearDown(() => tester.view.resetDevicePixelRatio());
+  for (final ukuran in const [Size(360, 640), Size(411, 914)]) {
+    testWidgets(
+        'bebas overflow di ${ukuran.width.toInt()}x${ukuran.height.toInt()} untuk kelima layar sambutan',
+        (tester) async {
+      ukuranLayar(tester, ukuran);
 
-    await tester.pumpWidget(buatHalamanUji());
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(buatHalamanUji());
+      await tester.pumpAndSettle();
 
-    // Layar 1
-    expect(find.text('KENALAN DULU'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+      for (var i = 0; i < judulLayar.length; i++) {
+        expect(find.text(judulLayar[i]), findsOneWidget);
+        expect(tester.takeException(), isNull, reason: 'layar ${i + 1}');
+        if (i < judulLayar.length - 1) await lanjut(tester);
+      }
+    });
+  }
 
-    // Layar 2
-    await tester.tap(find.byKey(const Key('tombol_lanjut')));
-    await tester.pumpAndSettle();
-    expect(find.text('CATAT'), findsOneWidget);
-    expect(find.byType(KotakLangkah), findsNWidgets(2));
-    expect(tester.takeException(), isNull);
-
-    // Layar 3
-    await tester.tap(find.byKey(const Key('tombol_lanjut')));
-    await tester.pumpAndSettle();
-    expect(find.text('TIAP AKHIR PEKAN'), findsOneWidget);
-    expect(find.byType(KotakLangkah), findsNWidgets(3));
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets(
-      'tidak ada karakter tanda pisah panjang em dash di teks perkenalan',
+  testWidgets('tidak ada karakter tanda pisah panjang em dash di teks sambutan',
       (tester) async {
     await tester.pumpWidget(buatHalamanUji());
     await tester.pumpAndSettle();
 
-    // Layar 1
-    expect(find.textContaining('—'), findsNothing);
-
-    // Layar 2
-    await tester.tap(find.byKey(const Key('tombol_lanjut')));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('—'), findsNothing);
-
-    // Layar 3
-    await tester.tap(find.byKey(const Key('tombol_lanjut')));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('—'), findsNothing);
+    for (var i = 0; i < judulLayar.length; i++) {
+      expect(find.textContaining('—'), findsNothing);
+      if (i < judulLayar.length - 1) await lanjut(tester);
+    }
   });
 
   testWidgets(

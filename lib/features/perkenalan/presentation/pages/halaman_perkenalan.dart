@@ -90,9 +90,10 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
   }
 
   Widget _buildLayarSlide(BuildContext context) {
+    final bool dilayarPertama = _halamanAktif == 0;
     return Column(
       children: [
-        // Header: Logo & Tombol Lewati
+        // Header: logo di kiri, Lewati di kanan atas
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.besar,
@@ -130,7 +131,6 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
                   ),
                 ],
               ),
-              // Tombol Lewati tampil di semua layar perkenalan (Layar 1, 2, 3)
               TextButton(
                 key: const Key('tombol_lewati'),
                 onPressed: _bukaLayarTarget,
@@ -153,270 +153,171 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
           ),
         ),
 
-        // PageView 3 Layar Perkenalan dengan LayoutBuilder (tinggi kartu dihitung dari ruang vertikal tersedia)
+        // PageView lima layar sambutan
         Expanded(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // Sekitar 60% dari ruang vertikal di antara header dan indikator titik
-              final double tinggiKartu = constraints.maxHeight * 0.60;
-
-              return PageView(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() => _halamanAktif = index);
-                },
-                children: [
-                  _buildSlideItem(
-                    context,
-                    tinggiKartu: tinggiKartu,
-                    ikon: Icons.auto_stories_rounded,
-                    warnaLatarIkon: AppColors.stabilo,
-                    label: 'KENALAN DULU',
-                    judulSebelum: 'Sadar Sebelum',
-                    judulStabilo: 'Boncos',
-                    isi: Text.rich(
-                      TextSpan(
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.inkSoft,
-                              height: 1.45,
-                              fontWeight: FontWeight.w600,
-                            ),
-                        children: const [
-                          TextSpan(
-                            text: 'Insap bantu kamu sadar uangmu habis ',
-                          ),
-                          TextSpan(
-                            text: 'ke mana',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.ink,
-                            ),
-                          ),
-                          TextSpan(
-                            text: ', sebelum dompet menipis.',
-                          ),
-                        ],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  _buildSlideItem(
-                    context,
-                    tinggiKartu: tinggiKartu,
-                    ikon: Icons.edit_note_rounded,
-                    warnaLatarIkon: AppColors.stabilo,
-                    label: 'CATAT',
-                    judulSebelum: 'Catat Cepat',
-                    judulStabilo: 'Dua Langkah',
-                    isi: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        KotakLangkah(
-                          nomor: 1,
-                          teksUtama: 'Isi nominal',
-                          keterangan: 'Contoh Rp15.000',
-                        ),
-                        SizedBox(height: 10),
-                        KotakLangkah(
-                          nomor: 2,
-                          teksUtama: 'Pilih kategori',
-                          keterangan:
-                              'Makan, transport, nongkrong, dan lainnya',
-                        ),
-                      ],
-                    ),
-                  ),
-                  _buildSlideItem(
-                    context,
-                    tinggiKartu: tinggiKartu,
-                    ikon: Icons.psychology_alt_outlined,
-                    warnaLatarIkon: AppColors.stabilo,
-                    label: 'TIAP AKHIR PEKAN',
-                    judulSebelum: 'Refleksi',
-                    judulStabilo: 'Mingguan',
-                    isi: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const KotakLangkah(
-                          nomor: 1,
-                          teksUtama: 'Lihat ulang',
-                          keterangan: 'Pengeluaran sepekan terakhir',
-                        ),
-                        const SizedBox(height: 10),
-                        const KotakLangkah(
-                          nomor: 2,
-                          teksUtama: 'Butuh atau pengen?',
-                          keterangan:
-                              'Tandai belanja yang sebenarnya bisa ditahan',
-                        ),
-                        const SizedBox(height: 10),
-                        const KotakLangkah(
-                          nomor: 3,
-                          teksUtama: 'Tetapkan target',
-                          keterangan: 'Batas pengeluaran untuk pekan depan',
-                        ),
-                        const SizedBox(height: AppSpacing.kecil),
-                        Text(
-                          'Santai, tanpa menghakimi.',
-                          textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontStyle: FontStyle.italic,
-                                    color: AppColors.inkSoft,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
+          child: PageView(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() => _halamanAktif = index);
             },
+            children: _layarSambutan
+                .map((layar) => _buildLayarIlustrasi(context, layar))
+                .toList(),
           ),
         ),
 
-        // Bagian Bawah: Indikator Titik & Tombol Navigasi
+        // Bagian bawah: indikator titik dan dua tombol sama lebar
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.besar,
             vertical: AppSpacing.sedang,
           ),
-          child: Column(
-            children: [
-              // Indikator Titik Halaman
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(3, (index) {
-                  final bool aktif = index == _halamanAktif;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: aktif ? 24 : 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: aktif ? AppColors.stabilo : AppColors.paper,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-                      border: Border.all(
-                        color: AppColors.ink,
-                        width: AppSizes.borderTipis,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: AppSizes.batasLebarKonten,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(_layarSambutan.length, (index) {
+                      final bool aktif = index == _halamanAktif;
+                      return AnimatedContainer(
+                        duration: AppDurations.animasiMunculKartu,
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sangatKecil,
+                        ),
+                        width: aktif
+                            ? AppSizes.lebarTitikAktifSambutan
+                            : AppSizes.tinggiTitikSambutan,
+                        height: AppSizes.tinggiTitikSambutan,
+                        decoration: BoxDecoration(
+                          color: aktif ? AppColors.ink : AppColors.paper,
+                          borderRadius:
+                              BorderRadius.circular(AppSizes.radiusPil),
+                          border: Border.all(
+                            color: AppColors.ink,
+                            width: AppSizes.border,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: AppSpacing.sedang),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _TombolKembaliSambutan(
+                          key: const Key('tombol_kembali'),
+                          onTap: dilayarPertama
+                              ? null
+                              : () => _pageController.previousPage(
+                                    duration: AppDurations.animasiMunculKartu,
+                                    curve: Curves.easeInOut,
+                                  ),
+                        ),
                       ),
-                      boxShadow: aktif ? const [AppTheme.bayanganKecilGelap] : null,
-                    ),
-                  );
-                }),
+                      const SizedBox(width: AppSpacing.sedang),
+                      Expanded(
+                        child: TombolStabilo(
+                          key: const Key('tombol_lanjut'),
+                          teks: 'Lanjut',
+                          ikon: Icons.arrow_forward_rounded,
+                          onPressed: () {
+                            if (_halamanAktif < _layarSambutan.length - 1) {
+                              _pageController.nextPage(
+                                duration: AppDurations.animasiMunculKartu,
+                                curve: Curves.easeInOut,
+                              );
+                            } else {
+                              _bukaLayarTarget();
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.sedang),
-
-              // Tombol Aksi Bawah
-              TombolStabilo(
-                key: const Key('tombol_lanjut'),
-                teks: _halamanAktif == 2 ? 'Atur Target' : 'Lanjut',
-                ikon: _halamanAktif == 2
-                    ? Icons.track_changes_rounded
-                    : Icons.arrow_forward_rounded,
-                onPressed: () {
-                  if (_halamanAktif < 2) {
-                    _pageController.nextPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  } else {
-                    _bukaLayarTarget();
-                  }
-                },
-              ),
-            ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSlideItem(
-    BuildContext context, {
-    required double tinggiKartu,
-    required IconData ikon,
-    required Color warnaLatarIkon,
-    required String label,
-    required String judulSebelum,
-    required String judulStabilo,
-    String? judulSetelah,
-    required Widget isi,
-  }) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.besar),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: AppSizes.batasLebarKonten),
-          child: SizedBox(
-            height: tinggiKartu,
-            child: KartuBukuTulis(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.besar,
-                vertical: AppSpacing.sedang,
-              ),
-              child: LayoutBuilder(
-                builder: (context, cardConstraints) {
-                  return SingleChildScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: cardConstraints.maxHeight,
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // Ilustrasi Lingkaran Ikon tema Buku Tulis
-                            Container(
-                              width: 96,
-                              height: 96,
-                              decoration: BoxDecoration(
-                                color: warnaLatarIkon,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppColors.ink,
-                                  width: AppSizes.border,
-                                ),
-                                boxShadow: const [AppTheme.bayanganDefault],
-                              ),
-                              child: Icon(
-                                ikon,
-                                size: 56,
-                                color: AppColors.ink,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.kecil),
-
-                            // 1. Label kecil di atas judul: huruf kapital, kecil, tebal, berwarna aksen tema (seperti badge)
-                            _buildLabelBadge(context, label),
-                            const SizedBox(height: AppSpacing.sangatKecil),
-
-                            // 2. Judul besar Baloo 2 dengan SATU frasa diberi efek stabilo kuning
-                            _buildJudulBerstabilo(
-                              context,
-                              teksSebelum: judulSebelum,
-                              teksStabilo: judulStabilo,
-                              teksSetelah: judulSetelah,
-                            ),
-                            const SizedBox(height: AppSpacing.sedang),
-
-                            // 3. Isi (teks Layar 1 atau kotak langkah Layar 2 & 3)
-                            isi,
-                          ],
+  /// Satu layar sambutan bergaya ikon besar: kotak ilustrasi berwarna,
+  /// judul Baloo 2, dan satu paragraf pendek, semuanya rata tengah.
+  Widget _buildLayarIlustrasi(BuildContext context, _DataLayarSambutan layar) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.besar),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: AppSizes.batasLebarKonten,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      key: const Key('kotak_ilustrasi_sambutan'),
+                      width: AppSizes.kotakIlustrasiSambutan,
+                      height: AppSizes.kotakIlustrasiSambutan,
+                      decoration: BoxDecoration(
+                        color: layar.warnaKotak,
+                        border: Border.all(
+                          color: AppColors.ink,
+                          width: AppSizes.borderIlustrasiSambutan,
                         ),
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.radiusIlustrasiSambutan,
+                        ),
+                        boxShadow: const [AppTheme.bayanganIlustrasi],
+                      ),
+                      child: Icon(
+                        layar.ikon,
+                        size: AppSizes.ikonIlustrasiSambutan,
+                        color: layar.warnaIkon,
                       ),
                     ),
-                  );
-                },
+                    const SizedBox(height: AppSpacing.antarBagian),
+                    Text(
+                      layar.judul,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontFamily: 'Baloo2',
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.ink,
+                            height: 1.15,
+                          ),
+                    ),
+                    const SizedBox(height: AppSpacing.sedang),
+                    Text(
+                      layar.isi,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontFamily: 'Nunito',
+                            color: AppColors.ink,
+                            fontWeight: FontWeight.w600,
+                            height: 1.45,
+                          ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -693,95 +594,95 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
   }
 }
 
-/// Kotak langkah untuk layar perkenalan (F-16, P02-Widget).
-/// Menampilkan kotak selebar penuh kartu dengan latar krem kertas (AppColors.paper),
-/// garis tipis tinta tema, sudut membulat, lingkaran nomor di kiri, teks utama tebal,
-/// dan keterangan kecil abu-abu di baris bawah.
-class KotakLangkah extends StatelessWidget {
-  final int nomor;
-  final String teksUtama;
-  final String keterangan;
+/// Data satu layar sambutan (F-16, ISSUE-33 K3).
+class _DataLayarSambutan {
+  final String judul;
+  final String isi;
+  final IconData ikon;
+  final Color warnaKotak;
+  final Color warnaIkon;
 
-  const KotakLangkah({
-    super.key,
-    required this.nomor,
-    required this.teksUtama,
-    required this.keterangan,
+  const _DataLayarSambutan({
+    required this.judul,
+    required this.isi,
+    required this.ikon,
+    required this.warnaKotak,
+    required this.warnaIkon,
   });
+}
+
+const List<_DataLayarSambutan> _layarSambutan = [
+  _DataLayarSambutan(
+    judul: 'Kenalan dengan Insap',
+    isi:
+        'Insap mengajakmu sadar ke mana uangmu pergi, ala Kakeibo dari Jepang: catat, lihat, lalu renungkan tiap pekan.',
+    ikon: Icons.menu_book,
+    warnaKotak: AppColors.ilustrasiJingga,
+    warnaIkon: AppColors.kartu,
+  ),
+  _DataLayarSambutan(
+    judul: 'Catat dalam hitungan detik',
+    isi: 'Ketuk Catat Cepat, isi nominal, pilih kategori, lalu simpan.',
+    ikon: Icons.edit,
+    warnaKotak: AppColors.stabilo,
+    warnaIkon: AppColors.ink,
+  ),
+  _DataLayarSambutan(
+    judul: 'Biar AI yang baca struknya',
+    isi:
+        'Foto struk belanjamu. AI membaca tiap barang, kamu cukup periksa lalu simpan.',
+    ikon: Icons.photo_camera,
+    warnaKotak: AppColors.aiBiru,
+    warnaIkon: AppColors.kartu,
+  ),
+  _DataLayarSambutan(
+    judul: 'Tutup pekan dengan refleksi',
+    isi:
+        'Tiap akhir pekan, lihat ke mana uangmu pergi dan tulis satu hal yang mau diperbaiki.',
+    ikon: Icons.lightbulb,
+    warnaKotak: AppColors.ilustrasiUngu,
+    warnaIkon: AppColors.kartu,
+  ),
+  _DataLayarSambutan(
+    judul: 'Semua catatan ada di Riwayat',
+    isi:
+        'Cari dan saring catatanmu kapan saja. Masuk akun kalau mau mencadangkan data.',
+    ikon: Icons.receipt_long,
+    warnaKotak: AppColors.ilustrasiHijau,
+    warnaIkon: AppColors.kartu,
+  ),
+];
+
+/// Tombol "Kembali" putih bergaris ink. Nonaktif (latar garis) saat [onTap]
+/// kosong, yaitu di layar pertama.
+class _TombolKembaliSambutan extends StatelessWidget {
+  final VoidCallback? onTap;
+
+  const _TombolKembaliSambutan({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sedang,
-        vertical: AppSpacing.kecil,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.paper,
-        borderRadius: BorderRadius.circular(AppSizes.radiusKotakIkonAksi),
-        border: Border.all(
-          color: AppColors.ink,
-          width: AppSizes.borderTipis,
+    final bool aktif = onTap != null;
+    return KartuBukuTulis(
+      onTap: onTap,
+      backgroundColor: aktif ? AppColors.kartu : AppColors.garis,
+      shadow: AppTheme.bayanganGelap,
+      pressedShadow: AppTheme.bayanganGelapTertekan,
+      radius: AppSizes.radiusTombol,
+      padding: EdgeInsets.zero,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: AppSizes.tinggiTombol - AppSizes.border * 2,
         ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Lingkaran nomor di kiri
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: AppColors.grid,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.ink,
-                width: AppSizes.borderTipis,
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              '$nomor',
-              style: const TextStyle(
-                fontFamily: 'Baloo2',
-                fontWeight: FontWeight.w800,
-                fontSize: 13,
-                color: AppColors.ink,
-                height: 1.0,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sedang),
-
-          // Di kanannya: baris atas teks utama (tebal), baris bawah keterangan kecil abu-abu
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  teksUtama,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.ink,
-                        height: 1.25,
-                      ),
+        child: Center(
+          child: Text(
+            'Kembali',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: aktif ? AppColors.ink : AppColors.inkSoft,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  keterangan,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.inkSoft,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        height: 1.25,
-                      ),
-                ),
-              ],
-            ),
           ),
-        ],
+        ),
       ),
     );
   }

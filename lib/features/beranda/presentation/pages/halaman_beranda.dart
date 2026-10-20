@@ -548,7 +548,7 @@ class _BerandaContent extends StatelessWidget {
                           boxShadow: const [AppTheme.bayanganKecilGelap],
                         ),
                         child: const Icon(
-                          Icons.edit_note_rounded,
+                          Icons.edit,
                           size: AppSizes.ikonAksi,
                           color: AppColors.ink,
                         ),
@@ -594,9 +594,9 @@ class _BerandaContent extends StatelessWidget {
                       context.push('/pindai?mulai=1');
                     }
                   },
-                  backgroundColor: AppColors.kartu,
-                  shadow: AppTheme.bayanganDefault,
-                  pressedShadow: AppTheme.bayanganDefaultTertekan,
+                  backgroundColor: AppColors.aiBiru,
+                  shadow: AppTheme.bayanganGelap,
+                  pressedShadow: AppTheme.bayanganGelapTertekan,
                   radius: AppSizes.radiusTombol,
                   padding: const EdgeInsets.all(AppSpacing.sedang),
                   child: Column(
@@ -609,7 +609,7 @@ class _BerandaContent extends StatelessWidget {
                             width: AppSizes.kotakIkonAksi,
                             height: AppSizes.kotakIkonAksi,
                             decoration: BoxDecoration(
-                              color: AppColors.grid,
+                              color: AppColors.kartu,
                               border: Border.all(
                                 color: AppColors.ink,
                                 width: AppSizes.border,
@@ -620,9 +620,9 @@ class _BerandaContent extends StatelessWidget {
                               boxShadow: const [AppTheme.bayanganKecilGelap],
                             ),
                             child: const Icon(
-                              Icons.photo_camera_outlined,
+                              Icons.photo_camera,
                               size: AppSizes.ikonAksi,
-                              color: AppColors.ink,
+                              color: AppColors.aiBiru,
                             ),
                           ),
                           Container(
@@ -657,14 +657,14 @@ class _BerandaContent extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               fontWeight: FontWeight.w800,
-                              color: AppColors.ink,
+                              color: AppColors.kartu,
                             ),
                       ),
                       const SizedBox(height: AppSpacing.mini),
                       Text(
-                        'OCR otomatis AI',
+                        'Foto struk, AI yang isi',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.inkSoft,
+                          color: AppColors.putihRedup,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -675,9 +675,9 @@ class _BerandaContent extends StatelessWidget {
                             child: Container(
                               height: AppSizes.tinggiBarKuotaPindai,
                               decoration: BoxDecoration(
-                                color: AppColors.grid,
+                                color: AppColors.aiBiruTua,
                                 border: Border.all(
-                                  color: AppColors.ink,
+                                  color: AppColors.kartu,
                                   width: AppSizes.borderTipis,
                                 ),
                                 borderRadius: BorderRadius.circular(
@@ -717,8 +717,8 @@ class _BerandaContent extends StatelessWidget {
                                           ? AppSizes.ukuranTeksStatusKuota
                                           : null,
                                       color: ringkasan.kuotaPindai <= 0
-                                          ? AppColors.inkSoft
-                                          : AppColors.ink,
+                                          ? AppColors.putihRedup
+                                          : AppColors.kartu,
                                       fontWeight: FontWeight.w700,
                                     ),
                               ),

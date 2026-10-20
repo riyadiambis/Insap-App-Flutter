@@ -14,6 +14,21 @@ class AppColors {
   static const Color salah = Color(0xFFD9482F);
   static const Color aksenPengen = Color(0xFFFFB020);
 
+  /// Biru solid kartu Pindai Struk di beranda (ISSUE-33 K1). Kontras teks
+  /// putih di atasnya sekitar 5,3:1.
+  static const Color aiBiru = Color(0xFF2E6DB4);
+
+  /// Jalur bilah kuota di atas [aiBiru].
+  static const Color aiBiruTua = Color(0xFF1F4F86);
+
+  /// Putih agak redup untuk teks sekunder di atas [aiBiru].
+  static const Color putihRedup = Color(0xE6FFFFFF);
+
+  /// Warna kotak ilustrasi halaman sambutan (palet badge UI-GUIDE).
+  static const Color ilustrasiJingga = Color(0xFFE8734A);
+  static const Color ilustrasiUngu = Color(0xFF8B5FBF);
+  static const Color ilustrasiHijau = Color(0xFF2FA88B);
+
   /// Palet badge kategori, dipakai sebagai cadangan dan acuan warna saat
   /// pengguna membuat kategori sendiri. Warna kategori yang sesungguhnya
   /// dibaca dari kolom `warna` di basis data.
@@ -95,6 +110,14 @@ class AppSizes {
   static const double ukuranTeksStatusKuota = 10.0;
 
   static const double ukuranTitikIndikator = 8.0;
+
+  // halaman sambutan (ISSUE-33): kotak ilustrasi, indikator titik, tombol
+  static const double kotakIlustrasiSambutan = 132.0;
+  static const double radiusIlustrasiSambutan = 30.0;
+  static const double borderIlustrasiSambutan = 3.0;
+  static const double ikonIlustrasiSambutan = 64.0;
+  static const double lebarTitikAktifSambutan = 24.0;
+  static const double tinggiTitikSambutan = 10.0;
   static const double tinggiGarisPemisah = 2.0;
 
   // header aplikasi (header_aplikasi)
@@ -283,6 +306,13 @@ class AppTheme {
   static const BoxShadow bayanganGelapTertekan = BoxShadow(
     color: AppColors.ink,
     offset: Offset(2, 2),
+    blurRadius: 0,
+  );
+
+  /// Bayangan solid 6x6 ink untuk kotak ilustrasi halaman sambutan.
+  static const BoxShadow bayanganIlustrasi = BoxShadow(
+    color: AppColors.ink,
+    offset: Offset(6, 6),
     blurRadius: 0,
   );
 
