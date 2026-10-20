@@ -116,7 +116,6 @@ class AppSizes {
   static const double radiusIlustrasiSambutan = 30.0;
   static const double borderIlustrasiSambutan = 3.0;
   static const double ikonIlustrasiSambutan = 64.0;
-  static const double tinggiMinTombolSambutan = 48.0;
   static const double lebarTitikAktifSambutan = 24.0;
   static const double tinggiTitikSambutan = 10.0;
   static const double tinggiGarisPemisah = 2.0;
