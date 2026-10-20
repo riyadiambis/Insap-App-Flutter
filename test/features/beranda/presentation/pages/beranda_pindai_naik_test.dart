@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:insap/core/constants/kuota_constants.dart';
 import 'package:insap/core/theme.dart';
 import 'package:insap/core/widgets/kartu_buku_tulis.dart';
 import 'package:insap/features/beranda/presentation/cubit/beranda_cubit.dart';
@@ -257,4 +258,96 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  group('ISSUE-33 kartu aksi cepat beranda', () {
+    void ukuranStandar(WidgetTester tester) {
+      tester.view.physicalSize = const Size(411, 914);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+    }
+
+    Finder kartuDari(String teks) => find.ancestor(
+          of: find.text(teks),
+          matching: find.byType(KartuBukuTulis),
+        );
+
+    testWidgets('kartu Pindai Struk memakai aiBiru solid, Catat Cepat tetap stabilo',
+        (tester) async {
+      ukuranStandar(tester);
+      await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
+      await tester.pumpAndSettle();
+
+      final pindai = tester.widget<KartuBukuTulis>(kartuDari('Pindai Struk'));
+      expect(pindai.backgroundColor, AppColors.aiBiru);
+
+      final catat = tester.widget<KartuBukuTulis>(kartuDari('Catat Cepat'));
+      expect(catat.backgroundColor, AppColors.stabilo);
+    });
+
+    testWidgets('subjudul baru tampil dan teks lama OCR otomatis AI hilang',
+        (tester) async {
+      ukuranStandar(tester);
+      await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Foto struk, AI yang isi'), findsOneWidget);
+      expect(find.text('OCR otomatis AI'), findsNothing);
+    });
+
+    testWidgets('Catat Cepat memakai ikon pensil penuh', (tester) async {
+      ukuranStandar(tester);
+      await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: kartuDari('Catat Cepat'),
+          matching: find.byIcon(Icons.edit),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.edit_note_rounded), findsNothing);
+    });
+
+    testWidgets('bilah kuota masih menampilkan angka dari konstanta jatah',
+        (tester) async {
+      ukuranStandar(tester);
+      await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
+      await tester.pumpAndSettle();
+
+      expect(find.text('5/$kuotaPindaiPekanan'), findsOneWidget);
+      final teks = tester.widget<Text>(find.text('5/$kuotaPindaiPekanan'));
+      expect(teks.style?.color, AppColors.kartu);
+    });
+
+    testWidgets('judul Pindai Struk putih dan jalur bilah kuota aiBiruTua',
+        (tester) async {
+      ukuranStandar(tester);
+      await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
+      await tester.pumpAndSettle();
+
+      final judul = tester.widget<Text>(find.text('Pindai Struk'));
+      expect(judul.style?.color, AppColors.kartu);
+
+      final jalur = tester.widget<Container>(
+        find
+            .descendant(
+              of: kartuDari('Pindai Struk'),
+              matching: find.byWidgetPredicate(
+                (w) =>
+                    w is Container &&
+                    w.decoration is BoxDecoration &&
+                    (w.decoration as BoxDecoration).color ==
+                        AppColors.aiBiruTua,
+              ),
+            )
+            .first,
+      );
+      final dekor = jalur.decoration as BoxDecoration;
+      expect((dekor.border as Border).top.color, AppColors.kartu);
+    });
+  });
 }
