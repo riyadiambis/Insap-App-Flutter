@@ -61,7 +61,7 @@ void main() {
     test('melempar GeminiException(408) jika TimeoutException terjadi (No 6)', () async {
       final dio = Dio();
       dio.httpClientAdapter = _FakeHttpAdapter((options) async {
-        throw TimeoutException('Batas waktu total 15 detik terlewati');
+        throw TimeoutException('Batas waktu total 90 detik terlewati');
       });
 
       final client = GeminiClient(
@@ -80,7 +80,7 @@ void main() {
               .having(
                 (e) => e.pesan,
                 'pesan',
-                contains('15 detik'),
+                contains('90 detik'),
               ),
         ),
       );
@@ -111,7 +111,7 @@ void main() {
               .having(
                 (e) => e.pesan,
                 'pesan',
-                contains('15 detik'),
+                contains('90 detik'),
               ),
         ),
       );

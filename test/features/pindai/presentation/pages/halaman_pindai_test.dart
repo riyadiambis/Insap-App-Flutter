@@ -347,7 +347,7 @@ void main() {
     );
 
     testWidgets(
-      'menampilkan galat dan tombol catat manual saat timeout 15 detik (No 6)',
+      'menampilkan galat dan tombol catat manual saat timeout 90 detik (No 6)',
       (tester) async {
         tester.view.physicalSize = const Size(460, 1600);
         tester.view.devicePixelRatio = 1.0;
@@ -355,7 +355,7 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
 
         fakePindaiRepo.errorToThrow = const GeminiException(
-          'Waktu tunggu pemindaian habis (melebihi 15 detik)',
+          'Waktu tunggu pemindaian habis (melebihi 90 detik)',
           408,
         );
 
@@ -369,7 +369,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.text('Waktu tunggu pemindaian habis (melebihi 15 detik)'),
+          find.text('Waktu tunggu pemindaian habis (melebihi 90 detik)'),
           findsOneWidget,
         );
         expect(find.text('Catat Manual Saja'), findsOneWidget);

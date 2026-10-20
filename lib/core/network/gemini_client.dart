@@ -14,9 +14,9 @@ class GeminiException implements Exception {
 }
 
 /// Klien jaringan untuk berkomunikasi dengan REST API Google Gemini.
-/// Dikonfigurasi dengan Dio, batas waktu 15 detik, dan pembacaan kunci dari environment.
+/// Dikonfigurasi dengan Dio, batas waktu 90 detik (ISSUE-32), dan pembacaan kunci dari environment.
 class GeminiClient {
-  static const int batasWaktuDetik = 15;
+  static const int batasWaktuDetik = 90;
   static const String baseUrl =
       'https://generativelanguage.googleapis.com/v1beta';
 
@@ -79,7 +79,7 @@ class GeminiClient {
       return response;
     } on TimeoutException {
       throw const GeminiException(
-        'Waktu tunggu pemindaian habis (melebihi 15 detik)',
+        'Waktu tunggu pemindaian habis (melebihi $batasWaktuDetik detik)',
         408,
       );
     } on DioException catch (e) {
@@ -98,7 +98,7 @@ class GeminiClient {
         e.type == DioExceptionType.sendTimeout ||
         e.error is TimeoutException) {
       return const GeminiException(
-        'Waktu tunggu pemindaian habis (melebihi 15 detik)',
+        'Waktu tunggu pemindaian habis (melebihi $batasWaktuDetik detik)',
         408,
       );
     } else if (e.type == DioExceptionType.connectionError) {
