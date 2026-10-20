@@ -82,13 +82,13 @@ flowchart LR
 
 ### Konfigurasi Lokal Tanpa Server
 
-Insap menggunakan basis data relasional SQLite lokal melalui pustaka `sqflite`. Seluruh data keuangan disimpan langsung di penyimpanan privat perangkat pengguna. Aplikasi tidak memerlukan koneksi server eksternal, tidak membutuhkan akun pengguna, dan tidak memerlukan konfigurasi koneksi jaringan.
+Penyimpanan utama aplikasi Insap menggunakan basis data relasional SQLite lokal melalui pustaka `sqflite`. Seluruh catatan transaksi dan keuangan pengguna disimpan langsung di direktori privat perangkat tanpa memerlukan server basis data eksternal. Aplikasi dapat digunakan sepenuhnya secara luring (*offline*) tanpa memerlukan akun pengguna. Koneksi internet hanya digunakan untuk layanan kecerdasan buatan pemindai struk (Google Gemini API via REST) dan fitur pencadangan awan opsional (Firebase Auth & Cloud Firestore).
 
 ### Berkas dan Lokasi Basis Data
 
 - **Nama berkas:** `insap.db`
 - **Lokasi berkas:** Ditentukan otomatis oleh sistem operasi Android melalui `getDatabasesPath()`, biasanya berada di jalur direktori privat aplikasi `/data/user/0/com.riyadiambis.insap/databases/insap.db`.
-- **Versi skema:** Versi 1.
+- **Versi skema:** Versi 1 (sesuai konstanta `version: 1` pada `DatabaseHelper`).
 
 ### Inisialisasi Otomatis dan Seeding
 
@@ -126,7 +126,7 @@ Jika ingin mereset basis data ke kondisi awal instalasi:
 
 ### Alasan Memilih SQLite Lokal
 
-Insap memilih SQLite lokal alih-alih layanan awan seperti Firebase agar data keuangan pengguna tersimpan seutuhnya di perangkat fisik pengguna tanpa risiko kebocoran privasi ke pihak ketiga (KNF-04), serta menjamin aplikasi tetap dapat digunakan kapan saja secara luring (*offline*) tanpa bergantung pada koneksi internet (KNF-01).
+Insap memilih SQLite lokal sebagai basis data utama agar data keuangan pengguna tersimpan seutuhnya di perangkat fisik pengguna tanpa risiko kebocoran privasi ke pihak ketiga (KNF-04), serta menjamin aplikasi tetap dapat digunakan kapan saja secara luring (*offline*) tanpa bergantung pada koneksi internet (KNF-01). Koneksi jaringan internet hanya dibutuhkan saat memindai struk dengan Google Gemini atau saat pengguna secara sengaja melakukan pencadangan awan ke Firebase.
 
 ## Fitur dan Status
 
@@ -143,21 +143,21 @@ Pengembangan aplikasi Insap dilakukan secara bertahap per versi sesuai dengan ja
 | F-05 | Ringkasan periodik | Total per kategori mingguan dan bulanan, plus perbandingan total bulan dengan target bulanan | Riyadi | selesai |
 | F-06 | Format Rupiah | Penulisan mata uang yang benar, misalnya Rp15.000 | Riyadi | selesai |
 | F-07 | Tanya niat belanja | Pertanyaan "butuh atau pengen" untuk kategori opsional dan hiburan | Riyadi | selesai |
-| F-16 | Perkenalan dan keadaan kosong | Perkenalan tiga layar, penetapan target bulanan, dan Beranda kosong sudah selesai; Riwayat dan Refleksi kosong menyusul | Riyadi, Dafa, Luthfi | sebagian |
+| F-16 | Perkenalan dan keadaan kosong | Tiga layar perkenalan, target bulanan, serta tampilan keadaan kosong di Beranda, Riwayat, dan Riwayat Refleksi | Riyadi, Dafa, Luthfi | selesai |
 
 ### v0.2 Pembeda
 
 | Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
 |---|---|---|---|---|
-| F-08 | Refleksi mingguan | Ritual akhir pekan: rencana versus realisasi, plus catatan perbaikan | Dafa | dalam pengerjaan |
+| F-08 | Refleksi mingguan | Ritual akhir pekan: kartu pekan lalu, 4 kelompok Kakeibo, porsi pengen, catatan perbaikan, target pekan depan, ringkasan, dan riwayat refleksi | Dafa (awalnya Luthfi) | selesai |
 
 ### v0.3 Kecerdasan
 
 | Kode | Nama Fitur | Keterangan singkat | Pemilik | Status |
 |---|---|---|---|---|
-| F-09 | Pindai struk | Foto struk dipotong otomatis dengan ML Kit Document Scanner, lalu dibaca Gemini | Dafa | uji akhir |
-| F-10 | Konfirmasi hasil pindai | Hasil AI ditampilkan sebagai draf yang wajib disetujui pengguna | Dafa | uji akhir |
-| F-11 | Kuota pindai gratis | Sepuluh pemindaian per pekan, direset setiap Senin, tidak dipotong saat gagal | Dafa | uji akhir |
+| F-09 | Pindai struk | Foto struk dipotong otomatis dengan ML Kit Document Scanner, diperkecil, lalu dibaca Gemini AI | Dafa | selesai |
+| F-10 | Konfirmasi hasil pindai | Hasil pembacaan AI disajikan sebagai draf interaktif (hapus centang, sunting harga, ganti kategori) sebelum disimpan | Dafa | selesai |
+| F-11 | Kuota pindai gratis | Sepuluh pemindaian per pekan, direset setiap Senin, tidak dipotong saat gagal, dan opsi kuota demo pameran | Dafa | selesai |
 
 ### v0.4 Pemantapan
 
