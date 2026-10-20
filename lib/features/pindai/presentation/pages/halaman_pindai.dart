@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -367,53 +369,12 @@ class _HalamanPindaiState extends State<HalamanPindai> {
 
                           const SizedBox(height: AppSpacing.besar),
 
-                          // Tampilan Saat Sedang Memindai / Memanggil AI (Loading 15 detik)
+                          // Tampilan Saat Sedang Memindai / Memanggil AI (Loading bertahap hingga 90 detik, ISSUE-32)
                           if (state.status == PindaiStatus.memuat) ...[
-                            KartuBukuTulis(
-                              backgroundColor: AppColors.paper,
-                              padding: const EdgeInsets.all(
-                                AppSpacing.lebihBesar,
-                              ),
-                              child: Column(
-                                children: [
-                                  const CircularProgressIndicator(
-                                    color: AppColors.ink,
-                                    strokeWidth: 3,
-                                  ),
-                                  const SizedBox(height: AppSpacing.besar),
-                                  Text(
-                                    'Menganalisis Struk dengan AI...',
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w800,
-                                          color: AppColors.ink,
-                                        ),
-                                  ),
-                                  const SizedBox(height: AppSpacing.kecil),
-                                  Text(
-                                    'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(color: AppColors.inkSoft),
-                                  ),
-                                  const SizedBox(height: AppSpacing.besar),
-                                  TextButton(
-                                    onPressed: () {
-                                      context.read<PindaiCubit>().batalkanPindai();
-                                    },
-                                    child: const Text(
-                                      'Batalkan',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.inkSoft,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            KartuMemuatPindai(
+                              onBatalkan: () {
+                                context.read<PindaiCubit>().batalkanPindai();
+                              },
                             ),
                           ]
                           // Tampilan Galat / Error State
@@ -513,6 +474,108 @@ class _HalamanPindaiState extends State<HalamanPindai> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Widget kartu memuat dengan teks tunggu bertahap (K2, ISSUE-32).
+///
+/// Berubah bertahap:
+/// - 0..14 detik: "Menganalisis Struk dengan AI..."
+/// - setelah 15 detik: "Struknya agak panjang, masih dibaca..."
+/// - setelah 45 detik: "Masih menunggu jawaban. Kalau terlalu lama, ketuk Batalkan lalu catat manual."
+/// Kalimat privasi dan tombol Batalkan tetap tampil.
+class KartuMemuatPindai extends StatefulWidget {
+  final VoidCallback onBatalkan;
+
+  const KartuMemuatPindai({
+    super.key,
+    required this.onBatalkan,
+  });
+
+  @override
+  State<KartuMemuatPindai> createState() => _KartuMemuatPindaiState();
+}
+
+class _KartuMemuatPindaiState extends State<KartuMemuatPindai> {
+  Timer? _timer15;
+  Timer? _timer45;
+  String _teksTunggu = 'Menganalisis Struk dengan AI...';
+
+  @override
+  void initState() {
+    super.initState();
+    _mulaiTimer();
+  }
+
+  void _mulaiTimer() {
+    _timer15 = Timer(const Duration(seconds: 15), () {
+      if (mounted) {
+        setState(() {
+          _teksTunggu = 'Struknya agak panjang, masih dibaca...';
+        });
+      }
+    });
+
+    _timer45 = Timer(const Duration(seconds: 45), () {
+      if (mounted) {
+        setState(() {
+          _teksTunggu =
+              'Masih menunggu jawaban. Kalau terlalu lama, ketuk Batalkan lalu catat manual.';
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer15?.cancel();
+    _timer45?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return KartuBukuTulis(
+      backgroundColor: AppColors.paper,
+      padding: const EdgeInsets.all(AppSpacing.lebihBesar),
+      child: Column(
+        children: [
+          const CircularProgressIndicator(
+            color: AppColors.ink,
+            strokeWidth: 3,
+          ),
+          const SizedBox(height: AppSpacing.besar),
+          Text(
+            _teksTunggu,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.kecil),
+          Text(
+            'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: AppColors.inkSoft),
+          ),
+          const SizedBox(height: AppSpacing.besar),
+          TextButton(
+            onPressed: widget.onBatalkan,
+            child: const Text(
+              'Batalkan',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppColors.inkSoft,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
