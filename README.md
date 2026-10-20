@@ -309,13 +309,28 @@ Aturan keamanan Firestore (`firestore.rules`) mengisolasi seluruh data pengguna 
 firebase deploy --only firestore:rules --project=insap-riyadiambis
 ```
 
+## Penerapan Materi Praktikum
+
+Aplikasi Insap menerapkan seluruh materi praktikum Pemrograman Piranti Bergerak secara menyeluruh sebagai berikut:
+
+| Modul | Contoh Penerapan | Keterangan Singkat |
+|---|---|---|
+| Modul 01 Dasar Dart | `lib/core/utils/rupiah_extension.dart`, `lib/features/transaksi/domain/entities/transaksi_entity.dart` | Penggunaan extension method, named parameter, constructor bernilai const, null safety, dan perbandingan objek Equatable. |
+| Modul 02 Widget dan tata letak | `lib/core/widgets/header_aplikasi.dart`, `lib/features/beranda/presentation/widgets/kartu_rincian_pengeluaran.dart` | Pemanfaatan komponen tata letak hierarkis: Container, SafeArea, Column, Row, Expanded, Stack, Wrap, dan dekorasi bayangan solid. |
+| Modul 03 Interaksi/formulir/navigasi | `lib/features/transaksi/presentation/catat/pages/halaman_catat_transaksi.dart`, `lib/core/router/app_router.dart` | Penggunaan Form dengan GlobalKey, validasi input TextFormField, pengelolaan fokus keyboard, dialog konfirmasi, serta navigasi deklaratif go_router dengan StatefulShellRoute. |
+| Modul 04 Manajemen state | `lib/features/beranda/presentation/cubit/beranda_cubit.dart`, `lib/features/transaksi/presentation/riwayat/cubit/riwayat_cubit.dart` | Pengelolaan status aplikasi menggunakan flutter_bloc (Cubit), emisi state immutable, serta konsumsi state melalui BlocBuilder, BlocListener, dan BlocConsumer. |
+| Modul 05 sqflite | `lib/core/database/database_helper.dart`, `lib/features/transaksi/data/datasources/transaksi_local_datasource.dart` | Pengelolaan basis data relasional lokal SQLite, pembuatan tabel relasional, foreign keys, seeding data awal, dan operasi query CRUD langsung. |
+| Modul 06 Firebase | `lib/features/akun/data/datasources/autentikasi_remote_datasource.dart`, `lib/features/akun/data/datasources/cadangan_remote_datasource.dart` | Autentikasi surel dan Google Sign-In via Firebase Auth, serta pencadangan dan pemulihan data transaksional ke Cloud Firestore. |
+| Modul 07 REST dan JSON | `lib/core/network/gemini_client.dart`, `lib/features/pindai/data/datasources/pindai_remote_datasource.dart` | Komunikasi jaringan HTTP REST API dengan Dio, pengiriman payload ke endpoint Google Gemini v1beta, dan serialisasi data JSON model. |
+| Modul 08 Fitur perangkat | `lib/features/pindai/presentation/pages/halaman_pindai.dart`, `lib/features/pindai/presentation/utils/gambar_helper.dart` | Pemanfaatan kamera fisik dan galeri dokumen menggunakan Google ML Kit Document Scanner serta manipulasi ukuran citra menggunakan pustaka kanvas perangkat dart:ui. |
+
 ## Alur Kerja Tim
 
 Sesuai aturan di `ATURAN-GIT.md`:
 
-- **Satu branch per ISSUE:** Setiap pekerjaan dikerjakan pada branch terpisah dengan format `feat/issue-XX-nama-fitur`.
+- **Satu branch per ISSUE:** Setiap pekerjaan dikerjakan pada branch terpisah dengan format `feat/` untuk fitur baru, `fix/` untuk perbaikan bug, `chore/` untuk tugas pemeliharaan atau build, dan `docs/` untuk dokumentasi (misalnya `feat/issue-XX-nama-fitur` atau `fix/issue-XX-nama-perbaikan`).
 - **Dilarang push langsung ke main:** Semua anggota tim dilarang melakukan push langsung ke branch `main`.
-- **Wajib melalui Pull Request:** Integrasi kode ke branch `main` hanya dapat dilakukan melalui Pull Request yang telah ditinjau oleh Project Manager (Riyadi).
+- **Wajib melalui Pull Request:** Integrasi kode ke branch `main` hanya dapat dilakukan melalui Pull Request yang telah ditinjau oleh Project Manager (Rahmat Riyadi).
 - **Kerapian kode dan uji otomatis:** Sebelum membuka Pull Request, pengembang wajib memastikan perintah `flutter analyze` dan `flutter test` berjalan bersih tanpa galat.
 - **Peta kepemilikan berkas:** Setiap pengembang hanya boleh mengubah berkas yang menjadi tanggung jawabnya sesuai tabel kepemilikan berkas guna menghindari konflik Git.
 
