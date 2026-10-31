@@ -5,7 +5,7 @@ import 'package:insap/features/pindai/presentation/utils/gambar_helper.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('mengukur ukuran berkas PNG hasil pengecilan 1024 piksel untuk ../uji-pindai/lurus.jpeg', () async {
+  test('mengukur ukuran berkas JPEG hasil kompresi native 1024 piksel untuk ../uji-pindai/lurus.jpeg', () async {
     const pathUji = '../uji-pindai/lurus.jpeg';
     final fileUji = File(pathUji);
 
