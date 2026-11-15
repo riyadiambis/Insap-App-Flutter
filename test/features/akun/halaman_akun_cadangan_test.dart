@@ -263,14 +263,17 @@ void main() {
   });
 
   group('Urutan HalamanAkun (ISSUE-21)', () {
-    testWidgets('tombol keluar berada di bawah KartuTentangAplikasi', (
+    testWidgets('tombol keluar berada di bawah tombol Tentang Aplikasi', (
       tester,
     ) async {
       await bukaHalamanAkun(tester);
 
-      await tester.ensureVisible(find.byType(KartuTentangAplikasi));
+      // kartu panjang sudah pindah ke halaman sendiri (ISSUE-38)
+      expect(find.byType(KartuTentangAplikasi), findsNothing);
+
+      await tester.ensureVisible(find.byKey(const Key('tombol_tentang')));
       final posTentang = tester
-          .getTopLeft(find.byType(KartuTentangAplikasi))
+          .getTopLeft(find.byKey(const Key('tombol_tentang')))
           .dy;
 
       await tester.ensureVisible(find.byKey(const Key('tombol_keluar')));
