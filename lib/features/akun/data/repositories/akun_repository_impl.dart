@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sqflite/sqflite.dart';
@@ -5,19 +6,35 @@ import 'package:sqflite/sqflite.dart';
 import '../../../../core/database/database_helper.dart';
 import '../../domain/entities/pengguna_entity.dart';
 import '../../domain/repositories/akun_repository.dart';
+import 'cadangan_repository_impl.dart';
 
 class AkunRepositoryImpl implements AkunRepository {
   final FirebaseAuth _firebaseAuth;
   final DatabaseHelper _databaseHelper;
   final GoogleSignIn _googleSignIn;
+  final FirebaseFirestore? _firestoreSuntikan;
 
   AkunRepositoryImpl({
     FirebaseAuth? firebaseAuth,
     DatabaseHelper? databaseHelper,
     GoogleSignIn? googleSignIn,
+    FirebaseFirestore? firestore,
   }) : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
        _databaseHelper = databaseHelper ?? DatabaseHelper(),
-       _googleSignIn = googleSignIn ?? GoogleSignIn();
+       _googleSignIn = googleSignIn ?? GoogleSignIn(),
+       _firestoreSuntikan = firestore;
+
+  /// Firebase menolak hapus akun bila sesi masuk lebih lama dari ini.
+  static const batasMasukTerbaru = Duration(minutes: 5);
+
+  static const pesanPerluMasukUlang =
+      'Demi keamanan, keluar lalu masuk lagi, kemudian ulangi Hapus Akun.';
+
+  /// Benar bila [terakhirMasuk] masih cukup baru untuk menghapus akun.
+  static bool masukMasihBaru(DateTime? terakhirMasuk, DateTime sekarang) {
+    if (terakhirMasuk == null) return false;
+    return sekarang.difference(terakhirMasuk) < batasMasukTerbaru;
+  }
 
   PenggunaEntity _kePenggunaEntity(User user) {
     return PenggunaEntity(
@@ -125,6 +142,37 @@ class AkunRepositoryImpl implements AkunRepository {
     } catch (e) {
       throw 'Gagal masuk dengan Google: ${e.toString()}';
     }
+  }
+
+  @override
+  Future<void> hapusAkun() async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) {
+      throw 'Tidak ada akun yang sedang masuk.';
+    }
+    // Dicek sebelum menghapus apa pun, supaya data awan tidak terhapus
+    // sementara akunnya gagal dihapus.
+    if (!masukMasihBaru(user.metadata.lastSignInTime, DateTime.now())) {
+      throw pesanPerluMasukUlang;
+    }
+    try {
+      await CadanganRepositoryImpl.hapusDataAwan(
+        _firestoreSuntikan ?? FirebaseFirestore.instance,
+        user.uid,
+      );
+      await user.delete();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') throw pesanPerluMasukUlang;
+      throw _terjemahkanPesanGalat(e);
+    } on FirebaseException catch (e) {
+      throw 'Gagal menghapus data cadangan: ${e.message ?? e.code}';
+    }
+    try {
+      await _googleSignIn.disconnect();
+    } catch (_) {
+      // Abaikan jika tidak login via Google
+    }
+    await _hapusUidDariLokal();
   }
 
   Future<void> _simpanUidKeLokal(String uid) async {

@@ -47,6 +47,31 @@ class CadanganRepositoryImpl implements CadanganRepository {
     );
   }
 
+  /// Menghapus dokumen `pengguna/{uid}` beserta seluruh subkoleksinya.
+  /// Dipakai saat hapus akun (ISSUE-36).
+  static Future<void> hapusDataAwan(
+    FirebaseFirestore firestore,
+    String uid,
+  ) async {
+    final docPengguna = firestore.collection('pengguna').doc(uid);
+    WriteBatch batch = firestore.batch();
+    int count = 0;
+    for (final nama in const ['kategori', 'transaksi', 'refleksi']) {
+      final snapshot = await docPengguna.collection(nama).get();
+      for (final doc in snapshot.docs) {
+        batch.delete(doc.reference);
+        count++;
+        if (count >= 450) {
+          await batch.commit();
+          batch = firestore.batch();
+          count = 0;
+        }
+      }
+    }
+    batch.delete(docPengguna);
+    await batch.commit();
+  }
+
   static const pesanPerangkatKosong =
       'Perangkat ini belum berisi transaksi maupun refleksi, sedangkan awan '
       'masih menyimpan cadangan. Pulihkan data dulu agar cadangan tidak terhapus.';

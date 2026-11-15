@@ -50,6 +50,9 @@ class _FakeAkunRepository implements AkunRepository {
   @override
   Future<void> keluar() async {}
 
+  @override
+  Future<void> hapusAkun() async {}
+
   void dispose() {
     _controller.close();
   }
@@ -177,10 +180,7 @@ void main() {
       (tester) async {
         await tester.pumpWidget(buatWidgetUji(streamController.stream));
 
-        const pengguna1 = PenggunaEntity(
-          uid: 'uid-1',
-          email: 'user1@insap.id',
-        );
+        const pengguna1 = PenggunaEntity(uid: 'uid-1', email: 'user1@insap.id');
         streamController.add(pengguna1);
         await tester.pumpAndSettle();
 

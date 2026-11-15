@@ -43,6 +43,13 @@ class _FakeAkunRepository implements AkunRepository {
 
   @override
   Future<void> keluar() async {}
+
+  int jumlahHapusAkun = 0;
+
+  @override
+  Future<void> hapusAkun() async {
+    jumlahHapusAkun++;
+  }
 }
 
 class _FakeCadanganRepository implements CadanganRepository {
@@ -80,10 +87,12 @@ class _FakeCadanganRepository implements CadanganRepository {
 void main() {
   final sl = GetIt.instance;
   late _FakeCadanganRepository repo;
+  late _FakeAkunRepository repoAkun;
 
   setUp(() async {
     await sl.reset();
     repo = _FakeCadanganRepository();
+    repoAkun = _FakeAkunRepository();
     sl.registerFactory<CadanganCubit>(
       () => CadanganCubit(cadanganRepository: repo),
     );
@@ -99,7 +108,7 @@ void main() {
       MaterialApp(
         theme: AppTheme.lightTheme,
         home: BlocProvider(
-          create: (_) => AkunCubit(akunRepository: _FakeAkunRepository()),
+          create: (_) => AkunCubit(akunRepository: repoAkun),
           child: const HalamanAkun(
             pengguna: PenggunaEntity(uid: 'uid-uji', email: 'uji@insap.id'),
           ),
@@ -223,6 +232,36 @@ void main() {
     );
   });
 
+  group('Tombol Hapus Akun pada HalamanAkun (ISSUE-36)', () {
+    Future<void> tekanHapusAkun(WidgetTester tester) async {
+      await tester.ensureVisible(find.byKey(const Key('tombol_hapus_akun')));
+      await tester.tap(find.byKey(const Key('tombol_hapus_akun')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Batal pada dialog tidak menghapus akun', (tester) async {
+      await bukaHalamanAkun(tester);
+      await tekanHapusAkun(tester);
+
+      expect(find.text('Hapus Akun Permanen?'), findsOneWidget);
+
+      await tester.tap(find.text('Batal'));
+      await tester.pumpAndSettle();
+
+      expect(repoAkun.jumlahHapusAkun, 0);
+    });
+
+    testWidgets('konfirmasi pada dialog menghapus akun sekali', (tester) async {
+      await bukaHalamanAkun(tester);
+      await tekanHapusAkun(tester);
+
+      await tester.tap(find.byKey(const Key('tombol_konfirmasi_hapus_akun')));
+      await tester.pumpAndSettle();
+
+      expect(repoAkun.jumlahHapusAkun, 1);
+    });
+  });
+
   group('Urutan HalamanAkun (ISSUE-21)', () {
     testWidgets('tombol keluar berada di bawah KartuTentangAplikasi', (
       tester,
@@ -230,12 +269,14 @@ void main() {
       await bukaHalamanAkun(tester);
 
       await tester.ensureVisible(find.byType(KartuTentangAplikasi));
-      final posTentang =
-          tester.getTopLeft(find.byType(KartuTentangAplikasi)).dy;
+      final posTentang = tester
+          .getTopLeft(find.byType(KartuTentangAplikasi))
+          .dy;
 
       await tester.ensureVisible(find.byKey(const Key('tombol_keluar')));
-      final posKeluar =
-          tester.getTopLeft(find.byKey(const Key('tombol_keluar'))).dy;
+      final posKeluar = tester
+          .getTopLeft(find.byKey(const Key('tombol_keluar')))
+          .dy;
 
       expect(posKeluar, greaterThan(posTentang));
     });
@@ -256,7 +297,10 @@ void main() {
 
         expect(find.byType(DialogSukses), findsOneWidget);
         expect(find.text('Cadangan berhasil'), findsOneWidget);
-        expect(find.text('5 transaksi, 9 kategori, 0 refleksi'), findsOneWidget);
+        expect(
+          find.text('5 transaksi, 9 kategori, 0 refleksi'),
+          findsOneWidget,
+        );
 
         // Menutup dialog dengan tombol Oke
         await tester.tap(find.byKey(const Key('tombol_dialog_sukses_oke')));
@@ -286,7 +330,10 @@ void main() {
 
         expect(find.byType(DialogSukses), findsOneWidget);
         expect(find.text('Data berhasil dipulihkan'), findsOneWidget);
-        expect(find.text('7 transaksi, 3 kategori, 2 refleksi'), findsOneWidget);
+        expect(
+          find.text('7 transaksi, 3 kategori, 2 refleksi'),
+          findsOneWidget,
+        );
 
         // Menutup dialog dengan tombol Oke
         await tester.tap(find.byKey(const Key('tombol_dialog_sukses_oke')));

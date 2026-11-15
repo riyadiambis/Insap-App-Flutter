@@ -61,6 +61,12 @@ class _FakeAkunRepository implements AkunRepository {
     _controller.add(null);
   }
 
+  @override
+  Future<void> hapusAkun() async {
+    if (lemparGalat) throw pesanGalat;
+    _controller.add(null);
+  }
+
   void close() {
     _controller.close();
   }
@@ -213,6 +219,28 @@ void main() {
       expectLater(cubit.stream, emitsInOrder(expected));
 
       await cubit.keluar();
+    });
+
+    test('hapusAkun sukses memancarkan AkunMemuat dan AkunKeluar', () async {
+      final expected = [isA<AkunMemuat>(), isA<AkunKeluar>()];
+
+      expectLater(cubit.stream, emitsInOrder(expected));
+
+      await cubit.hapusAkun();
+    });
+
+    test('hapusAkun gagal memancarkan AkunMemuat dan AkunGalat', () async {
+      repo.lemparGalat = true;
+      repo.pesanGalat = 'Perlu masuk ulang';
+
+      final expected = [
+        isA<AkunMemuat>(),
+        isA<AkunGalat>().having((s) => s.pesan, 'pesan', 'Perlu masuk ulang'),
+      ];
+
+      expectLater(cubit.stream, emitsInOrder(expected));
+
+      await cubit.hapusAkun();
     });
   });
 }
