@@ -19,11 +19,15 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
   final PenggunaEntity? pengguna;
   final Stream<PenggunaEntity?>? streamPengguna;
 
+  /// Kunci avatar untuk disorot petunjuk (ISSUE-37). Hanya diisi AppShell.
+  final Key? kunciAvatar;
+
   const HeaderAplikasi({
     super.key,
     required this.namaLayar,
     this.pengguna,
     this.streamPengguna,
+    this.kunciAvatar,
   });
 
   @override
@@ -145,6 +149,7 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
                               ? pengguna
                               : (snapshot.data ?? pengguna);
                           return AvatarProfil(
+                            key: kunciAvatar,
                             fotoUrl: p?.fotoUrl,
                             ukuran: 34.0,
                             ukuranIkon: 18.0,

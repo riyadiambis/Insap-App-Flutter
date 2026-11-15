@@ -6,6 +6,7 @@ import '../../../../core/constants/kuota_constants.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/tur/langkah_tur.dart';
 import '../../../akun/domain/entities/pengguna_entity.dart';
 import '../../../akun/domain/repositories/akun_repository.dart';
 import '../../../../core/utils/iso_week.dart';
@@ -524,6 +525,7 @@ class _BerandaContent extends StatelessWidget {
             children: [
               Expanded(
                 child: KartuBukuTulis(
+                  key: KunciTur.catatCepat,
                   onTap: () => context.go('/catat'),
                   backgroundColor: AppColors.stabilo,
                   shadow: AppTheme.bayanganGelap,
@@ -577,6 +579,7 @@ class _BerandaContent extends StatelessWidget {
               const SizedBox(width: AppSpacing.sedang),
               Expanded(
                 child: KartuBukuTulis(
+                  key: KunciTur.pindaiStruk,
                   onTap: () async {
                     final sembunyikan =
                         await sl<BacaStatusPanduanPindai>().call();

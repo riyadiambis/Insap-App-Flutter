@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../di/injection_container.dart';
 import '../theme.dart';
+import '../tur/tur_cubit.dart';
 
 /// Data representasi anggota tim pengembang.
 class AnggotaTim {
@@ -134,6 +137,25 @@ class KartuTentangAplikasi extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ),
+          ],
+          // putar ulang petunjuk sorotan layar utama (ISSUE-37)
+          if (sl.isRegistered<TurCubit>()) ...[
+            const SizedBox(height: AppSpacing.sedang),
+            TextButton.icon(
+              key: const Key('tombol_lihat_petunjuk'),
+              onPressed: () {
+                sl<TurCubit>().mulaiUlang();
+                context.go('/');
+              },
+              icon: const Icon(Icons.help_outline, color: AppColors.ink),
+              label: Text(
+                'Lihat petunjuk lagi',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
