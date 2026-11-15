@@ -483,7 +483,8 @@ class _HalamanMasukState extends State<HalamanMasuk> {
                         ),
                       ),
                       const SizedBox(height: AppSpacing.besar),
-                      const KartuTentangAplikasi(),
+                      // tentang aplikasi pindah ke halaman sendiri (ISSUE-38)
+                      const TombolTentangAplikasi(),
                     ],
                   ),
                 ),

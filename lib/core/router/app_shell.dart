@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../di/injection_container.dart';
 import '../theme.dart';
+import '../tur/langkah_tur.dart';
+import '../tur/tur_cubit.dart';
 import '../widgets/header_aplikasi.dart';
+import '../widgets/lapisan_tur.dart';
 
 // kerangka navigasi bawah 4 tab (P04-Router, P05). di v0.4 Luthfi bikin
 // versi adaptif pakai NavigationRail buat layar lebar
@@ -34,6 +38,13 @@ class AppShell extends StatelessWidget {
     );
   }
 
+  // tab yang disorot petunjuk (ISSUE-37)
+  Key? _kunciTurTab(int index) {
+    if (index == 2) return KunciTur.tabRefleksi;
+    if (index == 3) return KunciTur.tabRiwayat;
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final destinations = [
@@ -55,9 +66,10 @@ class AppShell extends StatelessWidget {
       ),
     ];
 
-    return Scaffold(
+    final kerangka = Scaffold(
       appBar: HeaderAplikasi(
         namaLayar: _dapatkanSubjudul(navigationShell.currentIndex),
+        kunciAvatar: KunciTur.akun,
       ),
       body: navigationShell,
       bottomNavigationBar: Container(
@@ -79,6 +91,7 @@ class AppShell extends StatelessWidget {
 
                 return Expanded(
                   child: GestureDetector(
+                    key: _kunciTurTab(index),
                     onTap: () => _pindahTab(index),
                     behavior: HitTestBehavior.opaque,
                     child: Center(
@@ -144,6 +157,27 @@ class AppShell extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    // petunjuk sorotan hanya dipasang kalau cubit-nya terdaftar (tidak di tes)
+    if (!sl.isRegistered<TurCubit>()) return kerangka;
+
+    return Stack(
+      children: [
+        kerangka,
+        Positioned.fill(
+          child: LapisanTur(
+            cubit: sl<TurCubit>(),
+            langkah: daftarLangkahTur,
+            onMulai: () {
+              if (navigationShell.currentIndex != 0) {
+                navigationShell.goBranch(0);
+              }
+            },
+            onDaftarAkun: () => context.push('/akun'),
+          ),
+        ),
+      ],
     );
   }
 }

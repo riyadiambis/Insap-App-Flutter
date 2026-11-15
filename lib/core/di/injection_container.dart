@@ -25,6 +25,8 @@ import '../../features/akun/domain/repositories/cadangan_repository.dart';
 import '../../features/akun/presentation/cubit/akun_cubit.dart';
 import '../../features/akun/presentation/cubit/cadangan_cubit.dart';
 import '../database/database_helper.dart';
+import '../tur/langkah_tur.dart';
+import '../tur/tur_cubit.dart';
 import '../network/gemini_client.dart';
 import '../../features/pengaturan/data/datasources/pengaturan_local_datasource.dart';
 import '../../features/pengaturan/data/repositories/pengaturan_repository_impl.dart';
@@ -125,6 +127,17 @@ void setupInjectionContainer() {
   sl.registerLazySingleton(() => SimpanStatusPanduanPindai(sl()));
   sl.registerFactory(
     () => OnboardingCubit(pengaturanRepository: sl()),
+  );
+
+  // petunjuk sorotan layar utama (ISSUE-37). satu instance dipakai bersama
+  // supaya bisa diputar ulang dari halaman akun
+  sl.registerLazySingleton(
+    () => TurCubit(
+      pengaturanRepository: sl(),
+      jumlahLangkah: daftarLangkahTur.length,
+      cekSudahMasuk: () async =>
+          await sl<AkunRepository>().ambilPenggunaSaatIni() != null,
+    ),
   );
 
   // refleksi (Luthfi) — SimpanRefleksi, AmbilRefleksiPekan di v0.2

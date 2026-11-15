@@ -100,6 +100,16 @@ class AkunCubit extends Cubit<AkunState> {
     }
   }
 
+  Future<void> hapusAkun() async {
+    emit(const AkunMemuat());
+    try {
+      await akunRepository.hapusAkun();
+      emit(const AkunKeluar());
+    } catch (e) {
+      emit(AkunGalat(e.toString()));
+    }
+  }
+
   @override
   Future<void> close() {
     _authSubscription?.cancel();
