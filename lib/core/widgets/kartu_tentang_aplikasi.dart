@@ -74,10 +74,7 @@ class KartuTentangAplikasi extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.besar),
-                const _JudulBagian(
-                  ikon: Icons.groups_rounded,
-                  teks: 'TIM PENGEMBANG',
-                ),
+                const _JudulBagian(teks: 'TIM PENGEMBANG'),
                 const SizedBox(height: AppSpacing.kecil),
                 for (var i = 0; i < daftarTimPengembang.length; i++)
                   _BarisOrang(
@@ -85,10 +82,7 @@ class KartuTentangAplikasi extends StatelessWidget {
                     warna: AppColors.paletBadgeKategori[i],
                   ),
                 const SizedBox(height: AppSpacing.sedang),
-                const _JudulBagian(
-                  ikon: Icons.school_rounded,
-                  teks: 'DOSEN PEMBIMBING',
-                ),
+                const _JudulBagian(teks: 'DOSEN PEMBIMBING'),
                 const SizedBox(height: AppSpacing.kecil),
                 for (final dosen in daftarDosenPembimbing)
                   _BarisOrang(orang: dosen, warna: AppColors.ink),
@@ -182,27 +176,20 @@ class _KepalaKartu extends StatelessWidget {
 }
 
 class _JudulBagian extends StatelessWidget {
-  final IconData ikon;
   final String teks;
 
-  const _JudulBagian({required this.ikon, required this.teks});
+  const _JudulBagian({required this.teks});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(ikon, size: 16, color: AppColors.inkSoft),
-        const SizedBox(width: AppSpacing.agakKecil),
-        Text(
-          teks,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: AppColors.inkSoft,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.8,
-            fontSize: 11,
-          ),
-        ),
-      ],
+    return Text(
+      teks,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        color: AppColors.inkSoft,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 0.8,
+        fontSize: 11,
+      ),
     );
   }
 }
@@ -282,36 +269,52 @@ class _KotakKampus extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
         boxShadow: const [AppTheme.bayanganKecilGelap],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.account_balance_rounded,
-            color: AppColors.ink,
-            size: 28,
+          Text(
+            namaProdi,
+            style: teks.bodyMedium?.copyWith(
+              color: AppColors.ink,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-          const SizedBox(width: AppSpacing.sedang),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  namaProdi,
-                  style: teks.bodyMedium?.copyWith(
-                    color: AppColors.ink,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                Text(
-                  '$namaFakultas · $namaKampus',
-                  style: teks.bodySmall?.copyWith(
-                    color: AppColors.ink,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+          Text(
+            '$namaFakultas · $namaKampus',
+            style: teks.bodySmall?.copyWith(
+              color: AppColors.ink,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Tombol ke halaman Tentang Aplikasi (/tentang). Dipakai di halaman Akun
+/// dan halaman Masuk sebagai pengganti kartu panjang (ISSUE-38).
+class TombolTentangAplikasi extends StatelessWidget {
+  const TombolTentangAplikasi({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      key: const Key('tombol_tentang'),
+      onPressed: () => context.push('/tentang'),
+      icon: const Icon(Icons.info_outline, color: AppColors.ink, size: 20),
+      label: Text(
+        'Tentang Aplikasi',
+        style: Theme.of(context).textTheme.bodyMedium
+            ?.copyWith(color: AppColors.ink, fontWeight: FontWeight.w700),
+      ),
+      style: OutlinedButton.styleFrom(
+        backgroundColor: AppColors.kartu,
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sedang),
+        side: const BorderSide(color: AppColors.ink, width: AppSizes.border),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
+        ),
       ),
     );
   }

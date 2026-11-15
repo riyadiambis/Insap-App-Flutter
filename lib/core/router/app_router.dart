@@ -13,7 +13,9 @@ import '../../features/transaksi/presentation/riwayat/pages/halaman_detail_trans
 import '../../features/transaksi/presentation/riwayat/pages/halaman_riwayat.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../features/akun/presentation/pages/auth_gate.dart';
+import '../../features/akun/presentation/pages/halaman_tentang.dart';
 import '../../features/pindai/presentation/cubit/pindai_cubit.dart';
 import '../../features/pindai/presentation/pages/halaman_pindai.dart';
 import 'app_shell.dart';
@@ -61,11 +63,8 @@ GoRouter buatAppRouter({
   return GoRouter(
     navigatorKey: navigatorKey ?? _rootNavigatorKey,
     initialLocation: initialLocation,
-    redirect: (context, state) => evaluasiRedirectOnboarding(
-      context,
-      state,
-      repo: pengaturanRepository,
-    ),
+    redirect: (context, state) =>
+        evaluasiRedirectOnboarding(context, state, repo: pengaturanRepository),
     routes: [
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -125,6 +124,10 @@ GoRouter buatAppRouter({
         builder: (context, state) => const HalamanPerkenalan(),
       ),
       GoRoute(path: '/akun', builder: (context, state) => const AuthGate()),
+      GoRoute(
+        path: '/tentang',
+        builder: (context, state) => const HalamanTentang(),
+      ),
       GoRoute(
         path: '/pindai',
         builder: (context, state) {

@@ -806,9 +806,9 @@ class _HalamanAkunState extends State<HalamanAkun> {
                       ),
                       const SizedBox(height: AppSpacing.besar),
 
-                      // Kartu Informasi Aplikasi & Tim Pengembang (ISSUE-20)
-                      const KartuTentangAplikasi(),
-                      const SizedBox(height: AppSpacing.besar),
+                      // Tentang aplikasi pindah ke halaman sendiri (ISSUE-38)
+                      const TombolTentangAplikasi(),
+                      const SizedBox(height: AppSpacing.sedang),
 
                       // Tombol Keluar (Paling Bawah)
                       BlocBuilder<AkunCubit, AkunState>(
