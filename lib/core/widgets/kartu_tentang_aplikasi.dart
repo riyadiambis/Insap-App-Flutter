@@ -75,7 +75,7 @@ class KartuTentangAplikasi extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Versi 0.1.0',
+                      'Versi 1.0.1',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.inkSoft,
                         fontWeight: FontWeight.w700,
