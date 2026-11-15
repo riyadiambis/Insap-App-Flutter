@@ -106,6 +106,54 @@ class _HalamanAkunState extends State<HalamanAkun> {
     );
   }
 
+  void _konfirmasiHapusAkun(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: AppColors.kartu,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSizes.radiusKartu),
+            side: const BorderSide(
+              color: AppColors.ink,
+              width: AppSizes.border,
+            ),
+          ),
+          title: Text(
+            'Hapus Akun Permanen?',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          content: Text(
+            'Akun dan seluruh cadangan di awan (transaksi, kategori, refleksi) akan dihapus permanen dan tidak bisa dikembalikan. Data di perangkat ini tetap ada.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              key: const Key('tombol_konfirmasi_hapus_akun'),
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                context.read<AkunCubit>().hapusAkun();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.salah,
+                foregroundColor: AppColors.kartu,
+                elevation: 0,
+              ),
+              child: const Text(
+                'Hapus Permanen',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _konfirmasiPulihkan(BuildContext context, CadanganInfo? info) {
     showDialog(
       context: context,
@@ -797,6 +845,36 @@ class _HalamanAkunState extends State<HalamanAkun> {
                                 borderRadius: BorderRadius.circular(
                                   AppSizes.radiusTombol,
                                 ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.kecil),
+
+                      // Tombol Hapus Akun (ISSUE-36, syarat Google Play)
+                      BlocConsumer<AkunCubit, AkunState>(
+                        listener: (context, state) {
+                          if (state is AkunGalat) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(state.pesan),
+                                backgroundColor: AppColors.salah,
+                              ),
+                            );
+                          }
+                        },
+                        builder: (context, state) {
+                          return TextButton(
+                            key: const Key('tombol_hapus_akun'),
+                            onPressed: state is AkunMemuat
+                                ? null
+                                : () => _konfirmasiHapusAkun(context),
+                            child: const Text(
+                              'Hapus Akun Permanen',
+                              style: TextStyle(
+                                color: AppColors.salah,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           );

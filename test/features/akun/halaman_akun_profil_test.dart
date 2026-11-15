@@ -40,6 +40,9 @@ class _FakeAkunRepository implements AkunRepository {
 
   @override
   Future<void> keluar() async {}
+
+  @override
+  Future<void> hapusAkun() async {}
 }
 
 class _FakeCadanganRepository implements CadanganRepository {

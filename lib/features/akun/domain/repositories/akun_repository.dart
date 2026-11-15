@@ -14,4 +14,8 @@ abstract class AkunRepository {
   Future<void> keluar();
   Future<void> kirimResetKataSandi(String email);
   Future<PenggunaEntity?> masukDenganGoogle();
+
+  /// Menghapus permanen akun beserta seluruh cadangan di awan.
+  /// Data di perangkat tidak disentuh.
+  Future<void> hapusAkun();
 }
