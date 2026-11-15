@@ -159,7 +159,7 @@ class _KepalaKartu extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppSizes.radiusPil),
                   ),
                   child: Text(
-                    'Versi 1.0.1',
+                    'Versi 1.0.2',
                     style: teks.labelSmall?.copyWith(
                       color: AppColors.ink,
                       fontWeight: FontWeight.w800,

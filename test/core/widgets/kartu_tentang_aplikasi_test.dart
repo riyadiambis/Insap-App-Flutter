@@ -30,7 +30,7 @@ void main() {
 
         // Verifikasi judul dan versi
         expect(find.text('Insap: Yuk Sadar Boncos'), findsOneWidget);
-        expect(find.text('Versi 1.0.1'), findsOneWidget);
+        expect(find.text('Versi 1.0.2'), findsOneWidget);
 
         // Verifikasi tim pengembang dengan nama lengkap
         expect(find.text('TIM PENGEMBANG'), findsOneWidget);
