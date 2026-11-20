@@ -142,7 +142,7 @@ class KartuTransaksi extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.kecil),
                 Text(
-                  '-${nominal.toRupiah()}',
+                  nominal.toRupiah(),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,

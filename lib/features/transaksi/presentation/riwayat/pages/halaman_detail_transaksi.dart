@@ -110,7 +110,7 @@ class _DetailTransaksiView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const HeaderAplikasi(
-        namaLayar: 'Detail Transaksi',
+        namaLayar: 'Detail',
         modeKembali: true,
       ),
       body: PaperBackground(
@@ -258,7 +258,7 @@ class _DetailTransaksiView extends StatelessWidget {
                     ),
                     const SizedBox(height: AppSpacing.kecil),
                     Text(
-                      '-${trx.jumlah.toRupiah()}',
+                      trx.jumlah.toRupiah(),
                       style: AppTheme.nominalBesar.copyWith(fontSize: 38),
                     ),
                     const SizedBox(height: 2),
@@ -368,25 +368,25 @@ class _DetailTransaksiView extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.delete_outline_rounded,
-                        size: 18,
-                        color: AppColors.merahTeks,
-                      ),
-                      SizedBox(width: AppSpacing.kecil),
-                      Text(
-                        'Hapus Transaksi',
-                        style: TextStyle(
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.delete_outline_rounded,
+                          size: 18,
                           color: AppColors.merahTeks,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
                         ),
-                      ),
-                    ],
-                  ),
+                        SizedBox(width: AppSpacing.kecil),
+                        Text(
+                          'Hapus',
+                          style: TextStyle(
+                            color: AppColors.merahTeks,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
                 ),
               ),
             ],

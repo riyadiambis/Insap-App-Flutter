@@ -307,7 +307,7 @@ class _HalamanPindaiState extends State<HalamanPindai> {
 
         return Scaffold(
           appBar: HeaderAplikasi(
-            namaLayar: 'Pindai Struk',
+            namaLayar: 'Pindai struk',
             modeKembali: true,
             onKembali: () => _kembali(context),
           ),
@@ -487,16 +487,19 @@ class _TampilanPindaiGagal extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const MaskotStruki(pose: PoseMaskot.puyeng, ukuran: 210),
+                  const MaskotStruki(
+                    pose: PoseMaskot.puyeng,
+                    ukuran: AppSizes.ukuranMaskotPindai,
+                  ),
                   const SizedBox(height: AppSpacing.sedang),
                   Text(
                     'Struknya belum terbaca',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
-                        ),
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.kecil),
                   Text(
@@ -504,10 +507,10 @@ class _TampilanPindaiGagal extends StatelessWidget {
                         'Tulisannya terlalu buram buat Struki. Coba foto lagi di tempat terang, struk diratakan.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontSize: 15,
-                          color: AppColors.inkSoft,
-                          height: 1.5,
-                        ),
+                      fontSize: 15,
+                      color: AppColors.ink,
+                      height: 1.5,
+                    ),
                   ),
                 ],
               ),
@@ -516,16 +519,14 @@ class _TampilanPindaiGagal extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sedang),
         TombolStabilo(
-          teks: 'Coba Pindai Ulang',
-          ikon: Icons.refresh_rounded,
+          teks: 'Pindai ulang',
           isLoading: sedangMemindai,
           onPressed: sedangMemindai ? null : onPindaiUlang,
         ),
         if (tawarkanCatatManual) ...[
           const SizedBox(height: AppSpacing.sedang),
           _TombolPutih(
-            teks: 'Catat Manual Saja',
-            ikon: Icons.edit_note_rounded,
+            teks: 'Catat manual',
             onPressed: onCatatManual,
           ),
         ],
@@ -566,26 +567,29 @@ class _TampilanKuotaHabis extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const MaskotStruki(pose: PoseMaskot.cukup, ukuran: 170),
+                  const MaskotStruki(
+                    pose: PoseMaskot.cukup,
+                    ukuran: AppSizes.ukuranMaskotKuotaHabis,
+                  ),
                   const SizedBox(height: AppSpacing.sedang),
                   Text(
                     'Jatah pindai pekan ini habis',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
-                        ),
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.kecil),
                   Text(
                     'Kamu sudah memakai $kuotaPindaiPekanan dari $kuotaPindaiPekanan pindai. Jatah kembali penuh hari Senin.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontSize: 15,
-                          color: AppColors.inkSoft,
-                          height: 1.5,
-                        ),
+                      fontSize: 15,
+                      color: AppColors.ink,
+                      height: 1.5,
+                    ),
                   ),
                 ],
               ),
@@ -660,10 +664,10 @@ class _TampilanKuotaHabis extends StatelessWidget {
                     Text(
                       'Plus 50 pindai, Pro 100 pindai per pekan',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: 13,
-                            color: AppColors.inkSoft,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontSize: 13,
+                        color: AppColors.inkSoft,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -790,8 +794,8 @@ class KartuMemuatPindai extends StatefulWidget {
 class _KartuMemuatPindaiState extends State<KartuMemuatPindai> {
   Timer? _timer15;
   Timer? _timer45;
-  String _teksTunggu = 'Menganalisis Struk dengan AI...';
-  double _progres = 0.45;
+  String _teksTunggu = 'Struki sedang membaca strukmu';
+  double _progres = 0.60;
 
   @override
   void initState() {
@@ -804,7 +808,7 @@ class _KartuMemuatPindaiState extends State<KartuMemuatPindai> {
       if (mounted) {
         setState(() {
           _teksTunggu = 'Struknya agak panjang, masih dibaca...';
-          _progres = 0.72;
+          _progres = 0.78;
         });
       }
     });
@@ -813,7 +817,7 @@ class _KartuMemuatPindaiState extends State<KartuMemuatPindai> {
       if (mounted) {
         setState(() {
           _teksTunggu =
-              'Masih menunggu jawaban. Kalau terlalu lama, ketuk Batalkan lalu catat manual.';
+              'Masih menunggu jawaban. Kalau terlalu lama, ketuk Batal lalu catat manual.';
           _progres = 0.90;
         });
       }
@@ -839,28 +843,31 @@ class _KartuMemuatPindaiState extends State<KartuMemuatPindai> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const MaskotStruki(pose: PoseMaskot.scan, ukuran: 210),
+                  const MaskotStruki(
+                    pose: PoseMaskot.scan,
+                    ukuran: AppSizes.ukuranMaskotPindai,
+                  ),
                   const SizedBox(height: AppSpacing.sedang),
                   Text(
                     _teksTunggu,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
-                        ),
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.kecil),
                   Text(
-                    'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
+                    'Biasanya 5 sampai 10 detik. Jangan tutup aplikasi dulu, ya.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontSize: 15,
-                          color: AppColors.inkSoft,
-                          height: 1.45,
-                        ),
+                      fontSize: 15,
+                      color: AppColors.ink,
+                      height: 1.5,
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.besar),
+                  const SizedBox(height: AppSpacing.sedang),
                   Container(
                     width: 220,
                     height: 12,
@@ -881,6 +888,17 @@ class _KartuMemuatPindaiState extends State<KartuMemuatPindai> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: AppSpacing.sedang),
+                  Text(
+                    'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.inkSoft,
+                      height: 1.4,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -888,7 +906,7 @@ class _KartuMemuatPindaiState extends State<KartuMemuatPindai> {
         ),
         const SizedBox(height: AppSpacing.sedang),
         _TombolPutih(
-          teks: 'Batalkan',
+          teks: 'Batal',
           onPressed: widget.onBatalkan,
         ),
       ],

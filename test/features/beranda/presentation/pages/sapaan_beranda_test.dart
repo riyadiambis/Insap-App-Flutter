@@ -125,7 +125,7 @@ void main() {
     }
 
     testWidgets(
-      'menyapa Halo, {nama depan}! jika login dan punya namaTampilan',
+      'beranda tampil sesuai kanvas tanpa header sapaan saat login dan punya namaTampilan',
       (tester) async {
         tester.view.physicalSize = const Size(460, 2400);
         tester.view.devicePixelRatio = 1.0;
@@ -144,12 +144,13 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Halo, Rahmat!'), findsOneWidget);
-        expect(find.text('Halo, Kawan!'), findsNothing);
+        expect(find.text('PENGELUARAN PEKAN INI'), findsOneWidget);
+        expect(find.byKey(const Key('banner_refleksi_beranda')), findsOneWidget);
+        expect(find.text('Halo, Rahmat!'), findsNothing);
       },
     );
 
-    testWidgets('menyapa Halo, Kawan! jika belum login', (tester) async {
+    testWidgets('beranda tetap rapi sesuai kanvas jika belum login', (tester) async {
       tester.view.physicalSize = const Size(460, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -160,29 +161,34 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Halo, Kawan!'), findsOneWidget);
+      expect(find.text('PENGELUARAN PEKAN INI'), findsOneWidget);
+      expect(find.byKey(const Key('banner_refleksi_beranda')), findsOneWidget);
+      expect(find.text('Halo, Kawan!'), findsNothing);
     });
 
-    testWidgets('menyapa Halo, Kawan! jika login tapi namaTampilan null', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(460, 2400);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'beranda tetap rapi sesuai kanvas jika login tapi namaTampilan null',
+      (tester) async {
+        tester.view.physicalSize = const Size(460, 2400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      const pengguna = PenggunaEntity(
-        uid: 'uid-2',
-        email: 'anon@example.com',
-        namaTampilan: null,
-      );
+        const pengguna = PenggunaEntity(
+          uid: 'uid-2',
+          email: 'anon@example.com',
+          namaTampilan: null,
+        );
 
-      await tester.pumpWidget(
-        buatApp(const HalamanBeranda(penggunaAwal: pengguna)),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          buatApp(const HalamanBeranda(penggunaAwal: pengguna)),
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('Halo, Kawan!'), findsOneWidget);
-    });
+        expect(find.text('PENGELUARAN PEKAN INI'), findsOneWidget);
+        expect(find.byKey(const Key('banner_refleksi_beranda')), findsOneWidget);
+        expect(find.text('Halo, Kawan!'), findsNothing);
+      },
+    );
   });
 }

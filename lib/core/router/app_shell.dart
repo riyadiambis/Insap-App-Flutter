@@ -73,25 +73,25 @@ class AppShell extends StatelessWidget {
       (
         index: 0,
         icon: Icons.home_outlined,
-        activeIcon: Icons.home_rounded,
+        activeIcon: Icons.home_outlined,
         label: 'Beranda',
       ),
       (
         index: 1,
         icon: Icons.edit_outlined,
-        activeIcon: Icons.edit,
+        activeIcon: Icons.edit_outlined,
         label: 'Catat',
       ),
       (
         index: 2,
         icon: Icons.lightbulb_outline,
-        activeIcon: Icons.lightbulb,
+        activeIcon: Icons.lightbulb_outline,
         label: 'Refleksi',
       ),
       (
         index: 3,
         icon: Icons.receipt_long_outlined,
-        activeIcon: Icons.receipt_long,
+        activeIcon: Icons.receipt_long_outlined,
         label: 'Riwayat',
       ),
     ];

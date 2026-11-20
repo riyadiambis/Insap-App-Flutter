@@ -119,8 +119,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // cari dan tekan tombol simpan tanpa mengisi nominal.
-      // pakai textContaining karena teks tombol diawali emoji
-      final tombol = find.textContaining('Simpan Transaksi');
+      final tombol = find.textContaining('Simpan catatan');
       expect(tombol, findsOneWidget);
       await tester.tap(tombol);
       await tester.pumpAndSettle();

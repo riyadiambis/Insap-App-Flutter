@@ -254,6 +254,145 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
     return 'Tersisa ${selisihTarget.abs().toRupiah()} dari target awal yang kamu tetapkan.';
   }
 
+  Widget _buildKartuMaskotRefleksi(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final int totalPekanIni = widget.data.agregat.totalPekanIni;
+    final int totalPekanLalu = widget.data.agregat.totalPekanLalu;
+
+    int? acuanTarget = widget.data.targetPekanIni;
+    bool pakaiPerkiraanBulanan = false;
+    if (acuanTarget == null || acuanTarget <= 0) {
+      final targetBulanan = widget.data.targetBulanan;
+      if (targetBulanan != null && targetBulanan > 0) {
+        final acuan = widget.data.awalPekan;
+        final hariDalamBulan = DateTime(acuan.year, acuan.month + 1, 0).day;
+        acuanTarget =
+            ((targetBulanan * 7 / hariDalamBulan) / 1000).round() * 1000;
+        pakaiPerkiraanBulanan = true;
+      }
+    }
+
+    final bool hemat;
+    final String judul;
+    final List<InlineSpan> keterangan;
+
+    if (acuanTarget != null && acuanTarget > 0) {
+      final int selisih = totalPekanIni - acuanTarget;
+      hemat = selisih <= 0;
+      judul = hemat ? 'Hemat dan happy!' : 'Astaga, lewat sedikit';
+      if (hemat) {
+        final String labelTarget = pakaiPerkiraanBulanan
+            ? 'perkiraan target pekanan'
+            : 'target';
+        keterangan = selisih == 0
+            ? [TextSpan(text: 'Pekan ini tepat sesuai $labelTarget.')]
+            : [
+                const TextSpan(text: 'Pekan ini kamu '),
+                TextSpan(
+                  text: '${selisih.abs().toRupiah()} di bawah $labelTarget',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.daunTua,
+                  ),
+                ),
+                const TextSpan(text: '.'),
+              ];
+      } else {
+        keterangan = [
+          const TextSpan(text: 'Pekan ini '),
+          TextSpan(
+            text: '${selisih.toRupiah()} di atas target',
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: AppColors.merahTeks,
+            ),
+          ),
+          const TextSpan(text: '. Tidak apa-apa, pekan depan bisa diatur.'),
+        ];
+      }
+    } else if (totalPekanLalu > 0) {
+      final int selisih = totalPekanIni - totalPekanLalu;
+      hemat = selisih <= 0;
+      judul = hemat ? 'Hemat dan happy!' : 'Astaga, lewat sedikit';
+      if (hemat) {
+        keterangan = [
+          const TextSpan(text: 'Pekan ini '),
+          TextSpan(
+            text: '${selisih.abs().toRupiah()} lebih hemat dari pekan lalu',
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: AppColors.daunTua,
+            ),
+          ),
+          const TextSpan(text: '.'),
+        ];
+      } else {
+        keterangan = [
+          const TextSpan(text: 'Pekan ini '),
+          TextSpan(
+            text: '${selisih.toRupiah()} lebih banyak dari pekan lalu',
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: AppColors.merahTeks,
+            ),
+          ),
+          const TextSpan(text: '. Tidak apa-apa, pekan depan bisa diatur.'),
+        ];
+      }
+    } else {
+      hemat = true;
+      judul = 'Hemat dan happy!';
+      keterangan = [
+        TextSpan(
+          text: totalPekanIni == 0
+              ? 'Belum ada pengeluaran pekan ini. Tetap sadar boncos!'
+              : 'Atur target pekan depan di bawah biar Struki bisa bantu pantau.',
+        ),
+      ];
+    }
+
+    return KartuBukuTulis(
+      key: const Key('kartu_maskot_refleksi'),
+      radius: AppSizes.radiusKartu,
+      backgroundColor: hemat ? AppColors.hijauMuda : AppColors.boncosLatar,
+      shadow: AppTheme.bayanganGelap,
+      pressedShadow: AppTheme.bayanganGelapTertekan,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Column(
+        children: [
+          MaskotStruki(
+            key: const Key('maskot_refleksi'),
+            pose: hemat ? PoseMaskot.hemat : PoseMaskot.boncos,
+            ukuran: AppSizes.ukuranMaskotRefleksi,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            judul,
+            textAlign: TextAlign.center,
+            style: textTheme.headlineMedium?.copyWith(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: AppColors.ink,
+              height: 1.15,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text.rich(
+            TextSpan(
+              style: textTheme.bodyMedium?.copyWith(
+                fontSize: 15,
+                color: AppColors.ink,
+                height: 1.5,
+              ),
+              children: keterangan,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildKartuRingkasanPekan(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final teksTarget = widget.data.targetPekanIni != null
@@ -266,41 +405,14 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
     final bool hemat = punyaTarget && selisihTarget != null && selisihTarget <= 0;
     final bool boncos = punyaTarget && selisihTarget != null && selisihTarget > 0;
 
-    final Color latarKartu = hemat
-        ? AppColors.hijauMuda
-        : (boncos ? AppColors.salahLatar : AppColors.kartu);
-
     return KartuBukuTulis(
       radius: AppSizes.radiusKartu,
-      backgroundColor: latarKartu,
+      backgroundColor: AppColors.kartu,
       shadow: AppTheme.bayanganGelap,
       pressedShadow: AppTheme.bayanganGelapTertekan,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (hemat || boncos) ...[
-            Center(
-              child: Column(
-                children: [
-                  MaskotStruki(
-                    pose: hemat ? PoseMaskot.hemat : PoseMaskot.boncos,
-                    ukuran: 112,
-                  ),
-                  const SizedBox(height: AppSpacing.kecil),
-                  Text(
-                    hemat ? 'Hemat dan happy!' : 'Astaga, lewat sedikit',
-                    textAlign: TextAlign.center,
-                    style: textTheme.titleLarge?.copyWith(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sedang),
-                ],
-              ),
-            ),
-          ],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -466,6 +578,8 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
             const SizedBox(height: AppSpacing.besar),
           ],
           _buildHeaderKonten(context),
+          const SizedBox(height: AppSpacing.besar),
+          _buildKartuMaskotRefleksi(context),
           const SizedBox(height: AppSpacing.besar),
           _buildKartuRingkasanPekan(context),
           const SizedBox(height: AppSpacing.besar),

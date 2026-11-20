@@ -659,7 +659,7 @@ class _KonfirmasiPindaiView extends StatelessWidget {
                                               CrossAxisAlignment.stretch,
                                           children: [
                                             Container(
-                                              width: 6,
+                                              width: 8,
                                               color: warnaKat,
                                             ),
                                             Expanded(
@@ -1163,22 +1163,13 @@ class _KonfirmasiPindaiView extends StatelessWidget {
                       ),
                     ),
 
-                    // Ringkasan dan Tombol Simpan Bawah
-                    Container(
+                    // Ringkasan dan Tombol Simpan Bawah (HasilPindai.dc.html)
+                    Padding(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.besar,
-                        AppSpacing.sedang,
+                        AppSpacing.kecil,
                         AppSpacing.besar,
                         AppSpacing.besar,
-                      ),
-                      decoration: const BoxDecoration(
-                        color: AppColors.paper,
-                        border: Border(
-                          top: BorderSide(
-                            color: AppColors.ink,
-                            width: AppSizes.border,
-                          ),
-                        ),
                       ),
                       child: SafeArea(
                         top: false,
@@ -1227,26 +1218,14 @@ class _KonfirmasiPindaiView extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: AppSpacing.sedang),
+                            const SizedBox(height: 14),
                             TombolStabilo(
                               teks:
                                   'Simpan ${state.jumlahTransaksiAktif} catatan',
-                              ikon: Icons.check_circle_outline_rounded,
                               isLoading: state.status ==
                                   KonfirmasiPindaiStatus.menyimpan,
                               onPressed:
                                   state.bolehSimpan ? cubit.simpanSemua : null,
-                            ),
-                            const SizedBox(height: AppSpacing.sangatKecil),
-                            TextButton(
-                              onPressed: () => _kembaliDanBuangDraf(context),
-                              child: const Text(
-                                'Batal & Buang Draf',
-                                style: TextStyle(
-                                  color: AppColors.inkSoft,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
                             ),
                           ],
                         ),

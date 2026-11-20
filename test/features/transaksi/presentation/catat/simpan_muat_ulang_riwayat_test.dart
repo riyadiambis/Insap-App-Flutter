@@ -190,7 +190,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // riwayat masih kosong
-      expect(find.text('Belum Ada Catatan Boncos'), findsOneWidget);
+      expect(find.text('Belum ada catatan'), findsOneWidget);
 
       // pindah ke tab catat, isi form, simpan
       await tester.tap(find.text('Catat'));
@@ -213,7 +213,7 @@ void main() {
       );
       await tester.pump();
 
-      final tombolSimpan = find.textContaining('Simpan Transaksi');
+      final tombolSimpan = find.textContaining('Simpan catatan');
       await tester.ensureVisible(tombolSimpan);
       await tester.tap(tombolSimpan);
       await tester.pumpAndSettle();
@@ -222,7 +222,7 @@ void main() {
       await tester.tap(find.text('Riwayat'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Belum Ada Catatan Boncos'), findsNothing);
+      expect(find.text('Belum ada catatan'), findsNothing);
       expect(find.text('Bakso urat'), findsOneWidget);
     },
   );

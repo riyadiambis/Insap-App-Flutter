@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insap/core/theme.dart';
+import 'package:insap/core/widgets/maskot_struki.dart';
 import 'package:insap/features/beranda/presentation/cubit/beranda_cubit.dart';
 import 'package:insap/features/beranda/presentation/pages/halaman_beranda.dart';
 import 'package:insap/features/kategori/domain/entities/kategori_entity.dart';
@@ -170,12 +171,13 @@ void main() {
 
     expect(find.byKey(const Key('banner_refleksi_beranda')), findsOneWidget);
     expect(
-      find.text('Pekan ini belum direfleksikan. Luangkan 2 menit, yuk.'),
+      find.text('Struki sudah menyelidiki ke mana uangmu pergi.'),
       findsOneWidget,
     );
   });
 
-  testWidgets('Banner refleksi TIDAK muncul pada hari Senin', (tester) async {
+  testWidgets('Banner refleksi tetap tampil pada hari Senin dengan teks pemantauan',
+      (tester) async {
     tester.view.physicalSize = const Size(460, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -212,11 +214,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('banner_refleksi_beranda')), findsNothing);
+    expect(find.byKey(const Key('banner_refleksi_beranda')), findsOneWidget);
+    final maskotFinder = find.byKey(const Key('maskot_detektif_beranda'));
+    expect(maskotFinder, findsOneWidget);
+    expect(tester.widget<MaskotStruki>(maskotFinder).pose, PoseMaskot.detektif);
+    expect(find.text('Pantau pekan ini bersama Struki'), findsOneWidget);
   });
 
   testWidgets(
-      'Banner refleksi TIDAK muncul pada hari Sabtu jika refleksi sudah tersimpan',
+      'Banner refleksi tetap tampil pada hari Sabtu jika refleksi sudah tersimpan dengan teks tersimpan',
       (tester) async {
     tester.view.physicalSize = const Size(460, 2400);
     tester.view.devicePixelRatio = 1.0;
@@ -262,6 +268,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('banner_refleksi_beranda')), findsNothing);
+    expect(find.byKey(const Key('banner_refleksi_beranda')), findsOneWidget);
+    expect(find.text('Refleksi pekan ini tersimpan'), findsOneWidget);
   });
 }

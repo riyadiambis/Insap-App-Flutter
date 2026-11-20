@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:insap/core/constants/kuota_constants.dart';
 import 'package:insap/core/theme.dart';
 import 'package:insap/core/widgets/kartu_buku_tulis.dart';
+import 'package:insap/core/widgets/maskot_struki.dart';
 import 'package:insap/features/beranda/presentation/cubit/beranda_cubit.dart';
 import 'package:insap/features/beranda/presentation/cubit/beranda_state.dart';
 import 'package:insap/features/beranda/presentation/pages/halaman_beranda.dart';
@@ -18,6 +19,7 @@ import 'package:insap/features/pengaturan/domain/usecases/simpan_target_bulanan.
 import 'package:insap/features/transaksi/domain/entities/rincian_pengeluaran_entity.dart';
 import 'package:insap/features/transaksi/domain/entities/ringkasan_pekan_entity.dart';
 import 'package:insap/features/transaksi/domain/entities/total_kategori_entity.dart';
+import 'package:insap/features/transaksi/domain/entities/transaksi_entity.dart';
 import 'package:insap/features/transaksi/domain/usecases/ambil_rincian_kategori.dart';
 import 'package:insap/features/transaksi/domain/usecases/ambil_ringkasan_pekan.dart';
 
@@ -101,12 +103,13 @@ void main() {
   Widget bangunLayarBeranda({
     required int kuotaPindai,
     int totalMingguIni = 50000,
+    List<TransaksiEntity> transaksiTerakhir = const [],
   }) {
     final ringkasan = RingkasanPekanEntity(
       totalMingguIni: totalMingguIni,
       totalMingguLalu: 40000,
       selisihMingguan: 10000,
-      transaksiTerakhir: [],
+      transaksiTerakhir: transaksiTerakhir,
       kuotaPindai: kuotaPindai,
     );
 
@@ -140,9 +143,9 @@ void main() {
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 10));
       await tester.pumpAndSettle();
 
-      // pastikan kartu Pindai Struk ditemukan
+      // pastikan kartu Pindai struk ditemukan
       final kartuPindaiFinder = find.ancestor(
-        of: find.text('Pindai Struk'),
+        of: find.text('Pindai struk'),
         matching: find.byType(KartuBukuTulis),
       );
       expect(kartuPindaiFinder, findsOneWidget);
@@ -158,7 +161,7 @@ void main() {
   );
 
   testWidgets(
-    '(b) bar kuota dan teks "10/$kuotaPindaiPekanan" tampil',
+    '(b) teks kuota "Sisa 10 dari $kuotaPindaiPekanan pekan ini" dan badge AI tampil',
     (tester) async {
       tester.view.physicalSize = const Size(411, 914);
       tester.view.devicePixelRatio = 1.0;
@@ -170,34 +173,17 @@ void main() {
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 10));
       await tester.pumpAndSettle();
 
-      // teks 10/5 tampil sesuai kuotaPindaiPekanan
-      expect(find.text('10/$kuotaPindaiPekanan'), findsOneWidget);
-
-      // badge AI tetap ada di kartu Pindai Struk
+      expect(
+        find.text('Sisa 10 dari $kuotaPindaiPekanan pekan ini'),
+        findsOneWidget,
+      );
       expect(find.text('AI'), findsOneWidget);
-
-      // bar kuota memiliki faktor lebar 1.0 (penuh)
-      final kartuPindaiFinder = find.ancestor(
-        of: find.text('Pindai Struk'),
-        matching: find.byType(KartuBukuTulis),
-      );
-      final fractionallySizedBoxFinder = find.descendant(
-        of: kartuPindaiFinder,
-        matching: find.byType(FractionallySizedBox),
-      );
-      expect(fractionallySizedBoxFinder, findsOneWidget);
-
-      final fractionallySizedBox =
-          tester.widget<FractionallySizedBox>(fractionallySizedBoxFinder);
-      expect(fractionallySizedBox.widthFactor, equals(1.0));
-
-      // tidak ada exception/overflow
       expect(tester.takeException(), isNull);
     },
   );
 
   testWidgets(
-    '(c) saat sisa 0, teks "Habis, reset Senin" tampil dan nilai bar 0',
+    '(c) saat sisa 0, teks "Habis, reset Senin" tampil',
     (tester) async {
       tester.view.physicalSize = const Size(411, 914);
       tester.view.devicePixelRatio = 1.0;
@@ -209,26 +195,7 @@ void main() {
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 0));
       await tester.pumpAndSettle();
 
-      // teks sisa habis tampil
       expect(find.text('Habis, reset Senin'), findsOneWidget);
-      expect(find.text('0/$kuotaPindaiPekanan'), findsNothing);
-
-      // bar kuota kosong (nilai progress 0.0)
-      final kartuPindaiFinder = find.ancestor(
-        of: find.text('Pindai Struk'),
-        matching: find.byType(KartuBukuTulis),
-      );
-      final fractionallySizedBoxFinder = find.descendant(
-        of: kartuPindaiFinder,
-        matching: find.byType(FractionallySizedBox),
-      );
-      expect(fractionallySizedBoxFinder, findsOneWidget);
-
-      final fractionallySizedBox =
-          tester.widget<FractionallySizedBox>(fractionallySizedBoxFinder);
-      expect(fractionallySizedBox.widthFactor, equals(0.0));
-
-      // tidak ada exception/overflow
       expect(tester.takeException(), isNull);
     },
   );
@@ -246,20 +213,20 @@ void main() {
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
       await tester.pumpAndSettle();
 
-      expect(find.text('Catat Cepat'), findsOneWidget);
-      expect(find.text('Pindai Struk'), findsOneWidget);
-      expect(find.text('5/$kuotaPindaiPekanan'), findsOneWidget);
+      expect(find.text('Catat cepat'), findsOneWidget);
+      expect(find.text('Pindai struk'), findsOneWidget);
+      expect(
+        find.text('Sisa 5 dari $kuotaPindaiPekanan pekan ini'),
+        findsOneWidget,
+      );
 
-      // pastikan kartu kuota mandiri lama sudah tidak ada
       expect(find.text('Sisa Kuota Pindai Struk'), findsNothing);
       expect(find.text('struk sisa'), findsNothing);
-
-      // bebas overflow
       expect(tester.takeException(), isNull);
     },
   );
 
-  group('ISSUE-33 kartu aksi cepat beranda', () {
+  group('ISSUE-33 & 41 kartu aksi cepat beranda', () {
     void ukuranStandar(WidgetTester tester) {
       tester.view.physicalSize = const Size(411, 914);
       tester.view.devicePixelRatio = 1.0;
@@ -274,81 +241,121 @@ void main() {
           matching: find.byType(KartuBukuTulis),
         );
 
-    testWidgets('kartu Pindai Struk memakai ink dengan bayangan stabilo, Catat Cepat tetap stabilo',
+    testWidgets('kartu Pindai struk memakai ink dengan bayangan stabilo, Catat cepat tetap stabilo',
         (tester) async {
       ukuranStandar(tester);
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
       await tester.pumpAndSettle();
 
-      final pindai = tester.widget<KartuBukuTulis>(kartuDari('Pindai Struk'));
+      final pindai = tester.widget<KartuBukuTulis>(kartuDari('Pindai struk'));
       expect(pindai.backgroundColor, AppColors.ink);
       expect(pindai.shadow?.color, AppColors.stabilo);
 
-      final catat = tester.widget<KartuBukuTulis>(kartuDari('Catat Cepat'));
+      final catat = tester.widget<KartuBukuTulis>(kartuDari('Catat cepat'));
       expect(catat.backgroundColor, AppColors.stabilo);
     });
 
-    testWidgets('subjudul baru tampil dan teks lama OCR otomatis AI hilang',
+    testWidgets('maskot detektif beranda berukuran 76x76 dan terlihat di layar',
         (tester) async {
       ukuranStandar(tester);
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
       await tester.pumpAndSettle();
 
-      expect(find.text('Foto struk, AI yang isi'), findsOneWidget);
-      expect(find.text('OCR otomatis AI'), findsNothing);
+      final maskotFinder = find.byKey(const Key('maskot_detektif_beranda'));
+      expect(maskotFinder, findsOneWidget);
+      expect(tester.getSize(maskotFinder), const Size(76, 76));
+      expect(tester.widget<MaskotStruki>(maskotFinder).pose, PoseMaskot.detektif);
     });
 
-    testWidgets('Catat Cepat memakai ikon pensil penuh', (tester) async {
+    testWidgets('Catat cepat memakai ikon pensil garis', (tester) async {
       ukuranStandar(tester);
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
       await tester.pumpAndSettle();
 
       expect(
         find.descendant(
-          of: kartuDari('Catat Cepat'),
-          matching: find.byIcon(Icons.edit),
+          of: kartuDari('Catat cepat'),
+          matching: find.byIcon(Icons.edit_outlined),
         ),
         findsOneWidget,
       );
       expect(find.byIcon(Icons.edit_note_rounded), findsNothing);
     });
 
-    testWidgets('bilah kuota masih menampilkan angka dari konstanta jatah',
+    testWidgets(
+        'subjudul kartu aksi cepat tampil dan teks lama OCR otomatis AI hilang',
         (tester) async {
       ukuranStandar(tester);
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
       await tester.pumpAndSettle();
 
-      expect(find.text('5/$kuotaPindaiPekanan'), findsOneWidget);
-      final teks = tester.widget<Text>(find.text('5/$kuotaPindaiPekanan'));
-      expect(teks.style?.color, AppColors.kartu);
+      expect(find.text('Ketik manual'), findsOneWidget);
+      expect(
+        find.text('Sisa 5 dari $kuotaPindaiPekanan pekan ini'),
+        findsOneWidget,
+      );
+      expect(find.text('OCR otomatis AI'), findsNothing);
     });
 
-    testWidgets('judul Pindai Struk putih dan jalur bilah kuota inkSoft',
+    testWidgets(
+        'teks kuota masih menampilkan angka dari konstanta kuotaPindaiPekanan',
         (tester) async {
       ukuranStandar(tester);
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
       await tester.pumpAndSettle();
 
-      final judul = tester.widget<Text>(find.text('Pindai Struk'));
+      final kuotaFinder = find.descendant(
+        of: kartuDari('Pindai struk'),
+        matching: find.text('Sisa 5 dari $kuotaPindaiPekanan pekan ini'),
+      );
+      expect(kuotaFinder, findsOneWidget);
+      final teks = tester.widget<Text>(kuotaFinder);
+      expect(teks.style?.color, AppColors.biruPudar);
+    });
+
+    testWidgets('maskot tampil di Beranda (pose detektif) pada keadaan normal',
+        (tester) async {
+      ukuranStandar(tester);
+      await tester.pumpWidget(
+        bangunLayarBeranda(
+          kuotaPindai: 5,
+          transaksiTerakhir: const [
+            TransaksiEntity(
+              id: 1,
+              jumlah: 25000,
+              kategoriId: 1,
+              tanggal: '2026-10-15',
+              catatan: 'Nasi goreng',
+              dibuatPada: '2026-10-15T12:00:00.000',
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Belum ada catatan'), findsNothing);
+      expect(find.text('Terakhir dicatat'), findsOneWidget);
+      expect(find.text('Nasi goreng'), findsOneWidget);
+
+      final maskotFinder = find.byKey(const Key('maskot_detektif_beranda'));
+      expect(maskotFinder, findsOneWidget);
+      expect(tester.getSize(maskotFinder), const Size(76, 76));
+      expect(tester.widget<MaskotStruki>(maskotFinder).pose, PoseMaskot.detektif);
+    });
+
+    testWidgets('judul Pindai struk putih dan teks kuota biru pudar',
+        (tester) async {
+      ukuranStandar(tester);
+      await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
+      await tester.pumpAndSettle();
+
+      final judul = tester.widget<Text>(find.text('Pindai struk'));
       expect(judul.style?.color, AppColors.kartu);
 
-      final jalur = tester.widget<Container>(
-        find
-            .descendant(
-              of: kartuDari('Pindai Struk'),
-              matching: find.byWidgetPredicate(
-                (w) =>
-                    w is Container &&
-                    w.decoration is BoxDecoration &&
-                    (w.decoration as BoxDecoration).color ==
-                        AppColors.inkSoft,
-              ),
-            )
-            .first,
+      final kuotaTeks = tester.widget<Text>(
+        find.text('Sisa 5 dari $kuotaPindaiPekanan pekan ini'),
       );
-      final dekor = jalur.decoration as BoxDecoration;
-      expect((dekor.border as Border).top.color, AppColors.kartu);
+      expect(kuotaTeks.style?.color, AppColors.biruPudar);
     });
   });
 }

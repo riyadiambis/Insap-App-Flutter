@@ -143,9 +143,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Pastikan elemen keadaan kosong Beranda tampil
-    expect(find.text('Belum Ada Pengeluaran yang Dicatat'), findsOneWidget);
-    expect(find.text('Tips Cepat'), findsOneWidget);
+    // Pastikan elemen keadaan kosong Beranda tampil dengan maskot & tombol catat
+    expect(find.text('Belum ada catatan'), findsOneWidget);
+    expect(find.byKey(const Key('maskot_detektif_beranda')), findsOneWidget);
     expect(find.byKey(const Key('tombol_catat_pertama')), findsOneWidget);
 
     // Ketuk tombol catat pengeluaran pertama
@@ -154,7 +154,7 @@ void main() {
 
     // Rute berhasil berpindah ke /catat
     expect(find.text('Halaman Catat Transaksi'), findsOneWidget);
-    expect(find.text('Belum Ada Pengeluaran yang Dicatat'), findsNothing);
+    expect(find.text('Belum ada catatan'), findsNothing);
   });
 
   testWidgets(
@@ -221,12 +221,12 @@ void main() {
     await tester.pumpAndSettle();
 
     // Pastikan elemen keadaan kosong TIDAK muncul
-    expect(find.text('Belum Ada Pengeluaran yang Dicatat'), findsNothing);
+    expect(find.text('Belum ada catatan'), findsNothing);
     expect(find.byKey(const Key('tombol_catat_pertama')), findsNothing);
 
     // Pastikan elemen Beranda normal muncul
     expect(find.text('PENGELUARAN PEKAN INI'), findsOneWidget);
-    expect(find.text('Catatan Terakhir'), findsOneWidget);
+    expect(find.text('Terakhir dicatat'), findsOneWidget);
   });
 
   testWidgets(
@@ -291,7 +291,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Memastikan konten beranda kosong tampil
-    expect(find.text('Belum Ada Pengeluaran yang Dicatat'), findsOneWidget);
+    expect(find.text('Belum ada catatan'), findsOneWidget);
     // Memastikan hanya ada tepat SATU HeaderAplikasi dengan subjudul BERANDA (tidak dobel)
     expect(find.byType(HeaderAplikasi), findsOneWidget);
     expect(find.text('BERANDA'), findsOneWidget);

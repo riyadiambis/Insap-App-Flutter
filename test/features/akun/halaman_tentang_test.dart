@@ -36,9 +36,9 @@ void main() {
     await tester.tap(find.byKey(const Key('tombol_tentang')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Tentang Aplikasi'), findsOneWidget);
+    expect(find.text('Tentang'), findsOneWidget);
     expect(find.byType(KartuTentangAplikasi), findsOneWidget);
-    expect(find.text('Rahmat Riyadi'), findsOneWidget);
+    expect(find.textContaining('Rahmat Riyadi'), findsOneWidget);
   });
 
   testWidgets('halaman Tentang bisa digulir di layar pendek tanpa meluber', (
@@ -56,9 +56,9 @@ void main() {
 
     expect(tester.takeException(), isNull);
     await tester.scrollUntilVisible(
-      find.text('Program Studi Informatika'),
+      find.textContaining('Program Studi Informatika'),
       200,
     );
-    expect(find.text('Program Studi Informatika'), findsOneWidget);
+    expect(find.textContaining('Program Studi Informatika'), findsOneWidget);
   });
 }

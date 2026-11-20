@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insap/core/theme.dart';
+import 'package:insap/core/widgets/maskot_struki.dart';
 import 'package:insap/features/beranda/presentation/cubit/beranda_cubit.dart';
 import 'package:insap/features/kategori/domain/entities/kategori_entity.dart';
 import 'package:insap/features/kategori/domain/repositories/kategori_repository.dart';
@@ -224,8 +225,71 @@ void main() {
         find.textContaining('Pekan ini 40% pengeluaranmu ditandai pengen'),
         findsOneWidget,
       );
+      expect(find.text('Hemat dan happy!'), findsOneWidget);
+      final maskotFinder = find.byKey(const Key('maskot_refleksi'));
+      expect(maskotFinder, findsOneWidget);
+      expect(tester.getSize(maskotFinder), const Size(160, 160));
+      expect(tester.widget<MaskotStruki>(maskotFinder).pose, PoseMaskot.hemat);
     },
   );
+
+  testWidgets('menampilkan maskot boncos 160x160 saat pengeluaran lewat target',
+      (tester) async {
+    tester.view.physicalSize = const Size(460, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    fakeRefleksiRepo.targetPekanDepan = 100000;
+    fakeTransaksiRepo.daftarPekanIni = const [
+      TransaksiEntity(
+        id: 1,
+        jumlah: 164000,
+        kategoriId: 1,
+        tanggal: '2026-10-13',
+        dibuatPada: '2026-10-13T10:00:00',
+      ),
+    ];
+
+    await cubit.muatRefleksi(tanggalAcuan);
+    await tester.pumpWidget(buatWidgetUji());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Astaga, lewat sedikit'), findsOneWidget);
+    final maskotFinder = find.byKey(const Key('maskot_refleksi'));
+    expect(maskotFinder, findsOneWidget);
+    expect(tester.getSize(maskotFinder), const Size(160, 160));
+    expect(tester.widget<MaskotStruki>(maskotFinder).pose, PoseMaskot.boncos);
+  });
+
+  testWidgets('menampilkan maskot hemat 160x160 saat pengeluaran di bawah target',
+      (tester) async {
+    tester.view.physicalSize = const Size(460, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    fakeRefleksiRepo.targetPekanDepan = 200000;
+    fakeTransaksiRepo.daftarPekanIni = const [
+      TransaksiEntity(
+        id: 1,
+        jumlah: 120000,
+        kategoriId: 1,
+        tanggal: '2026-10-13',
+        dibuatPada: '2026-10-13T10:00:00',
+      ),
+    ];
+
+    await cubit.muatRefleksi(tanggalAcuan);
+    await tester.pumpWidget(buatWidgetUji());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hemat dan happy!'), findsOneWidget);
+    final maskotFinder = find.byKey(const Key('maskot_refleksi'));
+    expect(maskotFinder, findsOneWidget);
+    expect(tester.getSize(maskotFinder), const Size(160, 160));
+    expect(tester.widget<MaskotStruki>(maskotFinder).pose, PoseMaskot.hemat);
+  });
 
   testWidgets(
     'menampilkan validasi form saat tombol simpan ditekan dengan catatan kosong',

@@ -20,29 +20,12 @@ class HalamanLangganan extends StatefulWidget {
 class _HalamanLanggananState extends State<HalamanLangganan> {
   PaketInsap _paketTerpilih = PaketInsap.pro;
 
-  static const _fiturGratis = [
-    'Bonus +1 pindai/iklan (maks 10, plafon 15/pekan) · segera hadir',
-    'Catat manual dan refleksi tanpa batas',
-    'Anggaran kategori bawaan',
-    'Ekspor ZIP data pribadi (UU PDP)',
-    'Cadangan manual',
-  ];
-
-  static const _fiturPlus = [
-    '50 pindai/pekan, bebas iklan',
-    'Kategori kustom',
-    'Unduh foto struk per struk',
-    'Ekspor PDF mingguan/bulanan',
-    'Cadangan otomatis Google Drive',
-  ];
-
   static const _fiturPro = [
-    '100 pindai/pekan, bebas iklan & semua isi Plus',
-    'Multi-Kantong saldo',
-    'Radar Saldo Kritis (prediksi habis + batas belanja harian)',
-    'Audit Kebocoran AI 1x/pekan & evaluasi bulanan AI',
-    'Patungan tagihan & target tabungan',
-    'Tema eksklusif',
+    (ikon: Icons.radar_outlined, teks: 'Radar saldo kritis'),
+    (ikon: Icons.auto_awesome_outlined, teks: 'Audit kebocoran AI tiap pekan'),
+    (ikon: Icons.account_balance_wallet_outlined, teks: 'Multi-kantong saldo'),
+    (ikon: Icons.group_outlined, teks: 'Patungan dan target tabungan'),
+    (ikon: Icons.palette_outlined, teks: 'Laporan AI bulanan dan tema eksklusif'),
   ];
 
   String get _labelTombolCta => switch (_paketTerpilih) {
@@ -84,7 +67,7 @@ class _HalamanLanggananState extends State<HalamanLangganan> {
                             children: [
                               const MaskotStruki(
                                 pose: PoseMaskot.nabung,
-                                ukuran: 84,
+                                ukuran: AppSizes.ukuranMaskotLangganan,
                               ),
                               const SizedBox(width: AppSpacing.sedang),
                               Expanded(
@@ -119,48 +102,116 @@ class _HalamanLanggananState extends State<HalamanLangganan> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: AppSpacing.besar),
+                          const SizedBox(height: 14),
                           _KartuPaket(
                             key: const Key('kartu_paket_gratis'),
                             paket: PaketInsap.gratis,
                             judul: 'Gratis',
-                            deskripsi: 'Catat, refleksi, ekspor ZIP, cadangan manual',
+                            deskripsi: 'Catat, refleksi, +1 pindai lewat iklan',
                             harga: 'Rp0',
                             kuota: '5 pindai/pekan',
                             catatanStatus: 'Paketmu sekarang',
-                            daftarFitur: _fiturGratis,
                             terpilih: _paketTerpilih == PaketInsap.gratis,
                             onTap: () => setState(
                               () => _paketTerpilih = PaketInsap.gratis,
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.sedang),
+                          const SizedBox(height: 14),
                           _KartuPaket(
                             key: const Key('kartu_paket_plus'),
                             paket: PaketInsap.plus,
                             judul: 'Plus',
-                            deskripsi: '50 pindai/pekan, bebas iklan, ekspor PDF',
+                            deskripsi: 'Bebas iklan, kategori kustom, cadangan otomatis, PDF',
                             harga: 'Rp15 rb',
                             kuota: '50 pindai/pekan',
-                            daftarFitur: _fiturPlus,
                             terpilih: _paketTerpilih == PaketInsap.plus,
                             onTap: () => setState(
                               () => _paketTerpilih = PaketInsap.plus,
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.besar),
+                          const SizedBox(height: 16),
                           _KartuPaket(
                             key: const Key('kartu_paket_pro'),
                             paket: PaketInsap.pro,
                             judul: 'Pro',
-                            deskripsi: 'Semua isi Plus + AI, Multi-Kantong, patungan',
+                            deskripsi: 'Semua Plus + radar saldo, audit AI, multi-kantong',
                             harga: 'Rp29 rb',
                             kuota: '100 pindai/pekan',
                             labelSorotan: 'PALING LENGKAP',
-                            daftarFitur: _fiturPro,
                             terpilih: _paketTerpilih == PaketInsap.pro,
                             onTap: () => setState(
                               () => _paketTerpilih = PaketInsap.pro,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.kartu,
+                              border: Border.all(
+                                color: AppColors.ink,
+                                width: AppSizes.border,
+                              ),
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.radiusKartu,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 2),
+                                  child: Text(
+                                    'YANG KAMU DAPAT DI PRO',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.4,
+                                          color: AppColors.inkSoft,
+                                        ),
+                                  ),
+                                ),
+                                for (final item in _fiturPro)
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      minHeight: 34,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          item.ikon,
+                                          size: 18,
+                                          color: AppColors.ink,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            item.teks,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppColors.ink,
+                                                ),
+                                          ),
+                                        ),
+                                        const Icon(
+                                          Icons.check_rounded,
+                                          size: 18,
+                                          color: AppColors.daunTua,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ],
@@ -184,15 +235,16 @@ class _HalamanLanggananState extends State<HalamanLangganan> {
                               ? null
                               : () => tampilkanDialogFiturDikembangkan(context),
                         ),
-                        const SizedBox(height: AppSpacing.kecil),
+                        const SizedBox(height: 8),
                         Text(
-                          'Pembayaran langganan belum aktif. Kami kabari begitu siap.',
+                          'Ditagih bulanan lewat Google Play. Batalkan kapan saja.',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: 12,
-                            color: AppColors.inkSoft,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                fontSize: 12,
+                                color: AppColors.inkSoft,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                       ],
                     ),
@@ -215,7 +267,6 @@ class _KartuPaket extends StatelessWidget {
   final String kuota;
   final String? catatanStatus;
   final String? labelSorotan;
-  final List<String> daftarFitur;
   final bool terpilih;
   final VoidCallback onTap;
 
@@ -228,207 +279,156 @@ class _KartuPaket extends StatelessWidget {
     required this.kuota,
     this.catatanStatus,
     this.labelSorotan,
-    this.daftarFitur = const [],
     required this.terpilih,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.kartu,
-              border: Border.all(
-                color: AppColors.ink,
-                width: terpilih ? 3.0 : AppSizes.border,
+    return Semantics(
+      button: true,
+      selected: terpilih,
+      label: '$judul, $harga, $kuota',
+      child: GestureDetector(
+        onTap: onTap,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.kartu,
+                border: Border.all(
+                  color: AppColors.ink,
+                  width: terpilih ? 3.0 : AppSizes.border,
+                ),
+                borderRadius: BorderRadius.circular(AppSizes.radiusKartu),
+                boxShadow: terpilih ? AppTheme.bayanganPaketPro : null,
               ),
-              borderRadius: BorderRadius.circular(AppSizes.radiusKartu),
-              boxShadow: terpilih
-                  ? const [
-                      BoxShadow(
+              child: Row(
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
                         color: AppColors.ink,
-                        offset: Offset(5, 5),
-                        spreadRadius: 2,
-                        blurRadius: 0,
+                        width: AppSizes.border,
                       ),
-                      BoxShadow(
-                        color: AppColors.stabilo,
-                        offset: Offset(5, 5),
-                        blurRadius: 0,
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.ink,
-                          width: AppSizes.border,
-                        ),
-                      ),
-                      child: terpilih
-                          ? Center(
-                              child: Container(
-                                width: 12,
-                                height: 12,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.ink,
-                                ),
-                              ),
-                            )
-                          : null,
                     ),
-                    const SizedBox(width: AppSpacing.sedang),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              LencanaPaket(paket: paket),
-                              const SizedBox(width: AppSpacing.kecil),
-                              Flexible(
-                                child: Text(
-                                  judul,
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        fontSize: 19,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.ink,
-                                        height: 1.15,
-                                      ),
-                                ),
+                    child: terpilih
+                        ? Center(
+                            child: Container(
+                              width: 12,
+                              height: 12,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.ink,
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            deskripsi,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  fontSize: 13,
-                                  color: AppColors.inkSoft,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                          if (catatanStatus != null) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              catatanStatus!,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    fontSize: 12,
-                                    color: AppColors.daunTua,
-                                    fontWeight: FontWeight.w800,
-                                  ),
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: AppSpacing.sedang),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            LencanaPaket(paket: paket),
+                            const SizedBox(width: AppSpacing.kecil),
+                            Flexible(
+                              child: Text(
+                                judul,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      fontSize: 19,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.ink,
+                                      height: 1.15,
+                                    ),
+                              ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          deskripsi,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontSize: 13,
+                            color: AppColors.inkSoft,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (catatanStatus != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            catatanStatus!,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontSize: 12,
+                                  color: AppColors.daunTua,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
                         ],
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.kecil),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          harga,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.ink,
-                                height: 1.15,
-                              ),
-                        ),
-                        Text(
-                          kuota,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                fontSize: 12,
-                                color: AppColors.inkSoft,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        ),
                       ],
                     ),
-                  ],
-                ),
-                if (daftarFitur.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.kecil),
-                  for (final fitur in daftarFitur)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(top: 2),
-                            child: Icon(
-                              Icons.check_rounded,
-                              size: 16,
-                              color: AppColors.daunTua,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              fitur,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.ink,
-                                    height: 1.3,
-                                  ),
-                            ),
-                          ),
-                        ],
+                  ),
+                  const SizedBox(width: AppSpacing.kecil),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        harga,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                          height: 1.15,
+                        ),
                       ),
-                    ),
+                      Text(
+                        kuota,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontSize: 12,
+                          color: AppColors.inkSoft,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-              ],
+              ),
             ),
-          ),
-          if (labelSorotan != null)
-            Positioned(
-              top: -12,
-              right: 14,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 3,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.ink,
-                  borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-                ),
-                child: Text(
-                  labelSorotan!,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                    color: AppColors.stabilo,
+            if (labelSorotan != null)
+              Positioned(
+                top: -12,
+                right: 14,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.ink,
+                    borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+                  ),
+                  child: Text(
+                    labelSorotan!,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                      color: AppColors.stabilo,
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

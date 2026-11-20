@@ -21,43 +21,60 @@ void main() {
       (tester) async {
         await pasang(tester);
 
-        // Verifikasi logo aplikasi
         expect(find.byType(Image), findsOneWidget);
         final imageWidget = tester.widget<Image>(find.byType(Image));
         expect(imageWidget.image, isA<AssetImage>());
         final assetImage = imageWidget.image as AssetImage;
         expect(assetImage.assetName, equals('assets/images/logo_insap.png'));
 
-        // Verifikasi judul dan versi
-        expect(find.text('Insap: Yuk Sadar Boncos'), findsOneWidget);
-        expect(find.text('Versi 2.0.2'), findsOneWidget);
+        expect(find.text('Insap: Catat Keuangan'), findsOneWidget);
+        expect(find.text('Versi 2.1.0'), findsOneWidget);
 
-        // Verifikasi tim pengembang dengan nama lengkap
         expect(find.text('TIM PENGEMBANG'), findsOneWidget);
-        expect(find.text('Rahmat Riyadi'), findsOneWidget);
-        expect(find.text('Muh Ghazy Daffa Sampe'), findsOneWidget);
-        expect(find.text('Luthfi Farros Athailah'), findsOneWidget);
+        expect(find.textContaining('Rahmat Riyadi'), findsOneWidget);
+        expect(find.textContaining('Muh Ghazy Daffa Sampe'), findsOneWidget);
+        expect(find.textContaining('Luthfi Farros Athailah'), findsOneWidget);
 
-        // Pastikan tidak ada typo "Rahmad"
         expect(find.textContaining('Rahmad'), findsNothing);
       },
     );
 
-    testWidgets('menampilkan dosen pembimbing dan instansi', (tester) async {
+    testWidgets('menampilkan dosen pengampu, instansi, dan tautan privasi',
+        (tester) async {
       await pasang(tester);
 
-      expect(find.text('DOSEN PEMBIMBING'), findsOneWidget);
-      expect(find.text('Anton Prafanto, S.Kom., MT'), findsOneWidget);
-      expect(find.text('Dosen Pembimbing I'), findsOneWidget);
+      expect(find.text('DOSEN PENGAMPU'), findsOneWidget);
+      expect(find.textContaining('Anton Prafanto, S.Kom., MT'), findsOneWidget);
       expect(
-        find.text('Gubtha Mahendra Putra, S.Kom., M.Eng.'),
+        find.textContaining('Gubtha Mahendra Putra, S.Kom., M.Eng.'),
         findsOneWidget,
       );
-      expect(find.text('Dosen Pembimbing II'), findsOneWidget);
 
-      expect(find.text('Program Studi Informatika'), findsOneWidget);
       expect(
-        find.text('Fakultas Teknik · Universitas Mulawarman'),
+        find.text('Program Studi Informatika, Fakultas Teknik\nUniversitas Mulawarman'),
+        findsOneWidget,
+      );
+      expect(find.text('Kebijakan privasi'), findsOneWidget);
+      expect(find.text('Lisensi'), findsOneWidget);
+    });
+
+    testWidgets('tautan Kebijakan privasi dan Lisensi membuka dialog informasi',
+        (tester) async {
+      await pasang(tester);
+
+      await tester.tap(find.text('Kebijakan privasi'));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Catatan keuangan disimpan secara lokal'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Tutup'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Lisensi'));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Baloo 2 dan Nunito'),
         findsOneWidget,
       );
     });

@@ -5,7 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
-import '../../../../core/widgets/kartu_buku_tulis.dart';
+import '../../../../core/utils/rupiah_extension.dart';
+import '../../../../core/widgets/header_aplikasi.dart';
 import '../../../../core/widgets/maskot_struki.dart';
 import '../../../../core/widgets/tombol_stabilo.dart';
 import '../../../transaksi/presentation/catat/widgets/kolom_input_nominal.dart';
@@ -21,10 +22,17 @@ class HalamanPerkenalan extends StatefulWidget {
 
 class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
   final PageController _pageController = PageController();
-  int _targetNominal = 0;
+  int _targetNominal = 2000000;
   int _halamanAktif = 0;
   bool _modeTarget = false;
   String? _pesanGalat;
+
+  static const List<({String label, int nilai})> _pilihanPresetTarget = [
+    (label: 'Rp 1 jt', nilai: 1000000),
+    (label: 'Rp 1,5 jt', nilai: 1500000),
+    (label: 'Rp 2 jt', nilai: 2000000),
+    (label: 'Rp 3 jt', nilai: 3000000),
+  ];
 
   @override
   void dispose() {
@@ -35,6 +43,13 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
   void _bukaLayarTarget() {
     setState(() {
       _modeTarget = true;
+    });
+  }
+
+  void _kembaliKeSambutan() {
+    setState(() {
+      _modeTarget = false;
+      _pesanGalat = null;
     });
   }
 
@@ -56,12 +71,12 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
     } catch (_) {}
   }
 
-  Future<void> _lewatiTarget(BuildContext context) async {
+  Future<void> _lewatiTarget(BuildContext context, {String tujuan = '/'}) async {
     final cubit = context.read<OnboardingCubit>();
     await cubit.lewatiTargetDanSelesai();
     if (!mounted || !context.mounted) return;
     try {
-      context.go('/');
+      context.go(tujuan);
     } catch (_) {}
   }
 
@@ -82,69 +97,35 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
 
   Widget _buildContent(BuildContext context) {
     return Scaffold(
+      appBar: _modeTarget
+          ? HeaderAplikasi(
+              namaLayar: 'Target bulanan',
+              modeKembali: true,
+              onKembali: _kembaliKeSambutan,
+            )
+          : null,
       body: PaperBackground(
         child: SafeArea(
-          child: _modeTarget
-              ? _buildLayarTarget(context)
-              : _buildLayarSlide(context),
+          top: !_modeTarget,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: AppSizes.batasLebarKonten,
+              ),
+              child: _modeTarget
+                  ? _buildLayarTarget(context)
+                  : _buildLayarSambutan(context),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildLayarSlide(BuildContext context) {
-    final bool dilayarPertama = _halamanAktif == 0;
+  Widget _buildLayarSambutan(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Header: logo di kiri, Lewati di kanan atas
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.besar,
-            vertical: AppSpacing.sedang,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Image.asset(
-                    'assets/images/logo_insap.png',
-                    width: 34,
-                    height: 34,
-                    fit: BoxFit.contain,
-                  ),
-                  const SizedBox(width: AppSpacing.agakKecil),
-                  Text(
-                    'Insap',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-              TextButton(
-                key: const Key('tombol_lewati'),
-                onPressed: _bukaLayarTarget,
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.inkSoft,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sedang,
-                    vertical: AppSpacing.agakKecil,
-                  ),
-                ),
-                child: const Text(
-                  'Lewati',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // PageView lima layar sambutan
         Expanded(
           child: PageView(
             controller: _pageController,
@@ -152,143 +133,121 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
               setState(() => _halamanAktif = index);
             },
             children: _layarSambutan
-                .map((layar) => _buildLayarIlustrasi(context, layar))
+                .map(
+                  (layar) => _buildKontenSambutan(
+                    context,
+                    layar: layar,
+                    halamanAktif: _halamanAktif,
+                    jumlahHalaman: _layarSambutan.length,
+                  ),
+                )
                 .toList(),
           ),
         ),
-
-        // Bagian bawah: indikator titik dan dua tombol sama lebar
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.besar,
-            vertical: AppSpacing.sedang,
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.besar,
+            0,
+            AppSpacing.besar,
+            AppSpacing.besar,
           ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: AppSizes.batasLebarKonten,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TombolStabilo(
+                key: const Key('tombol_mulai_sambutan'),
+                teks: 'Mulai',
+                onPressed: _bukaLayarTarget,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(_layarSambutan.length, (index) {
-                      final bool aktif = index == _halamanAktif;
-                      return AnimatedContainer(
-                        duration: AppDurations.animasiMunculKartu,
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sangatKecil,
-                        ),
-                        width: aktif
-                            ? AppSizes.lebarTitikAktifSambutan
-                            : AppSizes.tinggiTitikSambutan,
-                        height: AppSizes.tinggiTitikSambutan,
-                        decoration: BoxDecoration(
-                          color: aktif ? AppColors.ink : AppColors.paper,
-                          borderRadius: BorderRadius.circular(
-                            AppSizes.radiusPil,
-                          ),
-                          border: Border.all(
-                            color: AppColors.ink,
-                            width: AppSizes.border,
-                          ),
-                        ),
-                      );
-                    }),
+              const SizedBox(height: 6),
+              TextButton(
+                key: const Key('tombol_sudah_punya_akun'),
+                onPressed: () => _lewatiTarget(context, tujuan: '/akun'),
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(48, 48),
+                ),
+                child: const Text(
+                  'Sudah punya akun? Masuk',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    decoration: TextDecoration.underline,
                   ),
-                  const SizedBox(height: AppSpacing.sedang),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _TombolKembaliSambutan(
-                          key: const Key('tombol_kembali'),
-                          onTap: dilayarPertama
-                              ? null
-                              : () => _pageController.previousPage(
-                                  duration: AppDurations.animasiMunculKartu,
-                                  curve: Curves.easeInOut,
-                                ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sedang),
-                      Expanded(
-                        child: TombolStabilo(
-                          key: const Key('tombol_lanjut'),
-                          teks: 'Lanjut',
-                          ikon: Icons.arrow_forward_rounded,
-                          onPressed: () {
-                            if (_halamanAktif < _layarSambutan.length - 1) {
-                              _pageController.nextPage(
-                                duration: AppDurations.animasiMunculKartu,
-                                curve: Curves.easeInOut,
-                              );
-                            } else {
-                              _bukaLayarTarget();
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  /// Satu layar sambutan dengan MaskotStruki, judul Baloo 2, dan satu paragraf pendek.
-  Widget _buildLayarIlustrasi(BuildContext context, _DataLayarSambutan layar) {
+  Widget _buildKontenSambutan(
+    BuildContext context, {
+    required _DataLayarSambutan layar,
+    required int halamanAktif,
+    required int jumlahHalaman,
+  }) {
+    final teks = Theme.of(context).textTheme;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.besar),
+          padding: const EdgeInsets.symmetric(horizontal: 28),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: AppSizes.batasLebarKonten,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                MaskotStruki(
+                  key: const Key('maskot_sambutan'),
+                  pose: layar.pose,
+                  ukuran: AppSizes.ukuranMaskotSambutan,
                 ),
-                child: Column(
+                const SizedBox(height: 12),
+                Text(
+                  layar.judul,
+                  textAlign: TextAlign.center,
+                  style: teks.headlineMedium?.copyWith(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 300),
+                  child: Text(
+                    layar.isi,
+                    textAlign: TextAlign.center,
+                    style: teks.bodyLarge?.copyWith(
+                      fontSize: 15,
+                      color: AppColors.ink,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    MaskotStruki(
-                      key: const Key('maskot_sambutan'),
-                      pose: layar.pose,
-                      ukuran: 200,
-                    ),
-                    const SizedBox(height: AppSpacing.sedang),
-                    Text(
-                      layar.judul,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(
-                            fontFamily: 'Baloo2',
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.ink,
-                            height: 1.15,
-                          ),
-                    ),
-                    const SizedBox(height: AppSpacing.sedang),
-                    Text(
-                      layar.isi,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontFamily: 'Nunito',
-                        color: AppColors.ink,
-                        fontWeight: FontWeight.w600,
-                        height: 1.45,
+                  children: List.generate(jumlahHalaman, (index) {
+                    final aktif = index == halamanAktif;
+                    return AnimatedContainer(
+                      duration: AppDurations.animasiMunculKartu,
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: aktif ? 22 : 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: aktif ? AppColors.ink : AppColors.garisPutus,
+                        borderRadius: BorderRadius.circular(9),
                       ),
-                    ),
-                  ],
+                    );
+                  }),
                 ),
-              ),
+              ],
             ),
           ),
         );
@@ -296,241 +255,259 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
     );
   }
 
-  /// Label kecil di atas judul: huruf kapital, kecil, tebal.
-  Widget _buildLabelBadge(BuildContext context, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sedang,
-        vertical: AppSpacing.mini,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.kuningMuda,
-        borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-        border: Border.all(
-          color: AppColors.ink,
-          width: AppSizes.borderTipis,
-        ),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: AppColors.ink,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.0,
-        ),
-      ),
-    );
-  }
-
-  /// Judul besar Baloo 2 dengan satu frasa diberi efek stabilo kuning.
-  Widget _buildJudulBerstabilo(
-    BuildContext context, {
-    required String teksSebelum,
-    required String teksStabilo,
-    String? teksSetelah,
-  }) {
-    const double ukuranJudul = 28.0;
-    const double tinggiPita = ukuranJudul * 0.40;
-
-    final TextStyle gayaJudul =
-        (Theme.of(context).textTheme.titleLarge ??
-                const TextStyle(fontFamily: 'Baloo2'))
-            .copyWith(
-              fontSize: ukuranJudul,
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink,
-              height: 1.15,
-            );
-
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (teksSebelum.isNotEmpty) ...[
-            Text(teksSebelum, style: gayaJudul),
-            const SizedBox(width: 6),
-          ],
-          Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.bottomCenter,
-            children: [
-              Positioned(
-                bottom: 2.0,
-                left: 0.0,
-                right: 0.0,
-                height: tinggiPita,
-                child: Container(color: AppColors.stabilo),
-              ),
-              Text(teksStabilo, style: gayaJudul),
-            ],
-          ),
-          if (teksSetelah != null && teksSetelah.isNotEmpty) ...[
-            const SizedBox(width: 6),
-            Text(teksSetelah, style: gayaJudul),
-          ],
-        ],
-      ),
-    );
-  }
-
   Widget _buildLayarTarget(BuildContext context) {
+    final teks = Theme.of(context).textTheme;
+    final int perPekan = (_targetNominal / 4).round();
+
     return BlocBuilder<OnboardingCubit, OnboardingState>(
       builder: (context, state) {
         final bool memuat = state is OnboardingLoading;
 
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.besar,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                        maxWidth: AppSizes.batasLebarKonten,
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const SizedBox(height: AppSpacing.besar),
-                            const MaskotStruki(
-                              key: Key('maskot_target_sambutan'),
-                              pose: PoseMaskot.nabung,
-                              ukuran: 120,
-                            ),
-                            const SizedBox(height: AppSpacing.sedang),
-
-                            _buildLabelBadge(context, 'LANGKAH TERAKHIR'),
-                            const SizedBox(height: AppSpacing.agakKecil),
-
-                            _buildJudulBerstabilo(
-                              context,
-                              teksSebelum: 'Tentukan Target',
-                              teksStabilo: 'Bulanan',
-                            ),
-                            const SizedBox(height: AppSpacing.sedang),
-
-                            Text(
-                              'Berapa batas maksimal pengeluaranmu dalam sebulan? Tidak harus pas, cukup perkiraan kasar dulu.',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: AppColors.inkSoft,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.4,
-                                  ),
-                            ),
-                            const SizedBox(height: AppSpacing.lebihBesar),
-
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.sedang,
-                                vertical: AppSpacing.kecil,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.kartu,
-                                borderRadius: BorderRadius.circular(
-                                  AppSizes.radiusTombol,
-                                ),
-                                border: Border.all(
-                                  color: AppColors.ink,
-                                  width: AppSizes.border,
-                                ),
-                                boxShadow: const [AppTheme.bayanganKecilGelap],
-                              ),
-                              child: KolomInputNominal(
-                                key: const Key('kolom_target_bulanan'),
-                                nominal: _targetNominal,
-                                onChanged: (val) {
-                                  setState(() {
-                                    _targetNominal = val;
-                                    _pesanGalat = null;
-                                  });
-                                },
-                              ),
-                            ),
-
-                            if (_pesanGalat != null) ...[
-                              const SizedBox(height: AppSpacing.agakKecil),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.besar),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const MaskotStruki(
+                          key: Key('maskot_target_sambutan'),
+                          pose: PoseMaskot.nabung,
+                          ukuran: AppSizes.ukuranMaskotTarget,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Text(
-                                _pesanGalat!,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: AppColors.salah,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
+                                'LANGKAH 2 DARI 3',
+                                style: teks.labelSmall?.copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.4,
+                                  color: AppColors.inkSoft,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Berapa batas belanja sebulan?',
+                                style: teks.headlineSmall?.copyWith(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.ink,
+                                  height: 1.15,
                                 ),
                               ),
                             ],
-                            const SizedBox(height: AppSpacing.besar),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Angka ini jadi patokan refleksi. Bisa diubah kapan saja di Akun.',
+                      style: teks.bodyMedium?.copyWith(
+                        fontSize: 15,
+                        color: AppColors.ink,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'TARGET BULANAN',
+                      style: teks.labelSmall?.copyWith(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      constraints: const BoxConstraints(minHeight: 64),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.kartu,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.ink,
+                          width: AppSizes.border,
+                        ),
+                      ),
+                      alignment: Alignment.centerLeft,
+                      child: KolomInputNominal(
+                        key: const Key('kolom_target_bulanan'),
+                        nominal: _targetNominal,
+                        onChanged: (val) {
+                          setState(() {
+                            _targetNominal = val;
+                            _pesanGalat = null;
+                          });
+                        },
+                      ),
+                    ),
+                    if (_pesanGalat != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        _pesanGalat!,
+                        style: const TextStyle(
+                          color: AppColors.merahTeks,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: _pilihanPresetTarget.map((preset) {
+                        final terpilih = _targetNominal == preset.nilai;
+                        return Semantics(
+                          button: true,
+                          selected: terpilih,
+                          label: preset.label,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              setState(() {
+                                _targetNominal = preset.nilai;
+                                _pesanGalat = null;
+                              });
+                            },
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                minWidth: 48,
+                                minHeight: 48,
+                              ),
+                              child: Center(
+                                widthFactor: 1.0,
+                                child: Container(
+                                  constraints: const BoxConstraints(
+                                    minHeight: 36,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: terpilih
+                                        ? AppColors.ink
+                                        : AppColors.kartu,
+                                    borderRadius: BorderRadius.circular(
+                                      AppSizes.radiusPil,
+                                    ),
+                                    border: Border.all(
+                                      color: AppColors.ink,
+                                      width: AppSizes.border,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    preset.label,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                      color: terpilih
+                                          ? AppColors.kartu
+                                          : AppColors.ink,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.hijauMuda,
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.radiusKartu,
+                        ),
+                        border: Border.all(
+                          color: AppColors.ink,
+                          width: AppSizes.border,
+                        ),
+                      ),
+                      child: Text.rich(
+                        TextSpan(
+                          style: teks.bodyMedium?.copyWith(
+                            fontSize: 15,
+                            color: AppColors.ink,
+                            height: 1.5,
+                          ),
+                          children: [
+                            const TextSpan(text: 'Sekitar '),
+                            TextSpan(
+                              text: '${perPekan.toRupiah()} per pekan',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const TextSpan(
+                              text:
+                                  '. Struki akan kabari kalau pekan ini mendekati batas.',
+                            ),
                           ],
                         ),
                       ),
                     ),
-                  );
-                },
+                  ],
+                ),
               ),
             ),
-
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.besar,
-                vertical: AppSpacing.sedang,
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.besar,
+                AppSpacing.kecil,
+                AppSpacing.besar,
+                AppSpacing.besar,
               ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: AppSizes.batasLebarKonten,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(
-                        child: TextButton(
-                          key: const Key('tombol_nanti_saja'),
-                          onPressed: memuat
-                              ? null
-                              : () => _lewatiTarget(context),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.inkSoft,
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.sedang,
-                              vertical: AppSpacing.kecil,
-                            ),
-                          ),
-                          child: const Text(
-                            'Nanti saja',
-                            style: TextStyle(
-                              color: AppColors.inkSoft,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: TextButton(
+                      key: const Key('tombol_nanti_saja'),
+                      onPressed: memuat ? null : () => _lewatiTarget(context),
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                      ),
+                      child: const Text(
+                        'Nanti saja',
+                        style: TextStyle(
+                          color: AppColors.inkSoft,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.sangatKecil),
-                      TombolStabilo(
-                        key: const Key('tombol_simpan_target'),
-                        teks: 'Simpan Target',
-                        isLoading: memuat,
-                        ikon: Icons.check_rounded,
-                        onPressed: (_targetNominal > 0 && !memuat)
-                            ? () => _simpanTarget(context)
-                            : null,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  TombolStabilo(
+                    key: const Key('tombol_simpan_target'),
+                    teks: 'Lanjut',
+                    isLoading: memuat,
+                    onPressed: (_targetNominal > 0 && !memuat)
+                        ? () => _simpanTarget(context)
+                        : null,
+                  ),
+                ],
               ),
             ),
           ],
@@ -540,7 +517,6 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
   }
 }
 
-/// Data satu layar sambutan (F-16, Insap 2.0).
 class _DataLayarSambutan {
   final String judul;
   final String isi;
@@ -555,15 +531,10 @@ class _DataLayarSambutan {
 
 const List<_DataLayarSambutan> _layarSambutan = [
   _DataLayarSambutan(
-    judul: 'Kenalan dengan Insap',
+    judul: 'Halo, aku Struki!',
     isi:
-        'Insap mengajakmu sadar ke mana uangmu pergi, ala Kakeibo dari Jepang: catat, lihat, lalu renungkan tiap pekan.',
+        'Kirim struk belanjamu ke aku. Aku catat, kamu tinggal insaf sebelum boncos.',
     pose: PoseMaskot.mulai,
-  ),
-  _DataLayarSambutan(
-    judul: 'Catat dalam hitungan detik',
-    isi: 'Ketuk Catat Cepat, isi nominal, pilih kategori, lalu simpan.',
-    pose: PoseMaskot.catat,
   ),
   _DataLayarSambutan(
     judul: 'Biar AI yang baca struknya',
@@ -577,45 +548,4 @@ const List<_DataLayarSambutan> _layarSambutan = [
         'Tiap akhir pekan, lihat ke mana uangmu pergi dan tulis satu hal yang mau diperbaiki.',
     pose: PoseMaskot.detektif,
   ),
-  _DataLayarSambutan(
-    judul: 'Semua catatan ada di Riwayat',
-    isi:
-        'Cari dan saring catatanmu kapan saja. Masuk akun kalau mau mencadangkan data.',
-    pose: PoseMaskot.hemat,
-  ),
 ];
-
-/// Tombol "Kembali" putih bergaris ink. Nonaktif (latar garis) saat [onTap]
-/// kosong, yaitu di layar pertama.
-class _TombolKembaliSambutan extends StatelessWidget {
-  final VoidCallback? onTap;
-
-  const _TombolKembaliSambutan({super.key, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final bool aktif = onTap != null;
-    return KartuBukuTulis(
-      onTap: onTap,
-      backgroundColor: aktif ? AppColors.kartu : AppColors.garis,
-      shadow: AppTheme.bayanganGelap,
-      pressedShadow: AppTheme.bayanganGelapTertekan,
-      radius: AppSizes.radiusTombol,
-      padding: EdgeInsets.zero,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          minHeight: AppSizes.tinggiTombol - AppSizes.border * 2,
-        ),
-        child: Center(
-          child: Text(
-            'Kembali',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: aktif ? AppColors.ink : AppColors.inkSoft,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

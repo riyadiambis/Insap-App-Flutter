@@ -45,64 +45,79 @@ class _TombolStabiloState extends State<TombolStabilo> {
     final bool disabled = widget.onPressed == null || widget.isLoading;
     const geser = AppSizes.geserTekan;
 
-    return GestureDetector(
-      onTapDown: disabled ? null : _handleTapDown,
-      onTapUp: disabled ? null : _handleTapUp,
-      onTapCancel: disabled ? null : _handleTapCancel,
-      onTap: disabled ? null : widget.onPressed,
-      child: AnimatedContainer(
-        duration: AppDurations.animasiTekan,
-        height: AppSizes.tinggiTombol,
-        margin: EdgeInsets.only(
-          left: _isPressed ? geser : 0,
-          top: _isPressed ? geser : 0,
-          right: _isPressed ? 0 : geser,
-          bottom: _isPressed ? 0 : geser,
-        ),
-        decoration: BoxDecoration(
-          color: disabled ? AppColors.garis : AppColors.stabilo,
-          border: Border.all(color: AppColors.ink, width: AppSizes.border),
-          borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
-          // tombol utama stabilo pakai bayangan gelap (lihat theme.dart)
-          boxShadow: [
-            _isPressed
-                ? AppTheme.bayanganGelapTertekan
-                : AppTheme.bayanganGelap,
-          ],
-        ),
-        child: Center(
-          child: widget.isLoading
-              ? const SizedBox(
-                  width: AppSizes.indikatorMuat,
-                  height: AppSizes.indikatorMuat,
-                  child: CircularProgressIndicator(
-                    strokeWidth: AppSizes.tebalIndikatorMuat,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.ink),
-                  ),
-                )
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (widget.ikon != null) ...[
-                      Icon(
-                        widget.ikon,
-                        size: AppSizes.ikonAksi,
-                        color: AppColors.ink,
+    return Semantics(
+      button: true,
+      enabled: !disabled,
+      label: widget.teks,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: disabled ? null : _handleTapDown,
+        onTapUp: disabled ? null : _handleTapUp,
+        onTapCancel: disabled ? null : _handleTapCancel,
+        onTap: disabled ? null : widget.onPressed,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: AnimatedContainer(
+            duration: AppDurations.animasiTekan,
+            height: AppSizes.tinggiTombol,
+            margin: EdgeInsets.only(
+              left: _isPressed ? geser : 0,
+              top: _isPressed ? geser : 0,
+              right: _isPressed ? 0 : geser,
+              bottom: _isPressed ? 0 : geser,
+            ),
+            decoration: BoxDecoration(
+              color: disabled ? AppColors.garis : AppColors.stabilo,
+              border: Border.all(color: AppColors.ink, width: AppSizes.border),
+              borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
+              // tombol utama stabilo pakai bayangan 3x3 ink (kanvas .btn)
+              boxShadow: [
+                _isPressed
+                    ? AppTheme.bayanganGelapTertekan
+                    : AppTheme.bayanganTombolGelap,
+              ],
+            ),
+            child: Center(
+              child: widget.isLoading
+                  ? const SizedBox(
+                      width: AppSizes.indikatorMuat,
+                      height: AppSizes.indikatorMuat,
+                      child: CircularProgressIndicator(
+                        strokeWidth: AppSizes.tebalIndikatorMuat,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.ink,
+                        ),
                       ),
-                      const SizedBox(width: AppSpacing.kecil),
-                    ],
-                    Flexible(
-                      child: Text(
-                        widget.teks,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
-                      ),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (widget.ikon != null) ...[
+                          Icon(
+                            widget.ikon,
+                            size: AppSizes.ikonAksi,
+                            color: AppColors.ink,
+                          ),
+                          const SizedBox(width: AppSpacing.kecil),
+                        ],
+                        Flexible(
+                          child: Text(
+                            widget.teks,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(
+                                  fontFamily: 'Nunito',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.ink,
+                                ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+            ),
+          ),
         ),
       ),
     );

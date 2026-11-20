@@ -174,8 +174,8 @@ void main() {
         await tester.pump();
       }
 
-      // ketuk tombol simpan transaksi
-      final tombolSimpan = find.textContaining('Simpan Transaksi');
+      // ketuk tombol simpan catatan
+      final tombolSimpan = find.textContaining('Simpan catatan');
       await tester.ensureVisible(tombolSimpan);
       await tester.tap(tombolSimpan);
       await tester.pumpAndSettle();

@@ -22,6 +22,7 @@ class _HalamanMasukState extends State<HalamanMasuk> {
   final _emailController = TextEditingController();
   final _sandiController = TextEditingController();
 
+  bool _tampilkanFormEmail = false;
   bool _modeDaftar = false;
   bool _sembunyikanSandi = true;
 
@@ -150,8 +151,8 @@ class _HalamanMasukState extends State<HalamanMasuk> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: HeaderAplikasi(
-        namaLayar: _modeDaftar ? 'Daftar Akun' : 'Masuk Akun',
+      appBar: const HeaderAplikasi(
+        namaLayar: 'Masuk',
         modeKembali: true,
       ),
       body: PaperBackground(
@@ -177,9 +178,10 @@ class _HalamanMasukState extends State<HalamanMasuk> {
           },
           builder: (context, state) {
             final sedangMemuat = state is AkunMemuat;
+            final teks = Theme.of(context).textTheme;
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.besar),
+            return SafeArea(
+              top: false,
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(
@@ -188,204 +190,316 @@ class _HalamanMasukState extends State<HalamanMasuk> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(
-                        children: [
-                          Image.asset(
-                            'assets/images/logo_insap.png',
-                            width: 52,
-                            height: 52,
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(width: AppSpacing.sedang),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _modeDaftar
-                                      ? 'Buat Akun Insap'
-                                      : 'Simpan catatan di awan',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.ink,
-                                      ),
-                                ),
-                                Text(
-                                  _modeDaftar
-                                      ? 'Daftar untuk mencadangkan catatan'
-                                      : 'Masuk supaya catatanmu aman saat ganti HP.',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        fontSize: 13.5,
-                                        color: AppColors.inkSoft,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.besar),
-
-                      KartuBukuTulis(
-                        shadow: AppTheme.bayanganGelap,
-                        pressedShadow: AppTheme.bayanganGelapTertekan,
-                        padding: const EdgeInsets.all(AppSpacing.besar),
-                        child: Form(
-                          key: _formKey,
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(AppSpacing.besar),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text(
-                                'Alamat Surel',
-                                style: Theme.of(context).textTheme.labelMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.4,
-                                      color: AppColors.inkSoft,
-                                    ),
-                              ),
-                              const SizedBox(height: AppSpacing.agakKecil),
-                              TextFormField(
-                                controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                enabled: !sedangMemuat,
-                                decoration: _dekorasiInput(
-                                  hintText: 'nama@domain.com',
-                                  prefixIcon: Icons.email_outlined,
-                                ),
-                                validator: (val) {
-                                  if (val == null || val.trim().isEmpty) {
-                                    return 'Surel tidak boleh kosong';
-                                  }
-                                  if (!val.contains('@') ||
-                                      !val.contains('.')) {
-                                    return 'Format surel tidak valid';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: AppSpacing.sedang),
-                              Text(
-                                'Kata Sandi',
-                                style: Theme.of(context).textTheme.labelMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.4,
-                                      color: AppColors.inkSoft,
-                                    ),
-                              ),
-                              const SizedBox(height: AppSpacing.agakKecil),
-                              TextFormField(
-                                controller: _sandiController,
-                                obscureText: _sembunyikanSandi,
-                                enabled: !sedangMemuat,
-                                decoration: _dekorasiInput(
-                                  hintText: 'Minimal 6 karakter',
-                                  prefixIcon: Icons.key_outlined,
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _sembunyikanSandi
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                      color: AppColors.ink,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _sembunyikanSandi = !_sembunyikanSandi;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                validator: (val) {
-                                  if (val == null || val.isEmpty) {
-                                    return 'Kata sandi tidak boleh kosong';
-                                  }
-                                  if (val.length < 6) {
-                                    return 'Kata sandi minimal 6 karakter';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              if (!_modeDaftar) ...[
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: TextButton(
-                                    onPressed: sedangMemuat
-                                        ? null
-                                        : _tampilkanDialogLupaSandi,
-                                    child: const Text(
-                                      'Lupa kata sandi?',
-                                      style: TextStyle(
-                                        color: AppColors.inkSoft,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ] else
-                                const SizedBox(height: AppSpacing.besar),
-                              TombolStabilo(
-                                teks: _modeDaftar
-                                    ? 'Daftar Sekarang'
-                                    : 'Masuk ke Akun',
-                                isLoading: sedangMemuat,
-                                onPressed: sedangMemuat ? null : _kirimForm,
-                              ),
-                              const SizedBox(height: AppSpacing.sedang),
-                              _TombolGoogleMasuk(
-                                key: const Key('tombol_masuk_google'),
-                                onPressed: sedangMemuat
-                                    ? null
-                                    : () => context
-                                          .read<AkunCubit>()
-                                          .masukDenganGoogle(),
-                              ),
-                              const SizedBox(height: AppSpacing.sedang),
+                              const SizedBox(height: 24),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    _modeDaftar
-                                        ? 'Sudah punya akun?'
-                                        : 'Belum punya akun?',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
+                                  Image.asset(
+                                    'assets/images/logo_insap.png',
+                                    width: 56,
+                                    height: 56,
+                                    fit: BoxFit.contain,
                                   ),
-                                  TextButton(
-                                    onPressed: sedangMemuat
-                                        ? null
-                                        : () {
-                                            setState(() {
-                                              _modeDaftar = !_modeDaftar;
-                                              _formKey.currentState?.reset();
-                                            });
-                                          },
-                                    child: Text(
-                                      _modeDaftar
-                                          ? 'Masuk di sini'
-                                          : 'Daftar baru',
-                                      style: const TextStyle(
-                                        color: AppColors.ink,
-                                        fontWeight: FontWeight.w800,
-                                      ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'CADANGAN AWAN',
+                                    style: teks.labelSmall?.copyWith(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.4,
+                                      color: AppColors.inkSoft,
                                     ),
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 14),
+                              Text(
+                                'Simpan catatan di awan',
+                                style: teks.headlineMedium?.copyWith(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.ink,
+                                  height: 1.15,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                'Masuk supaya catatanmu aman saat ganti HP. Tanpa akun pun Insap tetap jalan, data tersimpan di HP ini.',
+                                style: teks.bodyMedium?.copyWith(
+                                  fontSize: 15,
+                                  height: 1.5,
+                                  color: AppColors.ink,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              KartuBukuTulis(
+                                shadow: AppTheme.bayanganGelap,
+                                pressedShadow: AppTheme.bayanganGelapTertekan,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                child: const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _BarisManfaatMasuk(
+                                      ikon: Icons.cloud_outlined,
+                                      teks: 'Cadangan transaksi ke awan',
+                                    ),
+                                    SizedBox(height: 10),
+                                    _BarisManfaatMasuk(
+                                      ikon: Icons.category_outlined,
+                                      teks:
+                                          'Kategori dan refleksi ikut tersimpan',
+                                    ),
+                                    SizedBox(height: 10),
+                                    _BarisManfaatMasuk(
+                                      ikon: Icons.delete_outline_rounded,
+                                      teks: 'Bisa dihapus kapan saja',
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Center(
+                                child: TextButton(
+                                  key: const Key('tombol_toggle_form_email'),
+                                  onPressed: () {
+                                    setState(() {
+                                      _tampilkanFormEmail =
+                                          !_tampilkanFormEmail;
+                                    });
+                                  },
+                                  child: Text(
+                                    _tampilkanFormEmail
+                                        ? 'Sembunyikan masuk dengan surel'
+                                        : 'Masuk atau daftar dengan surel',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.inkSoft,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (_tampilkanFormEmail) ...[
+                                const SizedBox(height: 8),
+                                KartuBukuTulis(
+                                  shadow: AppTheme.bayanganGelap,
+                                  pressedShadow: AppTheme.bayanganGelapTertekan,
+                                  padding: const EdgeInsets.all(
+                                    AppSpacing.besar,
+                                  ),
+                                  child: Form(
+                                    key: _formKey,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Text(
+                                          'ALAMAT SUREL',
+                                          style: teks.labelMedium?.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.4,
+                                            color: AppColors.inkSoft,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: AppSpacing.agakKecil,
+                                        ),
+                                        TextFormField(
+                                          controller: _emailController,
+                                          keyboardType:
+                                              TextInputType.emailAddress,
+                                          enabled: !sedangMemuat,
+                                          decoration: _dekorasiInput(
+                                            hintText: 'nama@domain.com',
+                                            prefixIcon: Icons.email_outlined,
+                                          ),
+                                          validator: (val) {
+                                            if (val == null ||
+                                                val.trim().isEmpty) {
+                                              return 'Surel tidak boleh kosong';
+                                            }
+                                            if (!val.contains('@') ||
+                                                !val.contains('.')) {
+                                              return 'Format surel tidak valid';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        const SizedBox(
+                                          height: AppSpacing.sedang,
+                                        ),
+                                        Text(
+                                          'KATA SANDI',
+                                          style: teks.labelMedium?.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.4,
+                                            color: AppColors.inkSoft,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: AppSpacing.agakKecil,
+                                        ),
+                                        TextFormField(
+                                          controller: _sandiController,
+                                          obscureText: _sembunyikanSandi,
+                                          enabled: !sedangMemuat,
+                                          decoration: _dekorasiInput(
+                                            hintText: 'Minimal 6 karakter',
+                                            prefixIcon: Icons.key_outlined,
+                                            suffixIcon: IconButton(
+                                              icon: Icon(
+                                                _sembunyikanSandi
+                                                    ? Icons.visibility_outlined
+                                                    : Icons
+                                                          .visibility_off_outlined,
+                                                color: AppColors.ink,
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  _sembunyikanSandi =
+                                                      !_sembunyikanSandi;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                          validator: (val) {
+                                            if (val == null || val.isEmpty) {
+                                              return 'Kata sandi tidak boleh kosong';
+                                            }
+                                            if (val.length < 6) {
+                                              return 'Kata sandi minimal 6 karakter';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        if (!_modeDaftar) ...[
+                                          Align(
+                                            alignment: Alignment.centerRight,
+                                            child: TextButton(
+                                              onPressed: sedangMemuat
+                                                  ? null
+                                                  : _tampilkanDialogLupaSandi,
+                                              child: const Text(
+                                                'Lupa kata sandi?',
+                                                style: TextStyle(
+                                                  color: AppColors.inkSoft,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ] else
+                                          const SizedBox(
+                                            height: AppSpacing.besar,
+                                          ),
+                                        TombolStabilo(
+                                          teks: _modeDaftar
+                                              ? 'Daftar Sekarang'
+                                              : 'Masuk ke Akun',
+                                          isLoading: sedangMemuat,
+                                          onPressed: sedangMemuat
+                                              ? null
+                                              : _kirimForm,
+                                        ),
+                                        const SizedBox(
+                                          height: AppSpacing.sedang,
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              _modeDaftar
+                                                  ? 'Sudah punya akun?'
+                                                  : 'Belum punya akun?',
+                                              style: teks.bodySmall,
+                                            ),
+                                            TextButton(
+                                              onPressed: sedangMemuat
+                                                  ? null
+                                                  : () {
+                                                      setState(() {
+                                                        _modeDaftar =
+                                                            !_modeDaftar;
+                                                        _formKey.currentState
+                                                            ?.reset();
+                                                      });
+                                                    },
+                                              child: Text(
+                                                _modeDaftar
+                                                    ? 'Masuk di sini'
+                                                    : 'Daftar baru',
+                                                style: const TextStyle(
+                                                  color: AppColors.ink,
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 8),
+                              const TombolTentangAplikasi(),
                             ],
                           ),
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.besar),
-                      const TombolTentangAplikasi(),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.besar,
+                          AppSpacing.kecil,
+                          AppSpacing.besar,
+                          AppSpacing.besar,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _TombolGoogleMasuk(
+                              key: const Key('tombol_masuk_google'),
+                              onPressed: sedangMemuat
+                                  ? null
+                                  : () => context
+                                        .read<AkunCubit>()
+                                        .masukDenganGoogle(),
+                            ),
+                            const SizedBox(height: 6),
+                            TextButton(
+                              key: const Key('tombol_lanjut_tanpa_akun'),
+                              onPressed: () {
+                                if (Navigator.of(context).canPop()) {
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                              style: TextButton.styleFrom(
+                                minimumSize: const Size(48, 48),
+                              ),
+                              child: const Text(
+                                'Lanjut tanpa akun',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.ink,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -394,6 +508,42 @@ class _HalamanMasukState extends State<HalamanMasuk> {
           },
         ),
       ),
+    );
+  }
+}
+
+class _BarisManfaatMasuk extends StatelessWidget {
+  final IconData ikon;
+  final String teks;
+
+  const _BarisManfaatMasuk({required this.ikon, required this.teks});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: AppColors.hijauMuda,
+            border: Border.all(color: AppColors.ink, width: AppSizes.border),
+            borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+          ),
+          child: Icon(ikon, size: 18, color: AppColors.ink),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            teks,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontSize: 15,
+              height: 1.4,
+              color: AppColors.ink,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -420,7 +570,7 @@ class _TombolGoogleMasuk extends StatelessWidget {
               color: AppColors.kartu,
               border: Border.all(color: AppColors.ink, width: AppSizes.border),
               borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
-              boxShadow: const [AppTheme.bayanganKecilGelap],
+              boxShadow: const [AppTheme.bayanganTombolGelap],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -433,7 +583,7 @@ class _TombolGoogleMasuk extends StatelessWidget {
                 const SizedBox(width: AppSpacing.kecil),
                 Text(
                   'Masuk dengan Google',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: AppColors.ink,

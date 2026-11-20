@@ -141,12 +141,12 @@ void main() {
       await tester.pumpWidget(bangunAplikasiUji(10));
       await tester.pumpAndSettle();
 
-      expect(find.text('Detail Transaksi'), findsOneWidget);
+      expect(find.text('Detail'), findsOneWidget);
       expect(find.text('Makan'), findsOneWidget);
-      expect(find.text('-Rp35.000'), findsOneWidget);
+      expect(find.text('Rp35.000'), findsOneWidget);
       expect(find.text('Makan siang bareng tim'), findsOneWidget);
       expect(find.text('Manual'), findsOneWidget);
-      expect(find.text('Hapus Transaksi'), findsOneWidget);
+      expect(find.text('Hapus'), findsOneWidget);
     },
   );
 
@@ -187,7 +187,7 @@ void main() {
       await tester.pumpWidget(bangunAplikasiUji(10));
       await tester.pumpAndSettle();
 
-      final tombolHapus = find.text('Hapus Transaksi');
+      final tombolHapus = find.text('Hapus');
       expect(tombolHapus, findsOneWidget);
 
       await tester.tap(tombolHapus);
@@ -195,7 +195,7 @@ void main() {
 
       expect(find.text('Hapus Transaksi?'), findsOneWidget);
       expect(find.text('Batal'), findsOneWidget);
-      expect(find.text('Hapus'), findsOneWidget);
+      expect(find.text('Hapus'), findsNWidgets(2));
     },
   );
 }

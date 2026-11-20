@@ -261,8 +261,7 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
                       buildWhen: (prev, curr) => prev.status != curr.status,
                       builder: (context, state) {
                         return TombolStabilo(
-                          teks: 'Simpan Transaksi',
-                          ikon: Icons.check_rounded,
+                          teks: 'Simpan catatan',
                           isLoading:
                               state.status == StatusCatatTransaksi.menyimpan,
                           onPressed: _simpan,
@@ -439,25 +438,13 @@ class _BagianKategori extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'KATEGORI',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.inkSoft,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
-                  ),
-            ),
-            Text(
-              'Wajib 1',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.inkSoft,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-          ],
+        Text(
+          'KATEGORI',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: AppColors.inkSoft,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.4,
+          ),
         ),
         const SizedBox(height: AppSpacing.kecil),
         BlocBuilder<KategoriCubit, KategoriState>(
@@ -903,37 +890,25 @@ class _BagianCatatan extends StatelessWidget {
             border: Border.all(color: AppColors.ink, width: AppSizes.border),
             borderRadius: BorderRadius.circular(AppSizes.radiusKotakIkonKuota),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.edit_note_rounded,
-                size: AppSizes.ikonNavigasi,
+          alignment: Alignment.centerLeft,
+          child: TextFormField(
+            controller: controller,
+            maxLength: AppConstraints.maxPanjangCatatan,
+            maxLines: 1,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Tambah catatan (misal: Es kopi sama temen)...',
+              hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.inkSoft,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(width: AppSpacing.kecil),
-              Expanded(
-                child: TextFormField(
-                  controller: controller,
-                  maxLength: AppConstraints.maxPanjangCatatan,
-                  maxLines: 1,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.ink,
-                      ),
-                  decoration: InputDecoration(
-                    hintText: 'Tambah catatan (misal: Es kopi sama temen)...',
-                    hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.inkSoft,
-                          fontWeight: FontWeight.w600,
-                        ),
-                    border: InputBorder.none,
-                    counterText: '',
-                  ),
-                ),
-              ),
-            ],
+              border: InputBorder.none,
+              counterText: '',
+            ),
           ),
         ),
       ],

@@ -220,18 +220,25 @@ class _RiwayatViewState extends State<_RiwayatView> {
             child: BlocBuilder<RiwayatCubit, RiwayatState>(
               builder: (context, state) {
                 final isFilterAktif = state.isFilterAktif;
+                final bool benarKosong =
+                    state.status != RiwayatStatus.loading &&
+                    state.status != RiwayatStatus.error &&
+                    state.daftarTransaksi.isEmpty &&
+                    !isFilterAktif &&
+                    !_adaFilterLokal;
 
                 return Column(
                   children: [
-                    // Baris cari + tombol filter + chip sumber
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.besar,
-                        AppSpacing.besar,
-                        AppSpacing.besar,
-                        AppSpacing.sedang,
-                      ),
-                      child: Column(
+                    // Baris cari + tombol filter + chip sumber (disembunyikan saat benar-benar kosong sesuai Kosong.dc.html)
+                    if (!benarKosong)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.besar,
+                          AppSpacing.besar,
+                          AppSpacing.besar,
+                          AppSpacing.sedang,
+                        ),
+                        child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Row(
@@ -510,7 +517,9 @@ class _RiwayatViewState extends State<_RiwayatView> {
                   children: [
                     Flexible(
                       child: Text(
-                        RiwayatHelper.formatTanggalGrup(item.tanggal),
+                        RiwayatHelper.formatTanggalGrup(
+                          item.tanggal,
+                        ).toUpperCase(),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -687,75 +696,96 @@ class _RiwayatViewState extends State<_RiwayatView> {
       );
     }
 
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.besar,
-          AppSpacing.besar,
-          AppSpacing.besar,
-          AppSpacing.jarakGulirBawah,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const MaskotStruki(pose: PoseMaskot.catat, ukuran: 210),
-            const SizedBox(height: AppSpacing.sedang),
-            Text(
-              'Belum Ada Catatan Boncos',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ink,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.kecil),
-            Text(
-              'Catat belanja pertamamu, atau pindai struk biar Struki yang mengetik.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontSize: 15,
-                color: AppColors.inkSoft,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lebihBesar),
-            GestureDetector(
-              onTap: () => context.go('/catat'),
-              child: Container(
-                height: 52,
-                decoration: BoxDecoration(
-                  color: AppColors.kartu,
-                  border: Border.all(
-                    color: AppColors.ink,
-                    width: AppSizes.border,
-                  ),
-                  borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
-                  boxShadow: const [AppTheme.bayanganKecilGelap],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.besar,
+        AppSpacing.besar,
+        AppSpacing.besar,
+        AppSpacing.jarakGulirBawah,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.edit_note_rounded,
-                      color: AppColors.ink,
-                      size: 20,
+                    const MaskotStruki(
+                      pose: PoseMaskot.catat,
+                      ukuran: AppSizes.ukuranMaskotKosong,
                     ),
-                    const SizedBox(width: AppSpacing.kecil),
+                    const SizedBox(height: 12),
                     Text(
-                      'Catat Pengeluaran',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontSize: 16,
+                      'Belum ada catatan',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontSize: 26,
                         fontWeight: FontWeight.w800,
                         color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Catat belanja pertamamu, atau pindai struk biar Struki yang mengetik.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 15,
+                        color: AppColors.ink,
+                        height: 1.5,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: AppSpacing.sedang),
+          Semantics(
+            button: true,
+            label: 'Catat manual',
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => context.go('/catat'),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                child: Container(
+                  height: AppSizes.tinggiTombol,
+                  decoration: BoxDecoration(
+                    color: AppColors.kartu,
+                    border: Border.all(
+                      color: AppColors.ink,
+                      width: AppSizes.border,
+                    ),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
+                    boxShadow: const [AppTheme.bayanganTombolGelap],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.edit_outlined,
+                        color: AppColors.ink,
+                        size: 18,
+                      ),
+                      const SizedBox(width: AppSpacing.kecil),
+                      Text(
+                        'Catat manual',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

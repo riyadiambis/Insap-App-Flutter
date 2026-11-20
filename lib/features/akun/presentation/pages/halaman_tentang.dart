@@ -15,7 +15,7 @@ class HalamanTentang extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const HeaderAplikasi(
-        namaLayar: 'Tentang Aplikasi',
+        namaLayar: 'Tentang',
         modeKembali: true,
       ),
       body: PaperBackground(

@@ -17,8 +17,10 @@ class AppColors {
   static const Color benarLatar = Color(0xFFE4F6EA);
   static const Color benar = Color(0xFF1F9254);
   static const Color salahLatar = Color(0xFFFCEAE6);
+  static const Color boncosLatar = Color(0xFFFDE3DD);
   static const Color salah = Color(0xFFD9482F);
   static const Color aksenPengen = Color(0xFFFFB020);
+  static const Color biruPudar = Color(0xFFDCE8F2);
 
   /// tidak dipakai lagi sejak 2.0
   static const Color aiBiru = Color(0xFF2E6DB4);
@@ -56,11 +58,11 @@ class AppSizes {
   static const double badgeKategori = 46.0;
   static const double radiusBadge = 12.0;
   static const double radiusTombol = 14.0;
-  static const double tinggiTombol = 56.0;
+  static const double tinggiTombol = 52.0;
   static const double radiusKartu = 16.0;
   static const double border = 2.0;
   static const double borderTipis = 1.0;
-  static const double batasLebarKonten = 460.0;
+  static const double batasLebarKonten = 560.0;
 
   // jarak geser kartu/tombol pas ditekan, = selisih offset bayangan
   // normal (4) dan tertekan (2)
@@ -148,6 +150,17 @@ class AppSizes {
   // skala tablet (main)
   static const double ambangTablet = 600.0;
   static const double skalaTablet = 1.5;
+
+  // ukuran maskot per layar (sesuai *.dc.html)
+  static const double ukuranMaskotSambutan = 220.0;
+  static const double ukuranMaskotTarget = 120.0;
+  static const double ukuranMaskotBeranda = 76.0;
+  static const double ukuranMaskotPindai = 210.0;
+  static const double ukuranMaskotKuotaHabis = 190.0;
+  static const double ukuranMaskotKosong = 210.0;
+  static const double ukuranMaskotRefleksi = 160.0;
+  static const double ukuranMaskotLangganan = 84.0;
+  static const double ukuranMaskotPopup = 130.0;
 
   // layar catat transaksi
   static const double tinggiPilihanTanggal = 44.0;
@@ -256,23 +269,23 @@ class AppTheme {
         labelLarge: TextStyle(
           fontFamily: 'Nunito',
           color: AppColors.ink,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w800,
           fontSize: 13,
-          letterSpacing: 1.2,
+          letterSpacing: 0.4,
         ),
         labelMedium: TextStyle(
           fontFamily: 'Nunito',
           color: AppColors.ink,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w800,
           fontSize: 13,
-          letterSpacing: 1.2,
+          letterSpacing: 0.4,
         ),
         labelSmall: TextStyle(
           fontFamily: 'Nunito',
           color: AppColors.inkSoft,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w800,
           fontSize: 13,
-          letterSpacing: 1.2,
+          letterSpacing: 0.4,
         ),
       ),
     );
@@ -300,9 +313,9 @@ class AppTheme {
     height: 1.0,
   );
 
-  /// Bayangan offset solid bawaan, dipakai pada kartu dan komponen netral.
+  /// Bayangan offset solid bawaan, dipakai pada kartu sesuai SPEK.md.
   static const BoxShadow bayanganDefault = BoxShadow(
-    color: AppColors.garis,
+    color: AppColors.ink,
     offset: Offset(4, 4),
     blurRadius: 0,
   );
@@ -310,12 +323,19 @@ class AppTheme {
   /// Versi "tertekan" dari [bayanganDefault], kartu bergeser ke arah
   /// bayangan saat ditekan.
   static const BoxShadow bayanganDefaultTertekan = BoxShadow(
-    color: AppColors.garis,
+    color: AppColors.ink,
     offset: Offset(2, 2),
     blurRadius: 0,
   );
 
-  /// Bayangan gelap, dipakai untuk tombol utama bergaya stabilo.
+  /// Bayangan gelap 3x3, dipakai untuk tombol utama bergaya stabilo (.btn).
+  static const BoxShadow bayanganTombolGelap = BoxShadow(
+    color: AppColors.ink,
+    offset: Offset(3, 3),
+    blurRadius: 0,
+  );
+
+  /// Bayangan gelap 4x4, dipakai pada kartu.
   static const BoxShadow bayanganGelap = BoxShadow(
     color: AppColors.ink,
     offset: Offset(4, 4),
@@ -328,6 +348,17 @@ class AppTheme {
     offset: Offset(2, 2),
     blurRadius: 0,
   );
+
+  /// Bayangan paket terpilih di layar Langganan.
+  static const List<BoxShadow> bayanganPaketPro = [
+    BoxShadow(
+      color: AppColors.ink,
+      offset: Offset(5, 5),
+      spreadRadius: 2,
+      blurRadius: 0,
+    ),
+    BoxShadow(color: AppColors.stabilo, offset: Offset(5, 5), blurRadius: 0),
+  ];
 
   /// Bayangan solid 6x6 ink untuk kotak ilustrasi halaman sambutan.
   static const BoxShadow bayanganIlustrasi = BoxShadow(
@@ -378,7 +409,7 @@ class AppTheme {
       border: Border.all(color: AppColors.ink, width: 2.0),
       borderRadius: BorderRadius.circular(radius),
       boxShadow: const [
-        BoxShadow(color: AppColors.garis, offset: Offset(4, 4), blurRadius: 0),
+        BoxShadow(color: AppColors.ink, offset: Offset(4, 4), blurRadius: 0),
       ],
     );
   }

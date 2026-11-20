@@ -249,7 +249,7 @@ void main() {
       await tester.pumpWidget(bangunAplikasiUji());
       await tester.pumpAndSettle();
 
-      expect(find.text('Pindai Struk'), findsOneWidget);
+      expect(find.text('Pindai struk'), findsOneWidget);
       expect(find.text('Kuota Pindai Pekan Ini'), findsOneWidget);
       expect(find.text('8 dari 5 tersisa'), findsOneWidget);
       expect(find.text('Lihat panduan'), findsOneWidget);
@@ -356,7 +356,7 @@ void main() {
         await Future.microtask(() {});
         await tester.pump();
 
-        expect(find.text('Menganalisis Struk dengan AI...'), findsOneWidget);
+        expect(find.text('Struki sedang membaca strukmu'), findsOneWidget);
         // No 11: Verifikasi kalimat privasi tetap
         expect(
           find.text(
@@ -364,7 +364,7 @@ void main() {
           ),
           findsOneWidget,
         );
-        expect(find.text('Batalkan'), findsOneWidget);
+        expect(find.text('Batal'), findsOneWidget);
 
         fakePindaiRepo.completer!.complete(
           const HasilPindaiEntity(adalahStruk: true, keyakinan: 0.9),
@@ -396,8 +396,8 @@ void main() {
         await Future.microtask(() {});
         await tester.pump();
 
-        expect(find.text('Batalkan'), findsOneWidget);
-        await tester.tap(find.text('Batalkan'));
+        expect(find.text('Batal'), findsOneWidget);
+        await tester.tap(find.text('Batal'));
         await tester.pumpAndSettle();
 
         expect(pindaiCubit.state.status, PindaiStatus.awal);
@@ -428,14 +428,14 @@ void main() {
         await tester.pump();
 
         // Sebelum 15 detik: teks awal
-        expect(find.text('Menganalisis Struk dengan AI...'), findsOneWidget);
+        expect(find.text('Struki sedang membaca strukmu'), findsOneWidget);
         expect(
           find.text(
             'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
           ),
           findsOneWidget,
         );
-        expect(find.text('Batalkan'), findsOneWidget);
+        expect(find.text('Batal'), findsOneWidget);
 
         // Sesudah 15 detik: teks kedua
         await tester.pump(const Duration(seconds: 15));
@@ -449,13 +449,13 @@ void main() {
           ),
           findsOneWidget,
         );
-        expect(find.text('Batalkan'), findsOneWidget);
+        expect(find.text('Batal'), findsOneWidget);
 
         // Sesudah 45 detik: teks ketiga
         await tester.pump(const Duration(seconds: 30));
         expect(
           find.text(
-            'Masih menunggu jawaban. Kalau terlalu lama, ketuk Batalkan lalu catat manual.',
+            'Masih menunggu jawaban. Kalau terlalu lama, ketuk Batal lalu catat manual.',
           ),
           findsOneWidget,
         );
@@ -465,10 +465,10 @@ void main() {
           ),
           findsOneWidget,
         );
-        expect(find.text('Batalkan'), findsOneWidget);
+        expect(find.text('Batal'), findsOneWidget);
 
-        // Mengetuk Batalkan tetap berfungsi dan membatalkan proses
-        await tester.tap(find.text('Batalkan'));
+        // Mengetuk Batal tetap berfungsi dan membatalkan proses
+        await tester.tap(find.text('Batal'));
         await tester.pumpAndSettle();
 
         expect(pindaiCubit.state.status, PindaiStatus.awal);
@@ -502,8 +502,8 @@ void main() {
           find.text('Waktu tunggu pemindaian habis (melebihi 90 detik)'),
           findsOneWidget,
         );
-        expect(find.text('Catat Manual Saja'), findsOneWidget);
-        expect(find.text('Coba Pindai Ulang'), findsOneWidget);
+        expect(find.text('Catat manual'), findsOneWidget);
+        expect(find.text('Pindai ulang'), findsOneWidget);
       },
     );
 
@@ -545,7 +545,7 @@ void main() {
         expect(find.text('Rp29 rb'), findsOneWidget);
         expect(
           find.text(
-            'Pembayaran langganan belum aktif. Kami kabari begitu siap.',
+            'Ditagih bulanan lewat Google Play. Batalkan kapan saja.',
           ),
           findsOneWidget,
         );

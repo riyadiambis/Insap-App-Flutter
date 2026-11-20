@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:insap/core/di/injection_container.dart';
 import 'package:insap/core/theme.dart';
+import 'package:insap/core/widgets/maskot_struki.dart';
 import 'package:insap/features/beranda/presentation/cubit/beranda_cubit.dart';
 import 'package:insap/features/kategori/domain/entities/kategori_entity.dart';
 import 'package:insap/features/kategori/domain/repositories/kategori_repository.dart';
@@ -150,8 +151,31 @@ void main() {
       await tester.pumpWidget(bangunAplikasiUji());
       await tester.pumpAndSettle();
 
-      expect(find.text('Belum Ada Catatan Boncos'), findsOneWidget);
-      expect(find.text('Catat Pengeluaran'), findsOneWidget);
+      expect(find.text('Belum ada catatan'), findsOneWidget);
+      expect(find.text('Catat manual'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'riwayat kosong menampilkan maskot catat',
+    (tester) async {
+      tester.view.physicalSize = const Size(460, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      fakeTransRepo.daftarKembalian = [];
+
+      await tester.pumpWidget(bangunAplikasiUji());
+      await tester.pumpAndSettle();
+
+      final maskotFinder = find.byType(MaskotStruki);
+      expect(maskotFinder, findsOneWidget);
+      expect(tester.widget<MaskotStruki>(maskotFinder).pose, PoseMaskot.catat);
+      expect(
+        tester.getSize(maskotFinder),
+        const Size(AppSizes.ukuranMaskotKosong, AppSizes.ukuranMaskotKosong),
+      );
     },
   );
 
@@ -190,7 +214,7 @@ void main() {
       await tester.pumpWidget(bangunAplikasiUji());
       await tester.pumpAndSettle();
 
-      expect(find.text('Hari ini'), findsOneWidget);
+      expect(find.text('HARI INI'), findsOneWidget);
       expect(find.text('Nasi padang komplit'), findsOneWidget);
       expect(find.text('Es kopi susu'), findsOneWidget);
       // Memeriksa penanda struk untuk sumber pindai
@@ -205,6 +229,18 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
+
+      final tglHariIni = RiwayatHelper.toIsoDate(DateTime.now());
+      fakeTransRepo.daftarKembalian = [
+        TransaksiEntity(
+          id: 1,
+          jumlah: 25000,
+          kategoriId: 1,
+          tanggal: tglHariIni,
+          catatan: 'Nasi padang',
+          dibuatPada: '${tglHariIni}T12:30:00.000',
+        ),
+      ];
 
       await tester.pumpWidget(bangunAplikasiUji());
       await tester.pumpAndSettle();

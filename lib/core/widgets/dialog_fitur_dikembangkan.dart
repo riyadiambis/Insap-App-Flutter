@@ -36,7 +36,10 @@ Future<void> tampilkanDialogFiturDikembangkan(BuildContext context) {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const MaskotStruki(pose: PoseMaskot.nabung, ukuran: 130),
+                  const MaskotStruki(
+                    pose: PoseMaskot.nabung,
+                    ukuran: AppSizes.ukuranMaskotPopup,
+                  ),
                   const SizedBox(height: 10),
                   Text(
                     'Langganan sedang disiapkan',

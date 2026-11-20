@@ -512,7 +512,7 @@ class _HalamanAkunState extends State<HalamanAkun> {
                 ],
                 const SizedBox(height: 2),
                 Text(
-                  'Akun tersambung',
+                  'Tersambung dengan Google',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontSize: 13,
                     color: AppColors.inkSoft,
