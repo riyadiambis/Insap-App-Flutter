@@ -25,23 +25,24 @@ class KartuRenunganPengen extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return KartuBukuTulis(
-      radius: AppSizes.radiusTombol,
-      backgroundColor: AppColors.paper,
+      radius: AppSizes.radiusKartu,
+      backgroundColor: AppColors.kartu,
+      shadow: AppTheme.bayanganGelap,
+      pressedShadow: AppTheme.bayanganGelapTertekan,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: AppSizes.kotakIkonAksi,
-            height: AppSizes.kotakIkonAksi,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: AppColors.stabilo,
-              borderRadius: BorderRadius.circular(AppSizes.radiusKotakIkonAksi),
+              borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
               border: Border.all(color: AppColors.ink, width: AppSizes.border),
-              boxShadow: const [AppTheme.bayanganKecilGelap],
             ),
             child: const Icon(
-              Icons.lightbulb_outline,
-              size: AppSizes.ikonAksi,
+              Icons.lightbulb_outline_rounded,
+              size: 20,
               color: AppColors.ink,
             ),
           ),
@@ -67,10 +68,10 @@ class KartuRenunganPengen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.kecil,
-                        vertical: AppSpacing.mini,
+                        vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.stabilo,
+                        color: AppColors.kuningMuda,
                         borderRadius: BorderRadius.circular(AppSizes.radiusPil),
                         border: Border.all(
                           color: AppColors.ink,
@@ -80,6 +81,8 @@ class KartuRenunganPengen extends StatelessWidget {
                       child: Text(
                         '${agregat.persentasePengen}% Pengen',
                         style: textTheme.labelSmall?.copyWith(
+                          fontSize: 11,
+                          letterSpacing: 0.2,
                           color: AppColors.ink,
                           fontWeight: FontWeight.w800,
                         ),
@@ -90,7 +93,11 @@ class KartuRenunganPengen extends StatelessWidget {
                 const SizedBox(height: AppSpacing.agakKecil),
                 Text(
                   _buatKalimatRenungan(),
-                  style: textTheme.bodyMedium?.copyWith(color: AppColors.ink),
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontSize: 15,
+                    color: AppColors.ink,
+                    height: 1.45,
+                  ),
                 ),
               ],
             ),

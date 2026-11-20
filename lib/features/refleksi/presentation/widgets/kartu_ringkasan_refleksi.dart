@@ -32,7 +32,7 @@ class KartuRingkasanRefleksi extends StatelessWidget {
         'Sep',
         'Okt',
         'Nov',
-        'Des'
+        'Des',
       ];
       final bulan = namaBulan[dt.month - 1];
       final jam = dt.hour.toString().padLeft(2, '0');
@@ -52,7 +52,9 @@ class KartuRingkasanRefleksi extends StatelessWidget {
 
     return KartuBukuTulis(
       key: const Key('kartu_ringkasan_refleksi_tersimpan'),
-      radius: AppSizes.radiusTombol,
+      radius: AppSizes.radiusKartu,
+      shadow: AppTheme.bayanganGelap,
+      pressedShadow: AppTheme.bayanganGelapTertekan,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -63,23 +65,22 @@ class KartuRingkasanRefleksi extends StatelessWidget {
                 child: Row(
                   children: [
                     Container(
-                      width: AppSizes.kotakIkonAksi,
-                      height: AppSizes.kotakIkonAksi,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
-                        color: AppColors.stabilo,
+                        color: AppColors.hijauMuda,
                         borderRadius: BorderRadius.circular(
-                          AppSizes.radiusKotakIkonAksi,
+                          AppSizes.radiusBadge,
                         ),
                         border: Border.all(
                           color: AppColors.ink,
-                          width: AppSizes.borderTipis,
+                          width: AppSizes.border,
                         ),
-                        boxShadow: const [AppTheme.bayanganKecilGelap],
                       ),
                       child: const Icon(
                         Icons.check_circle_outline_rounded,
-                        size: AppSizes.ikonAksi,
-                        color: AppColors.ink,
+                        size: 20,
+                        color: AppColors.daunTua,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sedang),
@@ -113,6 +114,7 @@ class KartuRingkasanRefleksi extends StatelessWidget {
                 key: const Key('tombol_ubah_refleksi'),
                 onPressed: onUbah,
                 style: OutlinedButton.styleFrom(
+                  backgroundColor: AppColors.kartu,
                   foregroundColor: AppColors.ink,
                   side: const BorderSide(
                     color: AppColors.ink,
@@ -145,7 +147,6 @@ class KartuRingkasanRefleksi extends StatelessWidget {
                 color: AppColors.ink,
                 width: AppSizes.border,
               ),
-              boxShadow: const [AppTheme.bayanganKecil],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,7 +164,8 @@ class KartuRingkasanRefleksi extends StatelessWidget {
                         'Rencana Perbaikan Pekan Depan:',
                         style: textTheme.labelSmall?.copyWith(
                           color: AppColors.inkSoft,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.4,
                         ),
                       ),
                     ),
@@ -178,9 +180,9 @@ class KartuRingkasanRefleksi extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sedang),
-                Container(
-                  height: 1,
-                  color: AppColors.garis,
+                CustomPaint(
+                  size: const Size(double.infinity, 1.5),
+                  painter: _GarisPutusRingkasanPainter(),
                 ),
                 const SizedBox(height: AppSpacing.sedang),
                 Wrap(
@@ -216,4 +218,25 @@ class KartuRingkasanRefleksi extends StatelessWidget {
       ),
     );
   }
+}
+
+class _GarisPutusRingkasanPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.garisPutus
+      ..strokeWidth = 1.5;
+    const double dash = 5;
+    const double gap = 4;
+    double x = 0;
+    final y = size.height / 2;
+    while (x < size.width) {
+      final end = (x + dash).clamp(0.0, size.width);
+      canvas.drawLine(Offset(x, y), Offset(end, y), paint);
+      x += dash + gap;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -158,7 +158,7 @@ void main() {
   );
 
   testWidgets(
-    '(b) bar kuota dan teks "10/10" tampil',
+    '(b) bar kuota dan teks "10/$kuotaPindaiPekanan" tampil',
     (tester) async {
       tester.view.physicalSize = const Size(411, 914);
       tester.view.devicePixelRatio = 1.0;
@@ -170,8 +170,8 @@ void main() {
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 10));
       await tester.pumpAndSettle();
 
-      // teks 10/10 tampil
-      expect(find.text('10/10'), findsOneWidget);
+      // teks 10/5 tampil sesuai kuotaPindaiPekanan
+      expect(find.text('10/$kuotaPindaiPekanan'), findsOneWidget);
 
       // badge AI tetap ada di kartu Pindai Struk
       expect(find.text('AI'), findsOneWidget);
@@ -211,7 +211,7 @@ void main() {
 
       // teks sisa habis tampil
       expect(find.text('Habis, reset Senin'), findsOneWidget);
-      expect(find.text('0/10'), findsNothing);
+      expect(find.text('0/$kuotaPindaiPekanan'), findsNothing);
 
       // bar kuota kosong (nilai progress 0.0)
       final kartuPindaiFinder = find.ancestor(
@@ -248,7 +248,7 @@ void main() {
 
       expect(find.text('Catat Cepat'), findsOneWidget);
       expect(find.text('Pindai Struk'), findsOneWidget);
-      expect(find.text('5/10'), findsOneWidget);
+      expect(find.text('5/$kuotaPindaiPekanan'), findsOneWidget);
 
       // pastikan kartu kuota mandiri lama sudah tidak ada
       expect(find.text('Sisa Kuota Pindai Struk'), findsNothing);
@@ -274,14 +274,15 @@ void main() {
           matching: find.byType(KartuBukuTulis),
         );
 
-    testWidgets('kartu Pindai Struk memakai aiBiru solid, Catat Cepat tetap stabilo',
+    testWidgets('kartu Pindai Struk memakai ink dengan bayangan stabilo, Catat Cepat tetap stabilo',
         (tester) async {
       ukuranStandar(tester);
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
       await tester.pumpAndSettle();
 
       final pindai = tester.widget<KartuBukuTulis>(kartuDari('Pindai Struk'));
-      expect(pindai.backgroundColor, AppColors.aiBiru);
+      expect(pindai.backgroundColor, AppColors.ink);
+      expect(pindai.shadow?.color, AppColors.stabilo);
 
       final catat = tester.widget<KartuBukuTulis>(kartuDari('Catat Cepat'));
       expect(catat.backgroundColor, AppColors.stabilo);
@@ -323,7 +324,7 @@ void main() {
       expect(teks.style?.color, AppColors.kartu);
     });
 
-    testWidgets('judul Pindai Struk putih dan jalur bilah kuota aiBiruTua',
+    testWidgets('judul Pindai Struk putih dan jalur bilah kuota inkSoft',
         (tester) async {
       ukuranStandar(tester);
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
@@ -341,7 +342,7 @@ void main() {
                     w is Container &&
                     w.decoration is BoxDecoration &&
                     (w.decoration as BoxDecoration).color ==
-                        AppColors.aiBiruTua,
+                        AppColors.inkSoft,
               ),
             )
             .first,

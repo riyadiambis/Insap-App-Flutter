@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:insap/core/theme.dart';
 import 'package:insap/core/widgets/kartu_buku_tulis.dart';
+import 'package:insap/core/widgets/maskot_struki.dart';
 import 'package:insap/core/widgets/tombol_stabilo.dart';
 import 'package:insap/features/pengaturan/domain/repositories/pengaturan_repository.dart';
 import 'package:insap/features/perkenalan/presentation/cubit/onboarding_cubit.dart';
@@ -93,12 +94,12 @@ void main() {
     'Cari dan saring catatanmu kapan saja. Masuk akun kalau mau mencadangkan data.',
   ];
 
-  const ikonLayar = [
-    Icons.menu_book,
-    Icons.edit,
-    Icons.photo_camera,
-    Icons.lightbulb,
-    Icons.receipt_long,
+  const poseLayar = [
+    PoseMaskot.mulai,
+    PoseMaskot.catat,
+    PoseMaskot.scan,
+    PoseMaskot.detektif,
+    PoseMaskot.hemat,
   ];
 
   void ukuranLayar(WidgetTester tester, Size ukuran, {double rasio = 1.0}) {
@@ -113,7 +114,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('lima layar sambutan tampil berurutan dengan judul, isi, dan ikon',
+  testWidgets('lima layar sambutan tampil berurutan dengan judul, isi, dan maskot',
       (tester) async {
     ukuranLayar(tester, const Size(1080, 2400), rasio: 2.0);
 
@@ -123,40 +124,28 @@ void main() {
     for (var i = 0; i < judulLayar.length; i++) {
       expect(find.text(judulLayar[i]), findsOneWidget, reason: 'judul layar ${i + 1}');
       expect(find.text(isiLayar[i]), findsOneWidget, reason: 'isi layar ${i + 1}');
-      expect(
-        find.descendant(
-          of: find.byKey(const Key('kotak_ilustrasi_sambutan')),
-          matching: find.byIcon(ikonLayar[i]),
-        ),
-        findsOneWidget,
-        reason: 'ikon layar ${i + 1}',
+      final maskot = tester.widget<MaskotStruki>(
+        find.byKey(const Key('maskot_sambutan')),
       );
+      expect(maskot.pose, poseLayar[i], reason: 'pose layar ${i + 1}');
       expect(find.byKey(const Key('tombol_lewati')), findsOneWidget);
       if (i < judulLayar.length - 1) await lanjut(tester);
     }
   });
 
-  testWidgets('kotak ilustrasi berukuran 132x132 dengan warna sesuai layar',
+  testWidgets('maskot sambutan berukuran 200x200 pada setiap layar',
       (tester) async {
     ukuranLayar(tester, const Size(411, 914));
 
     await tester.pumpWidget(buatHalamanUji());
     await tester.pumpAndSettle();
 
-    const warna = [
-      AppColors.ilustrasiJingga,
-      AppColors.stabilo,
-      AppColors.aiBiru,
-      AppColors.ilustrasiUngu,
-      AppColors.ilustrasiHijau,
-    ];
-
-    for (var i = 0; i < warna.length; i++) {
-      final kotak = find.byKey(const Key('kotak_ilustrasi_sambutan'));
-      expect(tester.getSize(kotak), const Size(132, 132));
-      final dekor = tester.widget<Container>(kotak).decoration as BoxDecoration;
-      expect(dekor.color, warna[i]);
-      if (i < warna.length - 1) await lanjut(tester);
+    for (var i = 0; i < poseLayar.length; i++) {
+      final maskotFinder = find.byKey(const Key('maskot_sambutan'));
+      expect(tester.getSize(maskotFinder), const Size(200, 200));
+      final maskot = tester.widget<MaskotStruki>(maskotFinder);
+      expect(maskot.pose, poseLayar[i]);
+      if (i < poseLayar.length - 1) await lanjut(tester);
     }
   });
 
@@ -346,8 +335,11 @@ void main() {
     // 1. Tidak memakai KartuBukuTulis
     expect(find.byType(KartuBukuTulis), findsNothing);
 
-    // 2. Susunan ikon & badge & judul & teks baru
-    expect(find.byIcon(Icons.track_changes_rounded), findsOneWidget);
+    // 2. Susunan maskot & badge & judul & teks baru
+    final maskotTarget = tester.widget<MaskotStruki>(
+      find.byKey(const Key('maskot_target_sambutan')),
+    );
+    expect(maskotTarget.pose, PoseMaskot.nabung);
     expect(find.text('LANGKAH TERAKHIR'), findsOneWidget);
     expect(
       find.textContaining('Tentukan Target', findRichText: true),

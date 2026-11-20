@@ -169,12 +169,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Indomaret Point'), findsOneWidget);
-    expect(find.text('Total struk'), findsOneWidget);
-    expect(find.text('Dipilih'), findsOneWidget);
+    expect(find.text('Dikelompokkan AI'), findsOneWidget);
+    expect(find.text('Jadi 2 catatan dari 1 struk'), findsOneWidget);
     expect(find.text('Rp35.000'), findsWidgets);
     expect(find.text('Nasi Goreng'), findsOneWidget);
     expect(find.text('Kopi Susu'), findsOneWidget);
-    expect(find.textContaining('Simpan semua (2 transaksi)'), findsOneWidget);
+    expect(find.text('Simpan 2 catatan'), findsOneWidget);
   });
 
   testWidgets(
@@ -272,8 +272,8 @@ void main() {
     await tester.pumpWidget(buatWidgetUji(hasil));
     await tester.pumpAndSettle();
 
-    // Ketuk harga untuk menyunting
-    await tester.tap(find.text('Rp15.000').last);
+    // Ketuk harga barang (indeks 1; indeks 0 adalah subtotal kelompok, indeks 2 ringkasan bawah) untuk menyunting
+    await tester.tap(find.text('Rp15.000').at(1));
     await tester.pumpAndSettle();
 
     expect(find.text('Sunting Harga'), findsOneWidget);

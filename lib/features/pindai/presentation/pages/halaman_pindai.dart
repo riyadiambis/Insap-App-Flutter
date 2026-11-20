@@ -12,7 +12,9 @@ import '../../../../core/constants/kuota_constants.dart';
 import '../../../../core/network/gemini_client.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/widgets/header_aplikasi.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
+import '../../../../core/widgets/maskot_struki.dart';
 import '../../../../core/widgets/tombol_stabilo.dart';
 import '../../../kategori/presentation/cubit/kategori_cubit.dart';
 import '../../../kategori/presentation/cubit/kategori_state.dart';
@@ -50,6 +52,7 @@ class HalamanPindai extends StatefulWidget {
 
 class _HalamanPindaiState extends State<HalamanPindai> {
   bool _sedangMemindai = false;
+  bool _sudahInisialisasi = false;
   DocumentScanner? _scannerAktif;
 
   @override
@@ -57,6 +60,11 @@ class _HalamanPindaiState extends State<HalamanPindai> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await context.read<PindaiCubit>().inisialisasi();
+      if (mounted) {
+        setState(() {
+          _sudahInisialisasi = true;
+        });
+      }
       if (widget.mulaiLangsung && mounted) {
         _jalankanPemindaiDokumen();
       }
@@ -86,12 +94,7 @@ class _HalamanPindaiState extends State<HalamanPindai> {
     if (_sedangMemindai) return;
 
     final cubit = context.read<PindaiCubit>();
-    // No 12: Kuota habis -> satu baris pemberitahuan lalu buka /catat
     if (cubit.state.sisaKuota <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kuota pemindaian pekan ini sudah habis')),
-      );
-      context.go('/catat');
       return;
     }
 
@@ -122,7 +125,9 @@ class _HalamanPindaiState extends State<HalamanPindai> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Tidak ada koneksi internet. Mengarahkan ke catat manual...'),
+              content: Text(
+                'Tidak ada koneksi internet. Mengarahkan ke catat manual...',
+              ),
             ),
           );
           context.go('/catat');
@@ -250,253 +255,451 @@ class _HalamanPindaiState extends State<HalamanPindai> {
     }
   }
 
+  void _kembali(BuildContext context) {
+    context.read<PindaiCubit>().reset();
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      try {
+        context.pop();
+      } catch (_) {}
+    }
+  }
+
+  void _bukaLangganan(BuildContext context) {
+    context.push('/langganan');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: PaperBackground(
-        child: Center(
-          child: Container(
-            constraints: const BoxConstraints(
-              maxWidth: AppSizes.batasLebarKonten,
+    return BlocBuilder<PindaiCubit, PindaiState>(
+      builder: (context, state) {
+        // Jika Gemini berhasil mengekstrak dan butuh konfirmasi draf
+        if (state.status == PindaiStatus.butuhKonfirmasi &&
+            state.hasilPindai != null) {
+          return HalamanKonfirmasiPindai(hasilPindai: state.hasilPindai!);
+        }
+
+        final bool kuotaHabis =
+            state.status == PindaiStatus.awal &&
+            _sudahInisialisasi &&
+            state.sisaKuota <= 0;
+
+        return Scaffold(
+          appBar: HeaderAplikasi(
+            namaLayar: 'Pindai Struk',
+            modeKembali: true,
+            onKembali: () => _kembali(context),
+          ),
+          body: PaperBackground(
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(
+                  maxWidth: AppSizes.batasLebarKonten,
+                ),
+                padding: const EdgeInsets.all(AppSpacing.besar),
+                child: _bangunKonten(context, state, kuotaHabis),
+              ),
             ),
-            child: BlocConsumer<PindaiCubit, PindaiState>(
-              listener: (context, state) {},
-              builder: (context, state) {
-                // Jika Gemini berhasil mengekstrak dan butuh konfirmasi draf
-                if (state.status == PindaiStatus.butuhKonfirmasi &&
-                    state.hasilPindai != null) {
-                  return HalamanKonfirmasiPindai(hasilPindai: state.hasilPindai!);
-                }
+          ),
+        );
+      },
+    );
+  }
 
-                return SafeArea(
-                  bottom: false,
-                  child: Column(
+  Widget _bangunKonten(
+    BuildContext context,
+    PindaiState state,
+    bool kuotaHabis,
+  ) {
+    if (state.status == PindaiStatus.memuat) {
+      return KartuMemuatPindai(
+        onBatalkan: () {
+          context.read<PindaiCubit>().batalkanPindai();
+        },
+      );
+    }
+
+    if (state.status == PindaiStatus.gagal) {
+      return _TampilanPindaiGagal(
+        pesanGalat: state.pesanGalat,
+        tawarkanCatatManual: state.tawarkanCatatManual,
+        sedangMemindai: _sedangMemindai,
+        onPindaiUlang: _jalankanPemindaiDokumen,
+        onCatatManual: () => context.go('/catat'),
+      );
+    }
+
+    if (kuotaHabis) {
+      return _TampilanKuotaHabis(
+        onBukaLangganan: () => _bukaLangganan(context),
+        onCatatManual: () => context.go('/catat'),
+      );
+    }
+
+    // Tampilan Awal / Siap Memindai
+    return ListView(
+      children: [
+        KartuBukuTulis(
+          backgroundColor: AppColors.kartu,
+          shadow: AppTheme.bayanganGelap,
+          pressedShadow: AppTheme.bayanganGelapTertekan,
+          padding: const EdgeInsets.all(AppSpacing.sedang),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.agakKecil),
+                decoration: BoxDecoration(
+                  color: AppColors.stabilo,
+                  borderRadius: BorderRadius.circular(
+                    AppSizes.radiusKotakIkonAksi,
+                  ),
+                  border: Border.all(
+                    color: AppColors.ink,
+                    width: AppSizes.border,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: AppColors.ink,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sedang),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header Navigasi Atas
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: AppSpacing.besar,
-                        top: AppSpacing.besar,
-                        right: AppSpacing.besar,
-                        bottom: AppSpacing.sedang,
-                      ),
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              context.read<PindaiCubit>().reset();
-                              if (Navigator.of(context).canPop()) {
-                                Navigator.of(context).pop();
-                              } else {
-                                try {
-                                  context.pop();
-                                } catch (_) {}
-                              }
-                            },
-                            child: Container(
-                              width: AppSizes.kotakIkonAksi,
-                              height: AppSizes.kotakIkonAksi,
-                              decoration: BoxDecoration(
-                                color: AppColors.paper,
-                                border: Border.all(
-                                  color: AppColors.ink,
-                                  width: AppSizes.border,
-                                ),
-                                borderRadius: BorderRadius.circular(
-                                  AppSizes.radiusKotakIkonAksi,
-                                ),
-                                boxShadow: const [AppTheme.bayanganKecilGelap],
-                              ),
-                              child: const Icon(
-                                Icons.arrow_back_rounded,
-                                color: AppColors.ink,
-                                size: AppSizes.ikonAksi,
-                              ),
-                            ),
+                    Text(
+                      'Kuota Pindai Pekan Ini',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: AppColors.inkSoft,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.4,
                           ),
-                          const SizedBox(width: AppSpacing.sedang),
-                          Expanded(
-                            child: Text(
-                              'Pindai Struk',
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.ink,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
-                    Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.all(AppSpacing.besar),
-                        children: [
-                          // Kartu Info Sisa Kuota
-                          KartuBukuTulis(
-                            backgroundColor: AppColors.paper,
-                            padding: const EdgeInsets.all(AppSpacing.sedang),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(
-                                    AppSpacing.agakKecil,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.stabilo,
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusKotakIkonAksi,
-                                    ),
-                                    border: Border.all(
-                                      color: AppColors.ink,
-                                      width: AppSizes.borderTipis,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.auto_awesome_rounded,
-                                    color: AppColors.ink,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.sedang),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Kuota Pindai Pekan Ini',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelSmall
-                                            ?.copyWith(
-                                              color: AppColors.inkSoft,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                      ),
-                                      Text(
-                                        '${state.sisaKuota} dari $kuotaPindaiPekanan tersisa',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w800,
-                                              color: state.sisaKuota <= 0
-                                                  ? Colors.red
-                                                  : AppColors.ink,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                    Text(
+                      '${state.sisaKuota} dari $kuotaPindaiPekanan tersisa',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: state.sisaKuota <= 0
+                                ? AppColors.merahTeks
+                                : AppColors.ink,
                           ),
-
-                          const SizedBox(height: AppSpacing.besar),
-
-                          // Tampilan Saat Sedang Memindai / Memanggil AI (Loading bertahap hingga 90 detik, ISSUE-32)
-                          if (state.status == PindaiStatus.memuat) ...[
-                            KartuMemuatPindai(
-                              onBatalkan: () {
-                                context.read<PindaiCubit>().batalkanPindai();
-                              },
-                            ),
-                          ]
-                          // Tampilan Galat / Error State
-                          else if (state.status == PindaiStatus.gagal) ...[
-                            KartuBukuTulis(
-                              backgroundColor: AppColors.paper,
-                              padding: const EdgeInsets.all(AppSpacing.besar),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.error_outline_rounded,
-                                    color: Colors.red.shade700,
-                                    size: 48,
-                                  ),
-                                  const SizedBox(height: AppSpacing.sedang),
-                                  Text(
-                                    state.pesanGalat ?? 'Gagal memindai struk',
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w800,
-                                          color: AppColors.ink,
-                                        ),
-                                  ),
-                                  const SizedBox(height: AppSpacing.besar),
-
-                                  // Tawaran Catat Manual jika batas waktu habis atau tidak ada internet
-                                  if (state.tawarkanCatatManual) ...[
-                                    TombolStabilo(
-                                      teks: 'Catat Manual Saja',
-                                      ikon: Icons.edit_note_rounded,
-                                      onPressed: () {
-                                        context.go('/catat');
-                                      },
-                                    ),
-                                    const SizedBox(height: AppSpacing.sedang),
-                                  ],
-
-                                  TombolStabilo(
-                                    teks: 'Coba Pindai Ulang',
-                                    ikon: Icons.refresh_rounded,
-                                    isLoading: _sedangMemindai,
-                                    onPressed: _sedangMemindai ? null : _jalankanPemindaiDokumen,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ]
-                          // Tampilan Awal / Siap Memindai
-                          else ...[
-                            KartuBukuTulis(
-                              backgroundColor: AppColors.paper,
-                              padding: const EdgeInsets.all(AppSpacing.besar),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  TombolStabilo(
-                                    teks: 'Buka Pemindai Struk',
-                                    ikon: Icons.photo_camera_rounded,
-                                    isLoading: _sedangMemindai,
-                                    onPressed: _sedangMemindai ? null : _jalankanPemindaiDokumen,
-                                  ),
-                                  const SizedBox(height: AppSpacing.sedang),
-                                  Center(
-                                    child: TextButton.icon(
-                                      onPressed: () => tampilkanDialogPanduanPindai(
-                                        context,
-                                        onLanjut: _jalankanPemindaiDokumen,
-                                      ),
-                                      icon: const Icon(
-                                        Icons.help_outline_rounded,
-                                        size: 18,
-                                        color: AppColors.inkSoft,
-                                      ),
-                                      label: const Text(
-                                        'Lihat panduan',
-                                        style: TextStyle(
-                                          color: AppColors.inkSoft,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
                     ),
                   ],
                 ),
-              );
-            },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.besar),
+        KartuBukuTulis(
+          backgroundColor: AppColors.kartu,
+          shadow: AppTheme.bayanganGelap,
+          pressedShadow: AppTheme.bayanganGelapTertekan,
+          padding: const EdgeInsets.all(AppSpacing.besar),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TombolStabilo(
+                teks: 'Buka Pemindai Struk',
+                ikon: Icons.qr_code_scanner_rounded,
+                isLoading: _sedangMemindai,
+                onPressed: _sedangMemindai ? null : _jalankanPemindaiDokumen,
+              ),
+              const SizedBox(height: AppSpacing.sedang),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () => tampilkanDialogPanduanPindai(
+                    context,
+                    onLanjut: _jalankanPemindaiDokumen,
+                  ),
+                  icon: const Icon(
+                    Icons.help_outline_rounded,
+                    size: 18,
+                    color: AppColors.inkSoft,
+                  ),
+                  label: const Text(
+                    'Lihat panduan',
+                    style: TextStyle(
+                      color: AppColors.inkSoft,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TampilanPindaiGagal extends StatelessWidget {
+  final String? pesanGalat;
+  final bool tawarkanCatatManual;
+  final bool sedangMemindai;
+  final VoidCallback onPindaiUlang;
+  final VoidCallback onCatatManual;
+
+  const _TampilanPindaiGagal({
+    required this.pesanGalat,
+    required this.tawarkanCatatManual,
+    required this.sedangMemindai,
+    required this.onPindaiUlang,
+    required this.onCatatManual,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sedang),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const MaskotStruki(pose: PoseMaskot.puyeng, ukuran: 210),
+                  const SizedBox(height: AppSpacing.sedang),
+                  Text(
+                    'Struknya belum terbaca',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.kecil),
+                  Text(
+                    pesanGalat ??
+                        'Tulisannya terlalu buram buat Struki. Coba foto lagi di tempat terang, struk diratakan.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontSize: 15,
+                          color: AppColors.inkSoft,
+                          height: 1.5,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sedang),
+        TombolStabilo(
+          teks: 'Coba Pindai Ulang',
+          ikon: Icons.refresh_rounded,
+          isLoading: sedangMemindai,
+          onPressed: sedangMemindai ? null : onPindaiUlang,
+        ),
+        if (tawarkanCatatManual) ...[
+          const SizedBox(height: AppSpacing.sedang),
+          _TombolPutih(
+            teks: 'Catat Manual Saja',
+            ikon: Icons.edit_note_rounded,
+            onPressed: onCatatManual,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _TampilanKuotaHabis extends StatelessWidget {
+  final VoidCallback onBukaLangganan;
+  final VoidCallback onCatatManual;
+
+  const _TampilanKuotaHabis({
+    required this.onBukaLangganan,
+    required this.onCatatManual,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sedang),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const MaskotStruki(pose: PoseMaskot.cukup, ukuran: 190),
+                  const SizedBox(height: AppSpacing.sedang),
+                  Text(
+                    'Jatah pindai pekan ini habis',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.kecil),
+                  Text(
+                    'Kamu sudah memakai $kuotaPindaiPekanan dari $kuotaPindaiPekanan pindai. Jatah kembali penuh hari Senin.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontSize: 15,
+                          color: AppColors.inkSoft,
+                          height: 1.5,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sedang),
+        KartuBukuTulis(
+          onTap: onBukaLangganan,
+          backgroundColor: AppColors.kartu,
+          shadow: AppTheme.bayanganGelap,
+          pressedShadow: AppTheme.bayanganGelapTertekan,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.stabilo,
+                  borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+                  border: Border.all(
+                    color: AppColors.ink,
+                    width: AppSizes.border,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.workspace_premium_rounded,
+                  color: AppColors.ink,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sedang),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Butuh lebih banyak?',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.ink,
+                          ),
+                    ),
+                    Text(
+                      'Plus 50 pindai, Pro 100 pindai per pekan',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontSize: 13,
+                            color: AppColors.inkSoft,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.ink,
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sedang),
+        TombolStabilo(
+          teks: 'Catat manual',
+          ikon: Icons.edit_rounded,
+          onPressed: onCatatManual,
+        ),
+      ],
+    );
+  }
+}
+
+class _TombolPutih extends StatefulWidget {
+  final String teks;
+  final IconData? ikon;
+  final VoidCallback onPressed;
+
+  const _TombolPutih({
+    required this.teks,
+    this.ikon,
+    required this.onPressed,
+  });
+
+  @override
+  State<_TombolPutih> createState() => _TombolPutihState();
+}
+
+class _TombolPutihState extends State<_TombolPutih> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    const geser = AppSizes.geserTekan;
+
+    return Semantics(
+      button: true,
+      label: widget.teks,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.onPressed,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: AnimatedContainer(
+            duration: AppDurations.animasiTekan,
+            height: AppSizes.tinggiTombol,
+            margin: EdgeInsets.only(
+              left: _isPressed ? geser : 0,
+              top: _isPressed ? geser : 0,
+              right: _isPressed ? 0 : geser,
+              bottom: _isPressed ? 0 : geser,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.kartu,
+              border: Border.all(color: AppColors.ink, width: AppSizes.border),
+              borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
+              boxShadow: [
+                _isPressed
+                    ? AppTheme.bayanganGelapTertekan
+                    : const BoxShadow(
+                        color: AppColors.ink,
+                        offset: Offset(3, 3),
+                        blurRadius: 0,
+                      ),
+              ],
+            ),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.ikon != null) ...[
+                    Icon(widget.ikon, size: AppSizes.ikonAksi, color: AppColors.ink),
+                    const SizedBox(width: AppSpacing.kecil),
+                  ],
+                  Text(
+                    widget.teks,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -528,6 +731,7 @@ class _KartuMemuatPindaiState extends State<KartuMemuatPindai> {
   Timer? _timer15;
   Timer? _timer45;
   String _teksTunggu = 'Menganalisis Struk dengan AI...';
+  double _progres = 0.45;
 
   @override
   void initState() {
@@ -540,6 +744,7 @@ class _KartuMemuatPindaiState extends State<KartuMemuatPindai> {
       if (mounted) {
         setState(() {
           _teksTunggu = 'Struknya agak panjang, masih dibaca...';
+          _progres = 0.72;
         });
       }
     });
@@ -549,6 +754,7 @@ class _KartuMemuatPindaiState extends State<KartuMemuatPindai> {
         setState(() {
           _teksTunggu =
               'Masih menunggu jawaban. Kalau terlalu lama, ketuk Batalkan lalu catat manual.';
+          _progres = 0.90;
         });
       }
     });
@@ -563,46 +769,69 @@ class _KartuMemuatPindaiState extends State<KartuMemuatPindai> {
 
   @override
   Widget build(BuildContext context) {
-    return KartuBukuTulis(
-      backgroundColor: AppColors.paper,
-      padding: const EdgeInsets.all(AppSpacing.lebihBesar),
-      child: Column(
-        children: [
-          const CircularProgressIndicator(
-            color: AppColors.ink,
-            strokeWidth: 3,
-          ),
-          const SizedBox(height: AppSpacing.besar),
-          Text(
-            _teksTunggu,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
-                ),
-          ),
-          const SizedBox(height: AppSpacing.kecil),
-          Text(
-            'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: AppColors.inkSoft),
-          ),
-          const SizedBox(height: AppSpacing.besar),
-          TextButton(
-            onPressed: widget.onBatalkan,
-            child: const Text(
-              'Batalkan',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: AppColors.inkSoft,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sedang),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const MaskotStruki(pose: PoseMaskot.scan, ukuran: 210),
+                  const SizedBox(height: AppSpacing.sedang),
+                  Text(
+                    _teksTunggu,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.kecil),
+                  Text(
+                    'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontSize: 15,
+                          color: AppColors.inkSoft,
+                          height: 1.45,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.besar),
+                  Container(
+                    width: 220,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: AppColors.kartu,
+                      border: Border.all(
+                        color: AppColors.ink,
+                        width: AppSizes.border,
+                      ),
+                      borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: _progres,
+                        child: Container(color: AppColors.daun),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: AppSpacing.sedang),
+        _TombolPutih(
+          teks: 'Batalkan',
+          onPressed: widget.onBatalkan,
+        ),
+      ],
     );
   }
 }

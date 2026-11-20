@@ -54,7 +54,7 @@ class KartuTentangAplikasi extends StatelessWidget {
         color: AppColors.kartu,
         border: Border.all(color: AppColors.ink, width: AppSizes.border),
         borderRadius: BorderRadius.circular(AppSizes.radiusKartu),
-        boxShadow: const [AppTheme.bayanganDefault],
+        boxShadow: const [AppTheme.bayanganGelap],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -159,7 +159,7 @@ class _KepalaKartu extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppSizes.radiusPil),
                   ),
                   child: Text(
-                    'Versi 1.0.2',
+                    'Versi 2.0.0',
                     style: teks.labelSmall?.copyWith(
                       color: AppColors.ink,
                       fontWeight: FontWeight.w800,
@@ -299,21 +299,43 @@ class TombolTentangAplikasi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      key: const Key('tombol_tentang'),
-      onPressed: () => context.push('/tentang'),
-      icon: const Icon(Icons.info_outline, color: AppColors.ink, size: 20),
-      label: Text(
-        'Tentang Aplikasi',
-        style: Theme.of(context).textTheme.bodyMedium
-            ?.copyWith(color: AppColors.ink, fontWeight: FontWeight.w700),
-      ),
-      style: OutlinedButton.styleFrom(
-        backgroundColor: AppColors.kartu,
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sedang),
-        side: const BorderSide(color: AppColors.ink, width: AppSizes.border),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
+    return Semantics(
+      button: true,
+      label: 'Tentang Aplikasi',
+      child: GestureDetector(
+        key: const Key('tombol_tentang'),
+        behavior: HitTestBehavior.opaque,
+        onTap: () => context.push('/tentang'),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: Container(
+            height: 52,
+            decoration: BoxDecoration(
+              color: AppColors.kartu,
+              border: Border.all(color: AppColors.ink, width: AppSizes.border),
+              borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
+              boxShadow: const [AppTheme.bayanganKecilGelap],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.info_outline_rounded,
+                  color: AppColors.ink,
+                  size: 20,
+                ),
+                const SizedBox(width: AppSpacing.kecil),
+                Text(
+                  'Tentang Aplikasi',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: 15,
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

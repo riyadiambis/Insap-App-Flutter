@@ -7,16 +7,19 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/tur/langkah_tur.dart';
-import '../../../akun/domain/entities/pengguna_entity.dart';
-import '../../../akun/domain/repositories/akun_repository.dart';
 import '../../../../core/utils/iso_week.dart';
 import '../../../../core/utils/rupiah_extension.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
+import '../../../../core/widgets/maskot_struki.dart';
 import '../../../../core/widgets/tombol_stabilo.dart';
+import '../../../akun/domain/entities/pengguna_entity.dart';
+import '../../../akun/domain/repositories/akun_repository.dart';
 import '../../../kategori/domain/entities/kategori_entity.dart';
 import '../../../kategori/presentation/cubit/kategori_cubit.dart';
 import '../../../kategori/presentation/cubit/kategori_state.dart';
 import '../../../pengaturan/domain/entities/perbandingan_target_entity.dart';
+import '../../../pengaturan/domain/usecases/baca_status_panduan_pindai.dart';
+import '../../../pindai/presentation/widgets/dialog_panduan_pindai.dart';
 import '../../../transaksi/domain/entities/rincian_pengeluaran_entity.dart';
 import '../../../transaksi/domain/entities/ringkasan_pekan_entity.dart';
 import '../../../transaksi/domain/entities/transaksi_entity.dart';
@@ -25,8 +28,6 @@ import '../cubit/beranda_cubit.dart';
 import '../cubit/beranda_state.dart';
 import '../widgets/kartu_rincian_pengeluaran.dart';
 import '../widgets/tampilan_kategori.dart';
-import '../../../pengaturan/domain/usecases/baca_status_panduan_pindai.dart';
-import '../../../pindai/presentation/widgets/dialog_panduan_pindai.dart';
 
 class HalamanBeranda extends StatelessWidget {
   final Stream<PenggunaEntity?>? streamPengguna;
@@ -127,6 +128,18 @@ class _BerandaContent extends StatelessWidget {
   final bool refleksiPekanIniTersimpan;
   final DateTime Function()? waktuSekarang;
 
+  static const BoxShadow _bayanganStabilo = BoxShadow(
+    color: AppColors.stabilo,
+    offset: Offset(4, 4),
+    blurRadius: 0,
+  );
+
+  static const BoxShadow _bayanganStabiloTertekan = BoxShadow(
+    color: AppColors.stabilo,
+    offset: Offset(2, 2),
+    blurRadius: 0,
+  );
+
   const _BerandaContent({
     required this.ringkasan,
     required this.rincian,
@@ -155,9 +168,10 @@ class _BerandaContent extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.agakKecil),
-                  const Text(
-                    '👋',
-                    style: TextStyle(fontSize: AppSizes.indikatorMuat),
+                  const Icon(
+                    Icons.waving_hand_rounded,
+                    size: AppSizes.ikonAksi,
+                    color: AppColors.ink,
                   ),
                 ],
               ),
@@ -180,13 +194,13 @@ class _BerandaContent extends StatelessWidget {
             vertical: AppSpacing.agakKecil,
           ),
           decoration: BoxDecoration(
-            color: AppColors.paper,
+            color: AppColors.kartu,
             border: Border.all(
               color: AppColors.ink,
               width: AppSizes.border,
             ),
             borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-            boxShadow: const [AppTheme.bayanganKecil],
+            boxShadow: const [AppTheme.bayanganKecilGelap],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -227,8 +241,9 @@ class _BerandaContent extends StatelessWidget {
         _buildGreetingHeader(context, teksRentang),
         const SizedBox(height: AppSpacing.besar),
 
-        // Kartu Mini Kas Pekan Ini (sesuai mockup layar 5)
         KartuBukuTulis(
+          shadow: AppTheme.bayanganGelap,
+          pressedShadow: AppTheme.bayanganGelapTertekan,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sedang,
             vertical: AppSpacing.agakKecil,
@@ -265,12 +280,12 @@ class _BerandaContent extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.besar),
 
-        // Area Utama Empty State
         KartuBukuTulis(
+          shadow: AppTheme.bayanganGelap,
+          pressedShadow: AppTheme.bayanganGelapTertekan,
           padding: const EdgeInsets.all(AppSpacing.besar),
           child: Column(
             children: [
-              // Ilustrasi Notebook & Pensil tema Buku Tulis
               Container(
                 width: 140,
                 height: 100,
@@ -282,7 +297,7 @@ class _BerandaContent extends StatelessWidget {
                     color: AppColors.ink,
                     width: AppSizes.border,
                   ),
-                  boxShadow: const [AppTheme.bayanganDefault],
+                  boxShadow: const [AppTheme.bayanganGelap],
                 ),
                 child: Stack(
                   alignment: Alignment.center,
@@ -313,9 +328,9 @@ class _BerandaContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Row(
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(
                           Icons.menu_book_rounded,
                           size: 42,
@@ -368,8 +383,9 @@ class _BerandaContent extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.besar),
 
-        // Banner Tips Cepat
         KartuBukuTulis(
+          shadow: AppTheme.bayanganGelap,
+          pressedShadow: AppTheme.bayanganGelapTertekan,
           padding: const EdgeInsets.all(AppSpacing.sedang),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,6 +437,23 @@ class _BerandaContent extends StatelessWidget {
     );
   }
 
+  Future<void> _bukaPindai(BuildContext context) async {
+    final sembunyikan = await sl<BacaStatusPanduanPindai>().call();
+    if (!context.mounted) return;
+    if (!sembunyikan) {
+      await tampilkanDialogPanduanPindai(
+        context,
+        onLanjut: () {
+          if (context.mounted) {
+            context.push('/pindai?mulai=1');
+          }
+        },
+      );
+    } else {
+      context.push('/pindai?mulai=1');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final waktu = (waktuSekarang != null ? waktuSekarang!() : DateTime.now());
@@ -450,75 +483,69 @@ class _BerandaContent extends StatelessWidget {
       children: [
         _buildGreetingHeader(context, teksRentang),
         const SizedBox(height: AppSpacing.besar),
-        // Kartu Ringkasan Pekan
-        KartuBukuTulis(
-          radius: AppSizes.radiusTombol,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_today_outlined,
-                          size: AppSizes.ikonKalender,
-                          color: AppColors.ink,
-                        ),
-                        const SizedBox(width: AppSpacing.agakKecil),
-                        Flexible(
-                          child: Text(
-                            'PENGELUARAN PEKAN INI',
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(
-                                  color: AppColors.inkSoft,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.8,
-                                ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.kecil),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.kecil,
-                      vertical: AppSpacing.mini,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.grid,
-                      border: Border.all(color: AppColors.ink, width: 1.0),
-                      borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-                    ),
-                    child: Text(
-                      'PEKAN INI',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.ink,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sedang),
-              Text(
-                ringkasan.totalMingguIni.toRupiah(),
-                style: AppTheme.nominalUtama,
-              ),
-              const SizedBox(height: AppSpacing.sedang),
-              _IndikatorSelisih(
-                selisih: ringkasan.selisihMingguan,
-                totalMingguLalu: ringkasan.totalMingguLalu,
-              ),
-            ],
-          ),
+
+        // 1. Kartu Ringkasan Pekan (Insap 2.0)
+        _KartuRingkasanPekan(
+          ringkasan: ringkasan,
+          perbandinganTarget: perbandinganTarget,
         ),
-        const SizedBox(height: AppSpacing.besar),
-        // Tombol Aksi Cepat (Catat Cepat & Pindai Struk)
+
+        // 2. Banner Refleksi Hijau Muda dengan MaskotStruki detektif
+        if (tampilkanBannerRefleksi) ...[
+          const SizedBox(height: AppSpacing.sedang),
+          KartuBukuTulis(
+            key: const Key('banner_refleksi_beranda'),
+            onTap: () => context.go('/refleksi'),
+            backgroundColor: AppColors.hijauMuda,
+            shadow: AppTheme.bayanganGelap,
+            pressedShadow: AppTheme.bayanganGelapTertekan,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sedang,
+              vertical: 10,
+            ),
+            radius: AppSizes.radiusKartu,
+            child: Row(
+              children: [
+                const MaskotStruki(pose: PoseMaskot.detektif, ukuran: 76),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Refleksi pekan ini siap',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontSize: 15,
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Pekan ini belum direfleksikan. Luangkan 2 menit, yuk.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontSize: 13.5,
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.w600,
+                              height: 1.3,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.kecil),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 22,
+                  color: AppColors.ink,
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.sedang),
+
+        // 3. Dua Kartu Berdampingan: Catat Cepat & Pindai Struk
         IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -530,14 +557,17 @@ class _BerandaContent extends StatelessWidget {
                   backgroundColor: AppColors.stabilo,
                   shadow: AppTheme.bayanganGelap,
                   pressedShadow: AppTheme.bayanganGelapTertekan,
-                  radius: AppSizes.radiusTombol,
-                  padding: const EdgeInsets.all(AppSpacing.sedang),
+                  radius: AppSizes.radiusKartu,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: AppSizes.kotakIkonAksi,
-                        height: AppSizes.kotakIkonAksi,
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
                           color: AppColors.kartu,
                           border: Border.all(
@@ -545,9 +575,8 @@ class _BerandaContent extends StatelessWidget {
                             width: AppSizes.border,
                           ),
                           borderRadius: BorderRadius.circular(
-                            AppSizes.radiusKotakIkonAksi,
+                            AppSizes.radiusBadge,
                           ),
-                          boxShadow: const [AppTheme.bayanganKecilGelap],
                         ),
                         child: const Icon(
                           Icons.edit,
@@ -555,21 +584,24 @@ class _BerandaContent extends StatelessWidget {
                           color: AppColors.ink,
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.sedang),
+                      const SizedBox(height: 10),
                       Text(
                         'Catat Cepat',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
+                              fontSize: 19,
                               fontWeight: FontWeight.w800,
                               color: AppColors.ink,
+                              height: 1.15,
                             ),
                       ),
                       const SizedBox(height: AppSpacing.mini),
                       Text(
-                        'Ketik manual instan',
+                        'Ketik manual',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          letterSpacing: 0.2,
                           color: AppColors.ink,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
@@ -580,28 +612,15 @@ class _BerandaContent extends StatelessWidget {
               Expanded(
                 child: KartuBukuTulis(
                   key: KunciTur.pindaiStruk,
-                  onTap: () async {
-                    final sembunyikan =
-                        await sl<BacaStatusPanduanPindai>().call();
-                    if (!context.mounted) return;
-                    if (!sembunyikan) {
-                      await tampilkanDialogPanduanPindai(
-                        context,
-                        onLanjut: () {
-                          if (context.mounted) {
-                            context.push('/pindai?mulai=1');
-                          }
-                        },
-                      );
-                    } else {
-                      context.push('/pindai?mulai=1');
-                    }
-                  },
-                  backgroundColor: AppColors.aiBiru,
-                  shadow: AppTheme.bayanganGelap,
-                  pressedShadow: AppTheme.bayanganGelapTertekan,
-                  radius: AppSizes.radiusTombol,
-                  padding: const EdgeInsets.all(AppSpacing.sedang),
+                  onTap: () => _bukaPindai(context),
+                  backgroundColor: AppColors.ink,
+                  shadow: _bayanganStabilo,
+                  pressedShadow: _bayanganStabiloTertekan,
+                  radius: AppSizes.radiusKartu,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -609,44 +628,45 @@ class _BerandaContent extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            width: AppSizes.kotakIkonAksi,
-                            height: AppSizes.kotakIkonAksi,
+                            width: 40,
+                            height: 40,
                             decoration: BoxDecoration(
-                              color: AppColors.kartu,
+                              color: AppColors.stabilo,
                               border: Border.all(
                                 color: AppColors.ink,
                                 width: AppSizes.border,
                               ),
                               borderRadius: BorderRadius.circular(
-                                AppSizes.radiusKotakIkonAksi,
+                                AppSizes.radiusBadge,
                               ),
-                              boxShadow: const [AppTheme.bayanganKecilGelap],
                             ),
                             child: const Icon(
-                              Icons.photo_camera,
+                              Icons.qr_code_scanner_rounded,
                               size: AppSizes.ikonAksi,
-                              color: AppColors.aiBiru,
+                              color: AppColors.ink,
                             ),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.agakKecil,
+                              horizontal: AppSpacing.kecil,
                               vertical: AppSpacing.mini,
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.stabilo,
                               border: Border.all(
-                                color: AppColors.ink,
-                                width: AppSizes.borderTipis,
+                                color: AppColors.stabilo,
+                                width: AppSizes.border,
                               ),
                               borderRadius: BorderRadius.circular(
-                                AppSizes.radiusLabel,
+                                AppSizes.radiusKotakIkonAksi,
                               ),
                             ),
                             child: Text(
                               'AI',
                               style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
+                                    fontSize: 11,
+                                    letterSpacing: 0.6,
                                     color: AppColors.ink,
                                     fontWeight: FontWeight.w800,
                                   ),
@@ -654,19 +674,22 @@ class _BerandaContent extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppSpacing.sedang),
+                      const SizedBox(height: 10),
                       Text(
                         'Pindai Struk',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
+                              fontSize: 19,
                               fontWeight: FontWeight.w800,
                               color: AppColors.kartu,
+                              height: 1.15,
                             ),
                       ),
                       const SizedBox(height: AppSpacing.mini),
                       Text(
                         'Foto struk, AI yang isi',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          letterSpacing: 0.2,
                           color: AppColors.putihRedup,
                           fontWeight: FontWeight.w600,
                         ),
@@ -678,7 +701,7 @@ class _BerandaContent extends StatelessWidget {
                             child: Container(
                               height: AppSizes.tinggiBarKuotaPindai,
                               decoration: BoxDecoration(
-                                color: AppColors.aiBiruTua,
+                                color: AppColors.inkSoft,
                                 border: Border.all(
                                   color: AppColors.kartu,
                                   width: AppSizes.borderTipis,
@@ -697,10 +720,7 @@ class _BerandaContent extends StatelessWidget {
                                       ? 0.0
                                       : (ringkasan.kuotaPindai /
                                               kuotaPindaiPekanan)
-                                          .clamp(
-                                          0.0,
-                                          1.0,
-                                        ),
+                                          .clamp(0.0, 1.0),
                                   child: Container(color: AppColors.stabilo),
                                 ),
                               ),
@@ -736,65 +756,9 @@ class _BerandaContent extends StatelessWidget {
             ],
           ),
         ),
-        if (tampilkanBannerRefleksi) ...[
-          const SizedBox(height: AppSpacing.besar),
-          KartuBukuTulis(
-            key: const Key('banner_refleksi_beranda'),
-            onTap: () => context.go('/refleksi'),
-            backgroundColor: AppColors.kartu,
-            padding: const EdgeInsets.all(AppSpacing.sedang),
-            radius: AppSizes.radiusTombol,
-            child: Row(
-              children: [
-                Container(
-                  width: AppSizes.kotakIkonAksi,
-                  height: AppSizes.kotakIkonAksi,
-                  decoration: BoxDecoration(
-                    color: AppColors.stabilo,
-                    border: Border.all(
-                      color: AppColors.ink,
-                      width: AppSizes.borderTipis,
-                    ),
-                    borderRadius: BorderRadius.circular(
-                      AppSizes.radiusKotakIkonAksi,
-                    ),
-                    boxShadow: const [AppTheme.bayanganKecilGelap],
-                  ),
-                  child: const Icon(
-                    Icons.auto_stories_outlined,
-                    size: AppSizes.ikonAksi,
-                    color: AppColors.ink,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sedang),
-                Expanded(
-                  child: Text(
-                    'Pekan ini belum direfleksikan. Luangkan 2 menit, yuk.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.ink,
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.kecil),
-                const Icon(
-                  Icons.arrow_forward_rounded,
-                  size: AppSizes.ikonKecil,
-                  color: AppColors.ink,
-                ),
-              ],
-            ),
-          ),
-        ],
-        const SizedBox(height: AppSpacing.besar),
-        // Kartu Rincian Pengeluaran
-        KartuRincianPengeluaran(
-          totalPekanIni: ringkasan.totalMingguIni,
-          rincian: rincian,
-          perbandinganTarget: perbandinganTarget,
-        ),
         const SizedBox(height: AppSpacing.lebihBesar),
-        // Recent Transactions Section Header
+
+        // 4. Catatan Terakhir
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -816,7 +780,7 @@ class _BerandaContent extends StatelessWidget {
                       vertical: AppSpacing.mini,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.grid,
+                      color: AppColors.kuningMuda,
                       border: Border.all(color: AppColors.ink, width: 1.0),
                       borderRadius: BorderRadius.circular(AppSizes.radiusPil),
                     ),
@@ -838,8 +802,9 @@ class _BerandaContent extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Lihat Semua',
+                    'Lihat semua',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      letterSpacing: 0.2,
                       color: AppColors.ink,
                       fontWeight: FontWeight.w800,
                     ),
@@ -858,6 +823,8 @@ class _BerandaContent extends StatelessWidget {
         const SizedBox(height: AppSpacing.sedang),
         if (ringkasan.transaksiTerakhir.isEmpty)
           KartuBukuTulis(
+            shadow: AppTheme.bayanganGelap,
+            pressedShadow: AppTheme.bayanganGelapTertekan,
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.besar),
@@ -876,121 +843,139 @@ class _BerandaContent extends StatelessWidget {
               child: _ItemTransaksi(transaksi: t),
             ),
           ),
+        const SizedBox(height: AppSpacing.sedang),
+
+        // 5. Kartu Rincian Pengeluaran (memuat rincian kategori & atur target bulanan)
+        KartuRincianPengeluaran(
+          totalPekanIni: ringkasan.totalMingguIni,
+          rincian: rincian,
+          perbandinganTarget: perbandinganTarget,
+        ),
       ],
     );
   }
 }
 
-class _IndikatorSelisih extends StatelessWidget {
-  final int selisih;
-  final int totalMingguLalu;
+class _KartuRingkasanPekan extends StatelessWidget {
+  final RingkasanPekanEntity ringkasan;
+  final PerbandinganTargetEntity? perbandinganTarget;
 
-  const _IndikatorSelisih({
-    required this.selisih,
-    required this.totalMingguLalu,
+  const _KartuRingkasanPekan({
+    required this.ringkasan,
+    this.perbandinganTarget,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (totalMingguLalu == 0) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: AppSizes.tinggiGarisPemisah,
-            color: AppColors.garis,
-          ),
-          const SizedBox(height: AppSpacing.sedang),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sedang,
-                vertical: AppSpacing.sangatKecil,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.grid,
-                border: Border.all(color: AppColors.ink, width: 1.0),
-                borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-              ),
-              child: Text(
-                'Belum ada data pekan lalu',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.inkSoft,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
+    final target = perbandinganTarget;
+    final bool adaTarget = target != null && target.adaTarget;
+    final double porsiBar;
+    final Color warnaBar;
+    final String teksSisa;
+    final Color warnaTeksSisa;
+
+    if (adaTarget) {
+      porsiBar = target.persen.clamp(0.0, 1.0);
+      warnaBar = target.isLewat ? AppColors.salah : AppColors.stabilo;
+      teksSisa = target.isLewat
+          ? 'Lewat ${target.lewat.toRupiah()} dari target bulanan'
+          : 'Sisa ${target.sisa.toRupiah()} dari target bulanan';
+      warnaTeksSisa =
+          target.isLewat ? AppColors.merahTeks : AppColors.daunTua;
+    } else if (ringkasan.totalMingguLalu > 0) {
+      porsiBar = (ringkasan.totalMingguIni / ringkasan.totalMingguLalu)
+          .clamp(0.0, 1.0);
+      final bool boros = ringkasan.selisihMingguan > 0;
+      final bool hemat = ringkasan.selisihMingguan < 0;
+      warnaBar = boros ? AppColors.salah : AppColors.stabilo;
+      teksSisa = ringkasan.selisihMingguan == 0
+          ? 'Sama persis dengan pekan lalu'
+          : '${ringkasan.selisihMingguan.abs().toRupiah()} ${hemat ? 'lebih hemat' : 'lebih boros'} dibanding pekan lalu';
+      warnaTeksSisa =
+          boros ? AppColors.merahTeks : (hemat ? AppColors.daunTua : AppColors.inkSoft);
+    } else {
+      porsiBar = ringkasan.totalMingguIni > 0 ? 1.0 : 0.0;
+      warnaBar = AppColors.stabilo;
+      teksSisa = 'Belum ada data pekan lalu';
+      warnaTeksSisa = AppColors.inkSoft;
     }
 
-    final bool hemat = selisih < 0;
-    final bool boros = selisih > 0;
-    final nominalAbsolut = selisih.abs().toRupiah();
-    final teksStatus = hemat ? 'lebih hemat' : 'lebih boros';
-    final warnaLatar = hemat
-        ? AppColors.benarLatar
-        : (boros ? AppColors.salahLatar : AppColors.grid);
-    final ikon = hemat
-        ? Icons.arrow_downward
-        : (boros ? Icons.arrow_upward : Icons.remove);
-    final ikonTren = hemat
-        ? Icons.trending_down
-        : (boros ? Icons.trending_up : Icons.trending_flat);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(height: AppSizes.tinggiGarisPemisah, color: AppColors.garis),
-        const SizedBox(height: AppSpacing.sedang),
-        Row(
-          children: [
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sedang,
-                    vertical: AppSpacing.sangatKecil,
-                  ),
-                  decoration: BoxDecoration(
-                    color: warnaLatar,
-                    border: Border.all(color: AppColors.ink, width: 1.0),
-                    borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        ikon,
-                        size: AppSizes.ikonSelisih,
-                        color: AppColors.ink,
-                      ),
-                      const SizedBox(width: AppSpacing.sangatKecil),
-                      Flexible(
-                        child: Text(
-                          selisih == 0
-                              ? 'Sama persis dengan pekan lalu'
-                              : '$nominalAbsolut $teksStatus dibanding pekan lalu',
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                color: AppColors.ink,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        ),
-                      ),
-                    ],
+    return KartuBukuTulis(
+      radius: AppSizes.radiusKartu,
+      shadow: AppTheme.bayanganGelap,
+      pressedShadow: AppTheme.bayanganGelapTertekan,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'PENGELUARAN PEKAN INI',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: AppColors.inkSoft,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+          ),
+          const SizedBox(height: 2),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    ringkasan.totalMingguIni.toRupiah(),
+                    style: AppTheme.nominalBesar.copyWith(fontSize: 34),
                   ),
                 ),
               ),
+              if (adaTarget) ...[
+                const SizedBox(width: AppSpacing.kecil),
+                Text(
+                  'dari ${(target.targetBulanan ?? 0).toRupiah()}/bln',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.inkSoft,
+                      ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            height: 12,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.kartu,
+              border: Border.all(
+                color: AppColors.ink,
+                width: AppSizes.border,
+              ),
+              borderRadius: BorderRadius.circular(AppSizes.radiusPil),
             ),
-            const SizedBox(width: AppSpacing.sedang),
-            Icon(ikonTren, size: AppSizes.ikonAksi, color: AppColors.ink),
-          ],
-        ),
-      ],
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: porsiBar,
+                child: Container(color: warnaBar),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            teksSisa,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontSize: 13,
+                  color: warnaTeksSisa,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1017,7 +1002,7 @@ class _ItemTransaksi extends StatelessWidget {
             : 'Tidak diketahui';
         final ikon = kategori != null
             ? parseIkonKategori(kategori.ikon)
-            : Icons.help;
+            : Icons.help_outline_rounded;
         final warna = kategori != null
             ? parseWarnaKategori(kategori.warna)
             : AppColors.inkSoft;

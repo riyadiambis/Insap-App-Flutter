@@ -9,6 +9,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:insap/core/network/gemini_client.dart';
 import 'package:insap/core/theme.dart';
+import 'package:insap/features/langganan/presentation/pages/halaman_langganan.dart';
 import 'package:insap/features/beranda/presentation/cubit/beranda_cubit.dart';
 import 'package:insap/features/kategori/domain/entities/kategori_entity.dart';
 import 'package:insap/features/kategori/domain/repositories/kategori_repository.dart';
@@ -143,6 +144,7 @@ void main() {
   });
 
   Widget bangunAplikasiUji({
+    bool mulaiLangsung = false,
     Future<List<String>?> Function()? onScanDocument,
     Future<bool> Function()? onCheckConnection,
     bool Function()? onCheckApiKey,
@@ -153,6 +155,7 @@ void main() {
         GoRoute(
           path: '/pindai',
           builder: (context, state) => HalamanPindai(
+            mulaiLangsung: mulaiLangsung,
             onScanDocument: onScanDocument,
             // Default selalu terhubung jika tidak dispesifikasikan agar tes UI tidak terhambat
             onCheckConnection: onCheckConnection ?? () async => true,
@@ -163,6 +166,10 @@ void main() {
           path: '/catat',
           builder: (context, state) =>
               const Scaffold(body: Center(child: Text('Halaman Catat Manual'))),
+        ),
+        GoRoute(
+          path: '/langganan',
+          builder: (context, state) => const HalamanLangganan(),
         ),
       ],
     );
@@ -192,7 +199,7 @@ void main() {
 
       expect(find.text('Pindai Struk'), findsOneWidget);
       expect(find.text('Kuota Pindai Pekan Ini'), findsOneWidget);
-      expect(find.text('8 dari 10 tersisa'), findsOneWidget);
+      expect(find.text('8 dari 5 tersisa'), findsOneWidget);
       expect(find.text('Lihat panduan'), findsOneWidget);
       expect(find.text('Buka Pemindai Struk'), findsOneWidget);
     });
@@ -449,7 +456,7 @@ void main() {
     );
 
     testWidgets(
-      'No 12: kuota habis langsung menampilkan pemberitahuan dan navigasi ke /catat tanpa membuka pemindai',
+      'No 12: kuota habis menampilkan tampilan kuota habis, kartu langganan, dan tombol catat manual tanpa membuka pemindai',
       (tester) async {
         tester.view.physicalSize = const Size(460, 1600);
         tester.view.devicePixelRatio = 1.0;
@@ -469,16 +476,86 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Verifikasi teks kuota 0 dari 10 tersisa
-        expect(find.text('0 dari 10 tersisa'), findsOneWidget);
+        expect(find.text('Jatah pindai pekan ini habis'), findsOneWidget);
+        expect(find.text('Butuh lebih banyak?'), findsOneWidget);
+        expect(
+          find.text('Plus 50 pindai, Pro 100 pindai per pekan'),
+          findsOneWidget,
+        );
+        expect(find.text('Buka Pemindai Struk'), findsNothing);
+        expect(scannerDipanggil, isFalse);
 
-        final tombolScan = find.text('Buka Pemindai Struk');
-        await tester.tap(tombolScan);
+        // Ketuk kartu langganan membuka /langganan
+        await tester.tap(find.text('Butuh lebih banyak?'));
+        await tester.pumpAndSettle();
+        expect(find.byType(HalamanLangganan), findsOneWidget);
+        expect(find.text('Pilih paket Insap'), findsOneWidget);
+        expect(find.text('Rp29 rb'), findsOneWidget);
+        expect(
+          find.text(
+            'Pembayaran langganan belum aktif. Kami kabari begitu siap.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.textContaining('Tanya Struki'), findsNothing);
+
+        // Ketuk kartu Gratis: CTA menjadi status nonaktif dan tidak membuka dialog
+        await tester.ensureVisible(
+          find.byKey(const Key('kartu_paket_gratis')),
+        );
+        await tester.tap(find.byKey(const Key('kartu_paket_gratis')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('tombol_langganan_cta')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('dialog_fitur_dikembangkan')), findsNothing);
+
+        // Pilih Pro lalu ketuk CTA: membuka dialog "Langganan sedang disiapkan"
+        await tester.ensureVisible(find.byKey(const Key('kartu_paket_pro')));
+        await tester.tap(find.byKey(const Key('kartu_paket_pro')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('tombol_langganan_cta')));
+        await tester.pumpAndSettle();
+        expect(find.text('Langganan sedang disiapkan'), findsOneWidget);
+        await tester.tap(
+          find.byKey(const Key('tombol_tutup_dialog_dikembangkan')),
+        );
         await tester.pumpAndSettle();
 
-        expect(scannerDipanggil, isFalse);
-        expect(find.text('Kuota pemindaian pekan ini sudah habis'), findsOneWidget);
+        // Kembali ke halaman Pindai lalu ketuk Catat manual mengarahkan ke /catat
+        Navigator.of(tester.element(find.byType(HalamanLangganan))).pop();
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Catat manual'));
+        await tester.pumpAndSettle();
         expect(find.text('Halaman Catat Manual'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'kuota habis dengan mulaiLangsung true tetap menampilkan tampilan kuota habis tanpa pindah ke /catat',
+      (tester) async {
+        tester.view.physicalSize = const Size(460, 1600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        fakePindaiRepo.sisaKuota = 0;
+        bool scannerDipanggil = false;
+
+        await tester.pumpWidget(
+          bangunAplikasiUji(
+            mulaiLangsung: true,
+            onScanDocument: () async {
+              scannerDipanggil = true;
+              return null;
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Jatah pindai pekan ini habis'), findsOneWidget);
+        expect(find.text('Halaman Catat Manual'), findsNothing);
+        expect(scannerDipanggil, isFalse);
       },
     );
 

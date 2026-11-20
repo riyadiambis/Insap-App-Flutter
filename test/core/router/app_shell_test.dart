@@ -108,9 +108,11 @@ void main() {
         await tester.pumpWidget(buatAplikasiUji());
         await tester.pumpAndSettle();
 
-        final expectedWidth = (lebarLayar / 4) - (AppSpacing.mini * 2);
-        final expectedHeight = AppSizes.tinggiPillNavigasi;
-        final expectedSize = Size(expectedWidth, expectedHeight);
+        // Insap 2.0: pil ikon berukuran tetap, label berada di bawah pil.
+        const expectedSize = Size(
+          AppSizes.lebarPilNavigasi,
+          AppSizes.tinggiPilIkonNavigasi,
+        );
 
         final tabs = ['Beranda', 'Catat', 'Refleksi', 'Riwayat'];
         final List<Size> ukuranPills = [];
@@ -134,34 +136,27 @@ void main() {
                 'Ukuran pill tab $tab harus $expectedSize, ditemukan $sizePill',
           );
 
-          // 2. Verifikasi FittedBox membungkus label
-          final fittedBoxFinder = find.descendant(
-            of: pillAktif,
-            matching: find.byType(FittedBox),
-          );
+          // 2. Label tab dibungkus FittedBox
+          final textFinder = find.text(tab);
+          expect(textFinder, findsOneWidget);
           expect(
-            fittedBoxFinder,
+            find.ancestor(of: textFinder, matching: find.byType(FittedBox)),
             findsOneWidget,
             reason: 'Label $tab harus dibungkus FittedBox',
           );
 
           // 3. Verifikasi teks label tidak memakai TextOverflow.ellipsis
-          final textFinder = find.descendant(
-            of: pillAktif,
-            matching: find.byType(Text),
-          );
-          expect(textFinder, findsOneWidget);
           final textWidget = tester.widget<Text>(textFinder);
-          expect(textWidget.data, equals(tab));
           expect(
             textWidget.overflow,
             isNot(TextOverflow.ellipsis),
             reason: 'Teks $tab tidak boleh menggunakan TextOverflow.ellipsis',
           );
 
-          // 4. Verifikasi teks tidak melebihi batas (didExceedMaxLines == false)
-          // Tersedia lebar penuh pill dikurangi border 2.0 di kiri dan kanan
-          final lebarTersedia = sizePill.width - (AppSizes.border * 2);
+          // 4. Label muat di slot tab (lebar layar dikurangi slot Pindai, dibagi 4)
+          final lebarTersedia =
+              (lebarLayar - AppSizes.lebarSlotPindaiNav) / 4 -
+              (AppSpacing.mini * 2);
           final textPainter = TextPainter(
             text: TextSpan(text: textWidget.data, style: textWidget.style),
             textDirection: TextDirection.ltr,
