@@ -567,7 +567,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('tombol_langganan_cta')));
         await tester.pumpAndSettle();
-        expect(find.text('Insap Pro sedang disiapkan'), findsOneWidget);
+        expect(find.text('Langganan sedang disiapkan'), findsOneWidget);
         await tester.tap(
           find.byKey(const Key('tombol_tutup_dialog_dikembangkan')),
         );

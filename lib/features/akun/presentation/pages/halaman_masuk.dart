@@ -5,10 +5,11 @@ import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/header_aplikasi.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
+import '../../../../core/widgets/tombol_stabilo.dart';
 import '../cubit/akun_cubit.dart';
 import '../cubit/akun_state.dart';
 
-class HalamanMasuk extends StatelessWidget {
+class HalamanMasuk extends StatefulWidget {
   final bool modeOnboarding;
   final VoidCallback? onKembali;
   final VoidCallback? onLanjutTanpaAkun;
@@ -22,14 +23,94 @@ class HalamanMasuk extends StatelessWidget {
     this.onLoginSukses,
   });
 
+  @override
+  State<HalamanMasuk> createState() => _HalamanMasukState();
+}
+
+class _HalamanMasukState extends State<HalamanMasuk> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _sandiController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  bool _formEmailTerbuka = false;
+  bool _sembunyikanSandi = true;
+  bool _modeDaftar = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _sandiController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   void _tutupLayar(BuildContext context) {
-    if (onLanjutTanpaAkun != null) {
-      onLanjutTanpaAkun!();
+    if (widget.onLanjutTanpaAkun != null) {
+      widget.onLanjutTanpaAkun!();
       return;
     }
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }
+  }
+
+  void _toggleFormEmail() {
+    setState(() {
+      _formEmailTerbuka = !_formEmailTerbuka;
+    });
+    if (_formEmailTerbuka) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
+  }
+
+  void _kirimMasukEmail(AkunCubit? cubit) {
+    if (cubit == null) return;
+    setState(() => _modeDaftar = false);
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) return;
+    cubit.masukDenganEmail(
+      email: _emailController.text.trim(),
+      kataSandi: _sandiController.text,
+    );
+  }
+
+  void _kirimDaftarEmail(AkunCubit? cubit) {
+    if (cubit == null) return;
+    setState(() => _modeDaftar = true);
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) return;
+    cubit.daftarDenganEmail(
+      email: _emailController.text.trim(),
+      kataSandi: _sandiController.text,
+    );
+  }
+
+  void _kirimLupaSandi(AkunCubit? cubit) {
+    if (cubit == null) return;
+    FocusScope.of(context).unfocus();
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Masukkan alamat surel yang valid terlebih dahulu.'),
+            backgroundColor: AppColors.salah,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      return;
+    }
+    cubit.kirimResetKataSandi(email);
   }
 
   @override
@@ -45,7 +126,7 @@ class HalamanMasuk extends StatelessWidget {
       appBar: HeaderAplikasi(
         namaLayar: 'Masuk',
         modeKembali: true,
-        onKembali: onKembali,
+        onKembali: widget.onKembali,
       ),
       body: PaperBackground(
         child: akunCubit == null
@@ -53,7 +134,7 @@ class HalamanMasuk extends StatelessWidget {
             : BlocConsumer<AkunCubit, AkunState>(
                 listener: (context, state) {
                   if (state is AkunMasuk) {
-                    onLoginSukses?.call();
+                    widget.onLoginSukses?.call();
                   } else if (state is AkunGalat) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -103,6 +184,7 @@ class HalamanMasuk extends StatelessWidget {
             children: [
               Expanded(
                 child: SingleChildScrollView(
+                  controller: _scrollController,
                   padding: const EdgeInsets.all(AppSpacing.besar),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -120,7 +202,9 @@ class HalamanMasuk extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            modeOnboarding ? 'LANGKAH 3 DARI 3' : 'CADANGAN AWAN',
+                            widget.modeOnboarding
+                                ? 'LANGKAH 3 DARI 3'
+                                : 'CADANGAN AWAN',
                             style: teks.labelSmall?.copyWith(
                               fontSize: 13,
                               fontWeight: FontWeight.w800,
@@ -177,6 +261,10 @@ class HalamanMasuk extends StatelessWidget {
                           ],
                         ),
                       ),
+                      if (_formEmailTerbuka) ...[
+                        const SizedBox(height: 14),
+                        _bangunFormEmail(context, sedangMemuat, cubit),
+                      ],
                     ],
                   ),
                 ),
@@ -198,7 +286,30 @@ class HalamanMasuk extends StatelessWidget {
                           ? null
                           : () => cubit.masukDenganGoogle(),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 2),
+                    Center(
+                      child: Semantics(
+                        button: true,
+                        label: 'Masuk dengan email',
+                        child: TextButton(
+                          key: const Key('tombol_toggle_form_email'),
+                          onPressed: sedangMemuat ? null : _toggleFormEmail,
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(48, 48),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                          child: Text(
+                            'Masuk dengan email',
+                            style: teks.bodySmall?.copyWith(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.inkSoft,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     TextButton(
                       key: const Key('tombol_lanjut_tanpa_akun'),
                       onPressed: sedangMemuat
@@ -221,6 +332,253 @@ class HalamanMasuk extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _bangunFormEmail(
+    BuildContext context,
+    bool sedangMemuat,
+    AkunCubit? cubit,
+  ) {
+    final teks = Theme.of(context).textTheme;
+
+    return KartuBukuTulis(
+      key: const Key('kartu_form_email'),
+      shadow: AppTheme.bayanganGelap,
+      pressedShadow: AppTheme.bayanganGelapTertekan,
+      padding: const EdgeInsets.all(AppSpacing.besar),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Masuk atau daftar dengan surel',
+              style: teks.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sedang),
+            TextFormField(
+              key: const Key('input_email_masuk'),
+              controller: _emailController,
+              enabled: !sedangMemuat,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                labelText: 'Surel',
+                hintText: 'nama@contoh.com',
+                filled: true,
+                fillColor: AppColors.kartu,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+                  borderSide: const BorderSide(
+                    color: AppColors.ink,
+                    width: AppSizes.border,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+                  borderSide: const BorderSide(
+                    color: AppColors.ink,
+                    width: AppSizes.border,
+                  ),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+                  borderSide: const BorderSide(
+                    color: AppColors.salah,
+                    width: AppSizes.border,
+                  ),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+                  borderSide: const BorderSide(
+                    color: AppColors.salah,
+                    width: AppSizes.border,
+                  ),
+                ),
+              ),
+              validator: (val) {
+                final v = val?.trim() ?? '';
+                if (v.isEmpty) return 'Surel wajib diisi';
+                if (!v.contains('@')) return 'Format surel tidak valid';
+                return null;
+              },
+            ),
+            const SizedBox(height: AppSpacing.sedang),
+            TextFormField(
+              key: const Key('input_sandi_masuk'),
+              controller: _sandiController,
+              enabled: !sedangMemuat,
+              obscureText: _sembunyikanSandi,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(
+                labelText: 'Kata sandi',
+                filled: true,
+                fillColor: AppColors.kartu,
+                suffixIcon: Semantics(
+                  button: true,
+                  label: _sembunyikanSandi
+                      ? 'Tampilkan kata sandi'
+                      : 'Sembunyikan kata sandi',
+                  child: IconButton(
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                    icon: Icon(
+                      _sembunyikanSandi
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      color: AppColors.inkSoft,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _sembunyikanSandi = !_sembunyikanSandi;
+                      });
+                    },
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+                  borderSide: const BorderSide(
+                    color: AppColors.ink,
+                    width: AppSizes.border,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+                  borderSide: const BorderSide(
+                    color: AppColors.ink,
+                    width: AppSizes.border,
+                  ),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+                  borderSide: const BorderSide(
+                    color: AppColors.salah,
+                    width: AppSizes.border,
+                  ),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+                  borderSide: const BorderSide(
+                    color: AppColors.salah,
+                    width: AppSizes.border,
+                  ),
+                ),
+              ),
+              validator: (val) {
+                final v = val ?? '';
+                if (v.trim().isEmpty) return 'Kata sandi wajib diisi';
+                if (_modeDaftar && v.length < 6) {
+                  return 'Kata sandi minimal 6 karakter';
+                }
+                return null;
+              },
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Semantics(
+                button: true,
+                label: 'Lupa kata sandi?',
+                child: TextButton(
+                  key: const Key('tombol_lupa_sandi'),
+                  onPressed: (sedangMemuat || cubit == null)
+                      ? null
+                      : () => _kirimLupaSandi(cubit),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                  ),
+                  child: Text(
+                    'Lupa kata sandi?',
+                    style: teks.bodySmall?.copyWith(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sangatKecil),
+            Row(
+              children: [
+                Expanded(
+                  child: TombolStabilo(
+                    key: const Key('tombol_masuk_email'),
+                    teks: 'Masuk',
+                    isLoading: sedangMemuat,
+                    onPressed: (sedangMemuat || cubit == null)
+                        ? null
+                        : () => _kirimMasukEmail(cubit),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sedang),
+                Expanded(
+                  child: _TombolDaftarSekunder(
+                    key: const Key('tombol_daftar_email'),
+                    teks: 'Daftar',
+                    onPressed: (sedangMemuat || cubit == null)
+                        ? null
+                        : () => _kirimDaftarEmail(cubit),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TombolDaftarSekunder extends StatelessWidget {
+  final String teks;
+  final VoidCallback? onPressed;
+
+  const _TombolDaftarSekunder({
+    super.key,
+    required this.teks,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = onPressed == null;
+    return Semantics(
+      button: true,
+      enabled: !disabled,
+      label: teks,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: Container(
+            height: AppSizes.tinggiTombol,
+            decoration: BoxDecoration(
+              color: disabled ? AppColors.garis : AppColors.kartu,
+              border: Border.all(color: AppColors.ink, width: AppSizes.border),
+              borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
+              boxShadow: const [AppTheme.bayanganTombolGelap],
+            ),
+            child: Center(
+              child: Text(
+                teks,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+            ),
           ),
         ),
       ),

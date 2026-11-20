@@ -10,12 +10,36 @@ import '../entities/agregat_kakeibo_entity.dart';
 import '../entities/refleksi_mingguan_entity.dart';
 import '../repositories/refleksi_repository.dart';
 
+class RincianKategoriRefleksi extends Equatable {
+  final int kategoriId;
+  final String nama;
+  final String ikon;
+  final String warna;
+  final int total;
+
+  const RincianKategoriRefleksi({
+    required this.kategoriId,
+    required this.nama,
+    required this.ikon,
+    required this.warna,
+    required this.total,
+  });
+
+  @override
+  List<Object?> get props => [kategoriId, nama, ikon, warna, total];
+}
+
 class DataRefleksiPekan extends Equatable {
   final int tahun;
   final int mingguKe;
   final DateTime awalPekan;
   final DateTime akhirPekan;
+  final DateTime? tanggalAcuan;
   final AgregatKakeiboEntity agregat;
+  final int totalBulanIni;
+  final int totalBulanLalu;
+  final List<RincianKategoriRefleksi> kategoriPekanIni;
+  final List<RincianKategoriRefleksi> kategoriBulanIni;
   final RefleksiMingguanEntity? refleksiTersimpan;
   final int? targetPekanIni;
   final int? targetPekanDepan;
@@ -27,7 +51,12 @@ class DataRefleksiPekan extends Equatable {
     required this.mingguKe,
     required this.awalPekan,
     required this.akhirPekan,
+    this.tanggalAcuan,
     required this.agregat,
+    this.totalBulanIni = 0,
+    this.totalBulanLalu = 0,
+    this.kategoriPekanIni = const [],
+    this.kategoriBulanIni = const [],
     this.refleksiTersimpan,
     this.targetPekanIni,
     this.targetPekanDepan,
@@ -45,7 +74,12 @@ class DataRefleksiPekan extends Equatable {
     mingguKe,
     awalPekan,
     akhirPekan,
+    tanggalAcuan,
     agregat,
+    totalBulanIni,
+    totalBulanLalu,
+    kategoriPekanIni,
+    kategoriBulanIni,
     refleksiTersimpan,
     targetPekanIni,
     targetPekanDepan,
@@ -183,12 +217,75 @@ class AmbilRefleksiPekan {
     final int? targetBulanan =
         ambilTargetBulanan != null ? await ambilTargetBulanan!() : null;
 
+    // Agregat bulan ini & bulan lalu serta rincian per kategori untuk HalamanRefleksi (h17)
+    final DateTime awalBulanIni = DateTime(acuan.year, acuan.month, 1);
+    final DateTime akhirBulanIni = DateTime(acuan.year, acuan.month + 1, 0);
+    final DateTime awalBulanLalu = DateTime(acuan.year, acuan.month - 1, 1);
+    final DateTime akhirBulanLalu = DateTime(acuan.year, acuan.month, 0);
+
+    final List<TransaksiEntity> daftarBulanIni = await transaksiRepository
+        .ambilDaftar(
+          tanggalMulai: formatTanggalIso(awalBulanIni),
+          tanggalAkhir: formatTanggalIso(akhirBulanIni),
+        );
+    final List<TransaksiEntity> daftarBulanLalu = await transaksiRepository
+        .ambilDaftar(
+          tanggalMulai: formatTanggalIso(awalBulanLalu),
+          tanggalAkhir: formatTanggalIso(akhirBulanLalu),
+        );
+
+    final int totalBulanIni = daftarBulanIni.fold<int>(
+      0,
+      (sum, t) => sum + t.jumlah,
+    );
+    final int totalBulanLalu = daftarBulanLalu.fold<int>(
+      0,
+      (sum, t) => sum + t.jumlah,
+    );
+
+    final Map<int, KategoriEntity> petaKategoriById = {
+      for (final k in daftarKategori)
+        if (k.id != null) k.id!: k,
+    };
+
+    List<RincianKategoriRefleksi> kelompokkanKategori(
+      List<TransaksiEntity> daftar,
+    ) {
+      final Map<int, int> sumPerKategori = {};
+      for (final t in daftar) {
+        sumPerKategori[t.kategoriId] =
+            (sumPerKategori[t.kategoriId] ?? 0) + t.jumlah;
+      }
+      final list = sumPerKategori.entries.map((e) {
+        final kat = petaKategoriById[e.key];
+        return RincianKategoriRefleksi(
+          kategoriId: e.key,
+          nama: kat?.nama ?? 'lainnya',
+          ikon: kat?.ikon ?? 'more_horiz',
+          warna: kat?.warna ?? '#5B7793',
+          total: e.value,
+        );
+      }).toList();
+
+      list.sort((a, b) {
+        final cmp = b.total.compareTo(a.total);
+        if (cmp != 0) return cmp;
+        return a.kategoriId.compareTo(b.kategoriId);
+      });
+      return list;
+    }
+
     return DataRefleksiPekan(
       tahun: tahun,
       mingguKe: mingguKe,
       awalPekan: pekanIni.awal,
       akhirPekan: pekanIni.akhir,
+      tanggalAcuan: acuan,
       agregat: agregat,
+      totalBulanIni: totalBulanIni,
+      totalBulanLalu: totalBulanLalu,
+      kategoriPekanIni: kelompokkanKategori(daftarPekanIni),
+      kategoriBulanIni: kelompokkanKategori(daftarBulanIni),
       refleksiTersimpan: refleksiTersimpan,
       targetPekanIni: targetPekanIni,
       targetPekanDepan: targetPekanDepan,

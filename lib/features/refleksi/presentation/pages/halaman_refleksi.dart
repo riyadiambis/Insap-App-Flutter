@@ -8,37 +8,39 @@ import '../../../../core/theme.dart';
 import '../../../../core/utils/iso_week.dart';
 import '../../../../core/utils/rupiah_extension.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
-import '../../../../core/widgets/maskot_struki.dart';
+import '../../../../core/widgets/tombol_stabilo.dart';
 import '../../../beranda/presentation/cubit/beranda_cubit.dart';
 import '../../../beranda/presentation/cubit/beranda_state.dart';
+import '../../../beranda/presentation/widgets/tampilan_kategori.dart';
 import '../../domain/usecases/ambil_refleksi_pekan.dart';
 import '../cubit/refleksi_cubit.dart';
 import '../cubit/refleksi_state.dart';
-import '../widgets/form_isian_refleksi.dart';
-import '../widgets/kartu_agregat_kakeibo.dart';
-import '../widgets/kartu_pekan_lalu.dart';
-import '../widgets/kartu_renungan_pengen.dart';
-import '../widgets/kartu_ringkasan_refleksi.dart';
+
+enum _PeriodeRefleksi { pekan, bulan }
 
 class HalamanRefleksi extends StatelessWidget {
-  const HalamanRefleksi({super.key});
+  final VoidCallback? onMintaRefleksiAi;
+
+  const HalamanRefleksi({super.key, this.onMintaRefleksiAi});
 
   @override
   Widget build(BuildContext context) {
     try {
       context.read<RefleksiCubit>();
-      return const _RefleksiView();
+      return _RefleksiView(onMintaRefleksiAi: onMintaRefleksiAi);
     } catch (_) {
       return BlocProvider<RefleksiCubit>(
         create: (_) => sl<RefleksiCubit>()..muatRefleksi(),
-        child: const _RefleksiView(),
+        child: _RefleksiView(onMintaRefleksiAi: onMintaRefleksiAi),
       );
     }
   }
 }
 
 class _RefleksiView extends StatelessWidget {
-  const _RefleksiView();
+  final VoidCallback? onMintaRefleksiAi;
+
+  const _RefleksiView({this.onMintaRefleksiAi});
 
   bool _adaBerandaCubit(BuildContext context) {
     try {
@@ -58,24 +60,7 @@ class _RefleksiView extends StatelessWidget {
             constraints: const BoxConstraints(
               maxWidth: AppSizes.batasLebarKonten,
             ),
-            child: BlocConsumer<RefleksiCubit, RefleksiState>(
-              listenWhen: (prev, curr) =>
-                  prev.status != curr.status &&
-                  (curr.status == RefleksiStatus.saved ||
-                      curr.status == RefleksiStatus.error),
-              listener: (context, state) {
-                if (state.status == RefleksiStatus.saved &&
-                    state.pesanSukses != null) {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(SnackBar(content: Text(state.pesanSukses!)));
-                } else if (state.status == RefleksiStatus.error &&
-                    state.pesanGalat != null) {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(SnackBar(content: Text(state.pesanGalat!)));
-                }
-              },
+            child: BlocBuilder<RefleksiCubit, RefleksiState>(
               builder: (context, state) {
                 if (state.status == RefleksiStatus.initial ||
                     (state.status == RefleksiStatus.loading &&
@@ -108,7 +93,7 @@ class _RefleksiView extends StatelessWidget {
 
                 return _KontenRefleksi(
                   data: data,
-                  sedangMenyimpan: state.status == RefleksiStatus.saving,
+                  onMintaRefleksiAi: onMintaRefleksiAi,
                 );
               },
             ),
@@ -133,11 +118,11 @@ class _RefleksiView extends StatelessWidget {
 
 class _KontenRefleksi extends StatefulWidget {
   final DataRefleksiPekan data;
-  final bool sedangMenyimpan;
+  final VoidCallback? onMintaRefleksiAi;
 
   const _KontenRefleksi({
     required this.data,
-    required this.sedangMenyimpan,
+    this.onMintaRefleksiAi,
   });
 
   @override
@@ -145,493 +130,383 @@ class _KontenRefleksi extends StatefulWidget {
 }
 
 class _KontenRefleksiState extends State<_KontenRefleksi> {
-  bool _sedangMengubah = false;
+  _PeriodeRefleksi _periode = _PeriodeRefleksi.pekan;
 
-  @override
-  void didUpdateWidget(covariant _KontenRefleksi oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.sedangMenyimpan && !widget.sedangMenyimpan) {
-      if (widget.data.refleksiTersimpan != null) {
-        setState(() {
-          _sedangMengubah = false;
-        });
-      }
+  static const List<String> _namaBulan = [
+    '',
+    'JANUARI',
+    'FEBRUARI',
+    'MARET',
+    'APRIL',
+    'MEI',
+    'JUNI',
+    'JULI',
+    'AGUSTUS',
+    'SEPTEMBER',
+    'OKTOBER',
+    'NOVEMBER',
+    'DESEMBER',
+  ];
+
+  String _labelPeriode(bool isPekan) {
+    if (isPekan) {
+      return formatRentangTanggal(
+        widget.data.awalPekan,
+        widget.data.akhirPekan,
+      ).toUpperCase();
     }
+    final acuan = widget.data.tanggalAcuan ?? widget.data.akhirPekan;
+    return '${_namaBulan[acuan.month]} ${acuan.year}';
   }
 
-  Widget _buildHeaderKonten(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final teksRentang = formatRentangTanggal(
-      widget.data.awalPekan,
-      widget.data.akhirPekan,
-    );
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Refleksi Mingguan',
-                style: textTheme.headlineSmall?.copyWith(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'Pekan ke-${widget.data.mingguKe} · Ritual Kakeibo',
-                style: textTheme.bodySmall?.copyWith(
-                  fontSize: 13,
-                  color: AppColors.inkSoft,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: AppSpacing.kecil),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.kartu,
-            border: Border.all(color: AppColors.ink, width: AppSizes.border),
-            borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-            boxShadow: const [AppTheme.bayanganKecilGelap],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.calendar_today_outlined,
-                size: AppSizes.ikonSelisih,
-                color: AppColors.ink,
-              ),
-              const SizedBox(width: AppSpacing.sangatKecil),
-              Text(
-                teksRentang,
-                style: textTheme.labelSmall?.copyWith(
-                  color: AppColors.ink,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _buatTeksPerbandinganPekanLalu() {
-    final selisih = widget.data.agregat.selisihPekanLalu;
-    final pekanLaluRp = widget.data.agregat.totalPekanLalu.toRupiah();
-    if (selisih == 0) {
-      return 'Pekan lalu: $pekanLaluRp (sama dengan pekan ini)';
-    } else if (selisih > 0) {
-      return 'Pekan lalu: $pekanLaluRp (+${selisih.toRupiah()} pekan ini)';
-    } else {
-      return 'Pekan lalu: $pekanLaluRp (-${selisih.abs().toRupiah()} pekan ini)';
+  ({String teks, Color warna}) _infoPerbandingan({
+    required int totalIni,
+    required int totalLalu,
+    required String labelLalu,
+  }) {
+    if (totalLalu <= 0) {
+      return (
+        teks: 'Belum ada data $labelLalu',
+        warna: AppColors.inkSoft,
+      );
     }
-  }
-
-  String _buatTeksCatatanKartuUtama() {
-    if (!widget.data.agregat.adaTransaksi) {
-      return 'Belum ada pengeluaran tercatat pekan ini. Kamu tetap bisa menulis refleksi dan menetapkan target untuk pekan depan.';
+    final selisih = totalIni - totalLalu;
+    final persen = ((selisih.abs() * 100) / totalLalu).round();
+    if (selisih < 0) {
+      return (
+        teks: '-$persen% dari $labelLalu',
+        warna: AppColors.daunTua,
+      );
     }
-    final selisihTarget = widget.data.selisihTarget;
-    if (selisihTarget == null) {
-      return 'Tetapkan target pengeluaran di bawah agar pekan depan kamu punya acuan perbandingan.';
+    if (selisih > 0) {
+      return (
+        teks: '+$persen% dari $labelLalu',
+        warna: AppColors.merahTeks,
+      );
     }
-    if (selisihTarget == 0) {
-      return 'Realisasi pengeluaran pekan ini tepat sama dengan target awalmu.';
-    }
-    if (selisihTarget > 0) {
-      return 'Selisih ${selisihTarget.toRupiah()} dari target awal. Yuk cek kembali ritme kebutuhanmu untuk pekan depan.';
-    }
-    return 'Tersisa ${selisihTarget.abs().toRupiah()} dari target awal yang kamu tetapkan.';
-  }
-
-  Widget _buildKartuMaskotRefleksi(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final int totalPekanIni = widget.data.agregat.totalPekanIni;
-    final int totalPekanLalu = widget.data.agregat.totalPekanLalu;
-
-    int? acuanTarget = widget.data.targetPekanIni;
-    bool pakaiPerkiraanBulanan = false;
-    if (acuanTarget == null || acuanTarget <= 0) {
-      final targetBulanan = widget.data.targetBulanan;
-      if (targetBulanan != null && targetBulanan > 0) {
-        final acuan = widget.data.awalPekan;
-        final hariDalamBulan = DateTime(acuan.year, acuan.month + 1, 0).day;
-        acuanTarget =
-            ((targetBulanan * 7 / hariDalamBulan) / 1000).round() * 1000;
-        pakaiPerkiraanBulanan = true;
-      }
-    }
-
-    final bool hemat;
-    final String judul;
-    final List<InlineSpan> keterangan;
-
-    if (acuanTarget != null && acuanTarget > 0) {
-      final int selisih = totalPekanIni - acuanTarget;
-      hemat = selisih <= 0;
-      judul = hemat ? 'Hemat dan happy!' : 'Astaga, lewat sedikit';
-      if (hemat) {
-        final String labelTarget = pakaiPerkiraanBulanan
-            ? 'perkiraan target pekanan'
-            : 'target';
-        keterangan = selisih == 0
-            ? [TextSpan(text: 'Pekan ini tepat sesuai $labelTarget.')]
-            : [
-                const TextSpan(text: 'Pekan ini kamu '),
-                TextSpan(
-                  text: '${selisih.abs().toRupiah()} di bawah $labelTarget',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.daunTua,
-                  ),
-                ),
-                const TextSpan(text: '.'),
-              ];
-      } else {
-        keterangan = [
-          const TextSpan(text: 'Pekan ini '),
-          TextSpan(
-            text: '${selisih.toRupiah()} di atas target',
-            style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              color: AppColors.merahTeks,
-            ),
-          ),
-          const TextSpan(text: '. Tidak apa-apa, pekan depan bisa diatur.'),
-        ];
-      }
-    } else if (totalPekanLalu > 0) {
-      final int selisih = totalPekanIni - totalPekanLalu;
-      hemat = selisih <= 0;
-      judul = hemat ? 'Hemat dan happy!' : 'Astaga, lewat sedikit';
-      if (hemat) {
-        keterangan = [
-          const TextSpan(text: 'Pekan ini '),
-          TextSpan(
-            text: '${selisih.abs().toRupiah()} lebih hemat dari pekan lalu',
-            style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              color: AppColors.daunTua,
-            ),
-          ),
-          const TextSpan(text: '.'),
-        ];
-      } else {
-        keterangan = [
-          const TextSpan(text: 'Pekan ini '),
-          TextSpan(
-            text: '${selisih.toRupiah()} lebih banyak dari pekan lalu',
-            style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              color: AppColors.merahTeks,
-            ),
-          ),
-          const TextSpan(text: '. Tidak apa-apa, pekan depan bisa diatur.'),
-        ];
-      }
-    } else {
-      hemat = true;
-      judul = 'Hemat dan happy!';
-      keterangan = [
-        TextSpan(
-          text: totalPekanIni == 0
-              ? 'Belum ada pengeluaran pekan ini. Tetap sadar boncos!'
-              : 'Atur target pekan depan di bawah biar Struki bisa bantu pantau.',
-        ),
-      ];
-    }
-
-    return KartuBukuTulis(
-      key: const Key('kartu_maskot_refleksi'),
-      radius: AppSizes.radiusKartu,
-      backgroundColor: hemat ? AppColors.hijauMuda : AppColors.boncosLatar,
-      shadow: AppTheme.bayanganGelap,
-      pressedShadow: AppTheme.bayanganGelapTertekan,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Column(
-        children: [
-          MaskotStruki(
-            key: const Key('maskot_refleksi'),
-            pose: hemat ? PoseMaskot.hemat : PoseMaskot.boncos,
-            ukuran: AppSizes.ukuranMaskotRefleksi,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            judul,
-            textAlign: TextAlign.center,
-            style: textTheme.headlineMedium?.copyWith(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink,
-              height: 1.15,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text.rich(
-            TextSpan(
-              style: textTheme.bodyMedium?.copyWith(
-                fontSize: 15,
-                color: AppColors.ink,
-                height: 1.5,
-              ),
-              children: keterangan,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildKartuRingkasanPekan(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final teksTarget = widget.data.targetPekanIni != null
-        ? widget.data.targetPekanIni!.toRupiah()
-        : 'belum ada target';
-
-    final int? selisihTarget = widget.data.selisihTarget;
-    final bool punyaTarget =
-        widget.data.targetPekanIni != null && widget.data.targetPekanIni! > 0;
-    final bool hemat = punyaTarget && selisihTarget != null && selisihTarget <= 0;
-    final bool boncos = punyaTarget && selisihTarget != null && selisihTarget > 0;
-
-    return KartuBukuTulis(
-      radius: AppSizes.radiusKartu,
-      backgroundColor: AppColors.kartu,
-      shadow: AppTheme.bayanganGelap,
-      pressedShadow: AppTheme.bayanganGelapTertekan,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'PENGELUARAN SEPEKAN',
-                  style: textTheme.labelSmall?.copyWith(
-                    fontSize: 13,
-                    letterSpacing: 0.4,
-                    color: AppColors.inkSoft,
-                    fontWeight: FontWeight.w800,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.kecil),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.kecil,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.stabilo,
-                  borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-                  border: Border.all(
-                    color: AppColors.ink,
-                    width: AppSizes.borderTipis,
-                  ),
-                ),
-                child: Text(
-                  'Evaluasi Santai',
-                  style: textTheme.labelSmall?.copyWith(
-                    fontSize: 11,
-                    letterSpacing: 0.2,
-                    color: AppColors.ink,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.kecil),
-          Text(
-            widget.data.agregat.totalPekanIni.toRupiah(),
-            style: AppTheme.nominalUtama,
-          ),
-          const SizedBox(height: AppSpacing.kecil),
-          Wrap(
-            spacing: AppSpacing.kecil,
-            runSpacing: AppSpacing.kecil,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.kecil,
-                  vertical: AppSpacing.sangatKecil,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.kartu,
-                  borderRadius: BorderRadius.circular(
-                    AppSizes.radiusKotakIkonAksi,
-                  ),
-                  border: Border.all(
-                    color: AppColors.ink,
-                    width: AppSizes.borderTipis,
-                  ),
-                ),
-                child: Text(
-                  'Target: $teksTarget',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: AppColors.ink,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.kecil,
-                  vertical: AppSpacing.sangatKecil,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.kuningMuda,
-                  borderRadius: BorderRadius.circular(
-                    AppSizes.radiusKotakIkonAksi,
-                  ),
-                  border: Border.all(
-                    color: AppColors.ink,
-                    width: AppSizes.borderTipis,
-                  ),
-                ),
-                child: Text(
-                  _buatTeksPerbandinganPekanLalu(),
-                  style: textTheme.bodySmall?.copyWith(
-                    color: AppColors.ink,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sedang),
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.sedang),
-            decoration: BoxDecoration(
-              color: AppColors.kartu,
-              borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
-              border: Border.all(color: AppColors.ink, width: AppSizes.border),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.tips_and_updates_outlined,
-                  size: AppSizes.ikonAksi,
-                  color: boncos
-                      ? AppColors.merahTeks
-                      : (hemat ? AppColors.daunTua : AppColors.ink),
-                ),
-                const SizedBox(width: AppSpacing.kecil),
-                Expanded(
-                  child: Text(
-                    _buatTeksCatatanKartuUtama(),
-                    style: textTheme.bodySmall?.copyWith(
-                      fontSize: 13.5,
-                      color: AppColors.ink,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return (
+      teks: '0% dari $labelLalu',
+      warna: AppColors.inkSoft,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final data = widget.data;
-    final adaRefleksiPekanLalu =
-        data.refleksiPekanLalu != null &&
-        data.refleksiPekanLalu!.catatanRefleksi != null &&
-        data.refleksiPekanLalu!.catatanRefleksi!.trim().isNotEmpty;
+    final textTheme = Theme.of(context).textTheme;
+    final bool isPekan = _periode == _PeriodeRefleksi.pekan;
+
+    final int totalIni = isPekan
+        ? widget.data.agregat.totalPekanIni
+        : widget.data.totalBulanIni;
+    final int totalLalu = isPekan
+        ? widget.data.agregat.totalPekanLalu
+        : widget.data.totalBulanLalu;
+    final String labelLalu = isPekan ? 'pekan lalu' : 'bulan lalu';
+
+    final List<RincianKategoriRefleksi> daftarKategori = isPekan
+        ? widget.data.kategoriPekanIni
+        : widget.data.kategoriBulanIni;
+
+    final infoBanding = _infoPerbandingan(
+      totalIni: totalIni,
+      totalLalu: totalLalu,
+      labelLalu: labelLalu,
+    );
+
+    final bool adaTransaksiPekanIni = widget.data.agregat.adaTransaksi;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.only(
-        left: AppSpacing.besar,
-        top: AppSpacing.besar,
-        right: AppSpacing.besar,
-        bottom: AppSpacing.jarakGulirBawah,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.besar,
+        AppSpacing.sedang,
+        AppSpacing.besar,
+        AppSpacing.jarakGulirBawah,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (adaRefleksiPekanLalu) ...[
-            KartuPekanLalu(
-              refleksi: data.refleksiPekanLalu!,
-              target: data.targetPekanIni,
-              onTap: () {
-                context.push('/refleksi/riwayat');
-              },
-            ),
-            const SizedBox(height: AppSpacing.besar),
-          ],
-          _buildHeaderKonten(context),
-          const SizedBox(height: AppSpacing.besar),
-          _buildKartuMaskotRefleksi(context),
-          const SizedBox(height: AppSpacing.besar),
-          _buildKartuRingkasanPekan(context),
-          const SizedBox(height: AppSpacing.besar),
-          KartuAgregatKakeibo(agregat: data.agregat),
-          const SizedBox(height: AppSpacing.besar),
-          KartuRenunganPengen(agregat: data.agregat),
-          const SizedBox(height: AppSpacing.besar),
-          if (data.refleksiTersimpan != null && !_sedangMengubah)
-            KartuRingkasanRefleksi(
-              refleksi: data.refleksiTersimpan!,
-              targetPekanDepan: data.targetPekanDepan,
-              onUbah: () {
-                setState(() {
-                  _sedangMengubah = true;
-                });
-              },
-            )
-          else
-            FormIsianRefleksi(
-              catatanAwal: data.refleksiTersimpan?.catatanRefleksi,
-              targetAwal: _sedangMengubah ? data.targetPekanDepan : null,
-              targetPekanIni: data.targetPekanIni,
-              targetBulanan: data.targetBulanan,
-              tanggalAcuan: data.awalPekan,
-              sedangMenyimpan: widget.sedangMenyimpan,
-              onSimpan: (catatan, targetPekanDepan) {
-                context.read<RefleksiCubit>().simpan(
-                  catatanRefleksi: catatan,
-                  targetPekanDepan: targetPekanDepan,
-                );
-              },
-            ),
-          const SizedBox(height: AppSpacing.besar),
-          Center(
-            child: TextButton.icon(
-              key: const Key('tombol_lihat_riwayat_refleksi'),
-              onPressed: () {
-                context.push('/refleksi/riwayat');
-              },
-              icon: const Icon(Icons.history_outlined, size: AppSizes.ikonAksi),
-              label: const Text(
-                'Lihat refleksi sebelumnya',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  decoration: TextDecoration.underline,
-                ),
+          // 1. Chip pilihan periode
+          Row(
+            children: [
+              _ChipPeriodeRefleksi(
+                key: const Key('chip_refleksi_pekan_ini'),
+                label: 'Pekan ini',
+                aktif: isPekan,
+                onTap: () => setState(() => _periode = _PeriodeRefleksi.pekan),
               ),
-              style: TextButton.styleFrom(foregroundColor: AppColors.ink),
+              const SizedBox(width: AppSpacing.kecil),
+              _ChipPeriodeRefleksi(
+                key: const Key('chip_refleksi_bulan_ini'),
+                label: 'Bulan ini',
+                aktif: !isPekan,
+                onTap: () => setState(() => _periode = _PeriodeRefleksi.bulan),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // 2. Kartu periode + total + persen dibanding periode lalu
+          KartuBukuTulis(
+            key: const Key('kartu_periode_refleksi'),
+            radius: AppSizes.radiusKartu,
+            backgroundColor: AppColors.kartu,
+            shadow: AppTheme.bayanganGelap,
+            pressedShadow: AppTheme.bayanganGelapTertekan,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _labelPeriode(isPekan),
+                  style: textTheme.labelSmall?.copyWith(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                    color: AppColors.inkSoft,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          totalIni.toRupiah(),
+                          key: const Key('total_pengeluaran_refleksi'),
+                          style: AppTheme.nominalUtama,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.kecil),
+                    Flexible(
+                      child: Text(
+                        infoBanding.teks,
+                        key: const Key('persen_banding_refleksi'),
+                        textAlign: TextAlign.right,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: infoBanding.warna,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
+          const SizedBox(height: 14),
+
+          // 3. Kartu "Ke mana uangmu pergi"
+          KartuBukuTulis(
+            key: const Key('kartu_kategori_refleksi'),
+            radius: AppSizes.radiusKartu,
+            backgroundColor: AppColors.kartu,
+            shadow: AppTheme.bayanganGelap,
+            pressedShadow: AppTheme.bayanganGelapTertekan,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ke mana uangmu pergi',
+                  style: textTheme.titleLarge?.copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                if (daftarKategori.isEmpty || totalIni <= 0)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      isPekan
+                          ? 'Belum ada pengeluaran pekan ini.'
+                          : 'Belum ada pengeluaran bulan ini.',
+                      key: const Key('teks_kategori_kosong_refleksi'),
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontSize: 14,
+                        color: AppColors.inkSoft,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  )
+                else
+                  for (int i = 0; i < daftarKategori.length; i++) ...[
+                    if (i > 0) const SizedBox(height: 10),
+                    _BarisKategoriRefleksi(
+                      item: daftarKategori[i],
+                      totalPeriode: totalIni,
+                    ),
+                  ],
+              ],
+            ),
+          ),
+
+          // 4. Tombol "Minta refleksi AI" (hanya tampil pada tab Pekan ini)
+          if (isPekan) ...[
+            const SizedBox(height: 14),
+            TombolStabilo(
+              key: const Key('tombol_minta_refleksi_ai'),
+              teks: 'Minta refleksi AI',
+              ikon: Icons.auto_awesome_outlined,
+              onPressed: adaTransaksiPekanIni
+                  ? (widget.onMintaRefleksiAi ??
+                        () => context.push('/refleksi/hasil'))
+                  : null,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              adaTransaksiPekanIni
+                  ? 'Struki merangkum pola belanjamu dan memberi 3 saran.'
+                  : 'Catat dulu belanjamu pekan ini.',
+              key: const Key('keterangan_tombol_refleksi_ai'),
+              textAlign: TextAlign.center,
+              style: textTheme.bodySmall?.copyWith(
+                fontSize: 13,
+                color: AppColors.inkSoft,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _ChipPeriodeRefleksi extends StatelessWidget {
+  final String label;
+  final bool aktif;
+  final VoidCallback onTap;
+
+  const _ChipPeriodeRefleksi({
+    super.key,
+    required this.label,
+    required this.aktif,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: aktif,
+      label: label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: Center(
+            widthFactor: 1.0,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 36),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: aktif ? AppColors.ink : AppColors.kartu,
+                border: Border.all(
+                  color: AppColors.ink,
+                  width: AppSizes.border,
+                ),
+                borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+              ),
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: aktif ? AppColors.kartu : AppColors.ink,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BarisKategoriRefleksi extends StatelessWidget {
+  final RincianKategoriRefleksi item;
+  final int totalPeriode;
+
+  const _BarisKategoriRefleksi({
+    required this.item,
+    required this.totalPeriode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final warna = parseWarnaKategori(item.warna);
+    final ikon = parseIkonKategori(item.ikon);
+    final double porsi = totalPeriode > 0 ? item.total / totalPeriode : 0.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Icon(ikon, size: 16, color: warna),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      kapitalPertama(item.nama),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.kecil),
+            Text(
+              item.total.toRupiah(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Container(
+          height: 12,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: AppColors.kartu,
+            border: Border.all(
+              color: AppColors.ink,
+              width: AppSizes.border,
+            ),
+            borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: porsi.clamp(0.0, 1.0),
+              child: Container(color: warna),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -38,12 +38,17 @@ import '../../features/pengaturan/domain/usecases/hitung_perbandingan_target.dar
 import '../../features/pengaturan/domain/usecases/simpan_status_panduan_pindai.dart';
 import '../../features/pengaturan/domain/usecases/simpan_target_bulanan.dart';
 import '../../features/perkenalan/presentation/cubit/onboarding_cubit.dart';
+import '../../features/refleksi/data/datasources/refleksi_ai_remote_datasource.dart';
 import '../../features/refleksi/data/datasources/refleksi_local_datasource.dart';
+import '../../features/refleksi/data/repositories/refleksi_ai_repository_impl.dart';
 import '../../features/refleksi/data/repositories/refleksi_repository_impl.dart';
+import '../../features/refleksi/domain/repositories/refleksi_ai_repository.dart';
 import '../../features/refleksi/domain/repositories/refleksi_repository.dart';
 import '../../features/refleksi/domain/usecases/ambil_refleksi_pekan.dart';
 import '../../features/refleksi/domain/usecases/ambil_semua_refleksi.dart';
+import '../../features/refleksi/domain/usecases/minta_refleksi_ai.dart';
 import '../../features/refleksi/domain/usecases/simpan_refleksi.dart';
+import '../../features/refleksi/presentation/cubit/hasil_refleksi_cubit.dart';
 import '../../features/refleksi/presentation/cubit/refleksi_cubit.dart';
 import '../../features/pindai/data/datasources/kuota_local_datasource.dart';
 import '../../features/pindai/data/datasources/pindai_remote_datasource.dart';
@@ -166,6 +171,26 @@ void setupInjectionContainer() {
   );
   sl.registerFactory(
     () => RefleksiCubit(ambilRefleksiPekan: sl(), simpanRefleksi: sl()),
+  );
+  sl.registerLazySingleton<RefleksiAiRemoteDataSource>(
+    () => RefleksiAiRemoteDataSourceImpl(geminiClient: sl()),
+  );
+  sl.registerLazySingleton<RefleksiAiRepository>(
+    () => RefleksiAiRepositoryImpl(
+      remoteDataSource: sl(),
+      pengaturanRepository: sl(),
+    ),
+  );
+  sl.registerLazySingleton(
+    () => MintaRefleksiAi(
+      refleksiAiRepository: sl(),
+      transaksiRepository: sl(),
+      kategoriRepository: sl(),
+      ambilTargetBulanan: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => HasilRefleksiCubit(mintaRefleksiAi: sl()),
   );
 
   // iklan (ISSUE-40)
