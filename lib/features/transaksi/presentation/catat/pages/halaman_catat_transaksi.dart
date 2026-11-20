@@ -53,6 +53,41 @@ String _kapitalPertama(String teks) {
   return teks[0].toUpperCase() + teks.substring(1);
 }
 
+const List<String> _namaHariId = [
+  '',
+  'Senin',
+  'Selasa',
+  'Rabu',
+  'Kamis',
+  'Jumat',
+  'Sabtu',
+  'Minggu',
+];
+
+const List<String> _namaBulanId = [
+  '',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'Mei',
+  'Jun',
+  'Jul',
+  'Agu',
+  'Sep',
+  'Okt',
+  'Nov',
+  'Des',
+];
+
+String _formatTanggalIndonesia(String isoDate) {
+  final parsed = DateTime.tryParse(isoDate);
+  if (parsed == null) return isoDate;
+  final hari = _namaHariId[parsed.weekday];
+  final bulan = _namaBulanId[parsed.month];
+  return '$hari, ${parsed.day} $bulan ${parsed.year}';
+}
+
 // F-01, Tahap 8. CatatTransaksiCubit disediakan di sini lewat
 // BlocProvider yang ambil dari sl, bukan di main.dart
 class HalamanCatatTransaksi extends StatelessWidget {
@@ -82,9 +117,6 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
   // nominal disimpan di state lokal untuk sinkronisasi ke KolomInputNominal
   int _nominal = 0;
 
-  // chip tanggal: 0 = Hari ini, 1 = Kemarin, 2 = Pilih
-  int _chipTanggalAktif = 0;
-
   @override
   void initState() {
     super.initState();
@@ -106,33 +138,22 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
     context.read<CatatTransaksiCubit>().ubahNominal(angka);
   }
 
-  void _pilihTanggal(BuildContext context, int chipIndex) async {
+  Future<void> _pilihTanggal(BuildContext context, String tanggalSekarang) async {
     final cubit = context.read<CatatTransaksiCubit>();
     final sekarang = DateTime.now();
+    final awal = DateTime.tryParse(tanggalSekarang) ?? sekarang;
+    final initialDate = awal.isAfter(sekarang) ? sekarang : awal;
 
-    if (chipIndex == 0) {
-      // hari ini
-      cubit.pilihTanggal(formatTanggalIso(sekarang));
-    } else if (chipIndex == 1) {
-      // kemarin
-      final kemarin = sekarang.subtract(const Duration(days: 1));
-      cubit.pilihTanggal(formatTanggalIso(kemarin));
-    } else {
-      // datepicker, tanggal masa depan ditolak (F-01)
-      final picked = await showDatePicker(
-        context: context,
-        initialDate: sekarang,
-        firstDate: DateTime(2020),
-        lastDate: sekarang,
-      );
-      if (picked != null && context.mounted) {
-        cubit.pilihTanggal(formatTanggalIso(picked));
-      } else {
-        // kalau batal pilih, balik ke chip sebelumnya
-        return;
-      }
+    // datepicker, tanggal masa depan ditolak (F-01)
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2020),
+      lastDate: sekarang,
+    );
+    if (picked != null && context.mounted) {
+      cubit.pilihTanggal(formatTanggalIso(picked));
     }
-    setState(() => _chipTanggalAktif = chipIndex);
   }
 
   void _simpan() {
@@ -176,7 +197,6 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
           context.go('/');
           _catatanController.clear();
           setState(() {
-            _chipTanggalAktif = 0;
             _nominal = 0;
           });
           context.read<CatatTransaksiCubit>().reset();
@@ -203,38 +223,46 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
                     bottom: AppSpacing.jarakGulirBawah,
                   ),
                   children: [
-                    // judul layar dengan aksen stabilo
-                    _JudulCatat(),
-                    const SizedBox(height: AppSpacing.besar),
-                    // kolom nominal
+                    // 1. NOMINAL
                     _BagianNominal(
                       nominal: _nominal,
                       focusNode: _nominalFocusNode,
                       onChanged: _onNominalChanged,
                       onHapus: () => _onNominalChanged(0),
                     ),
-                    const SizedBox(height: AppSpacing.besar),
-                    // chip tanggal
-                    _BagianTanggal(
-                      chipAktif: _chipTanggalAktif,
-                      onPilih: (i) => _pilihTanggal(context, i),
-                    ),
-                    const SizedBox(height: AppSpacing.besar),
-                    // grid kategori
+                    const SizedBox(height: 14),
+
+                    // 2. KATEGORI (kisi 3 kolom petak seragam tinggi 76)
                     _BagianKategori(),
-                    // kartu butuh/pengen (muncul cuma buat opsional & hiburan)
+
+                    // Kartu butuh/pengen (muncul cuma buat opsional & hiburan)
                     _BagianButuhPengen(),
-                    const SizedBox(height: AppSpacing.besar),
-                    // kolom catatan
+                    const SizedBox(height: 14),
+
+                    // 3. CATATAN
                     _BagianCatatan(controller: _catatanController),
-                    const SizedBox(height: AppSpacing.besar),
-                    // tombol simpan
+                    const SizedBox(height: 14),
+
+                    // 4. TANGGAL
+                    BlocSelector<CatatTransaksiCubit, CatatTransaksiState,
+                        String>(
+                      selector: (state) => state.tanggal,
+                      builder: (context, tanggal) {
+                        return _BagianTanggal(
+                          tanggal: tanggal,
+                          onTap: () => _pilihTanggal(context, tanggal),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.lebihBesar),
+
+                    // 5. Tombol Simpan
                     BlocBuilder<CatatTransaksiCubit, CatatTransaksiState>(
                       buildWhen: (prev, curr) => prev.status != curr.status,
                       builder: (context, state) {
                         return TombolStabilo(
                           teks: 'Simpan Transaksi',
-                          ikon: Icons.save_outlined,
+                          ikon: Icons.check_rounded,
                           isLoading:
                               state.status == StatusCatatTransaksi.menyimpan,
                           onPressed: _simpan,
@@ -252,85 +280,6 @@ class _CatatTransaksiViewState extends State<_CatatTransaksiView> {
   }
 }
 
-// judul layar dengan aksen stabilo dan badge buku harian
-class _JudulCatat extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Row(
-            children: [
-              Container(
-                width: AppSizes.ukuranTitikIndikator,
-                height: AppSizes.ukuranTitikIndikator,
-                decoration: BoxDecoration(
-                  color: AppColors.stabilo,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.ink, width: 1.0),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.agakKecil),
-              Expanded(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Catat ',
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Positioned(
-                            bottom: AppSizes.geserStabiloJudul,
-                            left: -AppSizes.geserStabiloJudul,
-                            right: -AppSizes.geserStabiloJudul,
-                            height: AppSizes.tinggiStabiloJudul,
-                            child: Container(color: AppColors.stabilo),
-                          ),
-                          Text(
-                            'Pengeluaran',
-                            style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: AppSpacing.kecil),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sedang,
-            vertical: AppSpacing.mini,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.grid,
-            border: Border.all(color: AppColors.ink, width: 1.0),
-            borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-          ),
-          child: Text(
-            'BUKU HARIAN',
-            style: Theme.of(context).textTheme.labelSmall
-                ?.copyWith(color: AppColors.ink, fontWeight: FontWeight.w800),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// input nominal dengan format rupiah sambil diketik
 class _BagianNominal extends StatelessWidget {
   final int nominal;
   final FocusNode focusNode;
@@ -346,22 +295,21 @@ class _BagianNominal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return KartuBukuTulis(
-      radius: AppSizes.radiusTombol,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'NOMINAL PENGELUARAN',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.inkSoft,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                ),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'NOMINAL',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppColors.inkSoft,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                  ),
+            ),
+            if (nominal > 0)
               GestureDetector(
                 onTap: onHapus,
                 behavior: HitTestBehavior.opaque,
@@ -377,144 +325,108 @@ class _BagianNominal extends StatelessWidget {
                     Text(
                       'Hapus',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.inkSoft,
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: AppColors.inkSoft,
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                   ],
                 ),
               ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.kecil),
+        Container(
+          constraints: const BoxConstraints(minHeight: 72),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: AppSpacing.kecil,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.kartu,
+            border: Border.all(
+              color: AppColors.ink,
+              width: AppSizes.border,
+            ),
+            borderRadius: BorderRadius.circular(AppSizes.radiusKotakIkonKuota),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.ink,
+                offset: Offset(3, 3),
+                blurRadius: 0,
+              ),
             ],
           ),
-          const SizedBox(height: AppSpacing.kecil),
-          KolomInputNominal(
+          alignment: Alignment.centerLeft,
+          child: KolomInputNominal(
             nominal: nominal,
             focusNode: focusNode,
             onChanged: onChanged,
           ),
-        ],
-      ),
-    );
-  }
-}
-
-// tiga chip tanggal: Hari ini (bawaan), Kemarin, Pilih
-class _BagianTanggal extends StatelessWidget {
-  final int chipAktif;
-  final ValueChanged<int> onPilih;
-
-  const _BagianTanggal({required this.chipAktif, required this.onPilih});
-
-  @override
-  Widget build(BuildContext context) {
-    final items = [
-      (ikon: Icons.calendar_today_outlined, label: 'Hari ini'),
-      (ikon: Icons.history, label: 'Kemarin'),
-      (ikon: Icons.edit_calendar_outlined, label: 'Pilih'),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'TANGGAL TRANSAKSI',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: AppColors.inkSoft,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.kecil),
-        Row(
-          children: List.generate(items.length, (i) {
-            final aktif = chipAktif == i;
-            final item = items[i];
-
-            return Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  right: i < items.length - 1 ? AppSpacing.kecil : 0,
-                ),
-                child: _TombolPilihanTanggal(
-                  label: item.label,
-                  ikon: item.ikon,
-                  terpilih: aktif,
-                  onTap: () => onPilih(i),
-                ),
-              ),
-            );
-          }),
         ),
       ],
     );
   }
 }
 
-class _TombolPilihanTanggal extends StatefulWidget {
-  final String label;
-  final IconData ikon;
-  final bool terpilih;
+class _BagianTanggal extends StatelessWidget {
+  final String tanggal;
   final VoidCallback onTap;
 
-  const _TombolPilihanTanggal({
-    required this.label,
-    required this.ikon,
-    required this.terpilih,
-    required this.onTap,
-  });
-
-  @override
-  State<_TombolPilihanTanggal> createState() => _TombolPilihanTanggalState();
-}
-
-class _TombolPilihanTanggalState extends State<_TombolPilihanTanggal> {
-  bool _isPressed = false;
+  const _BagianTanggal({required this.tanggal, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: widget.onTap,
-      child: AnimatedContainer(
-        duration: AppDurations.animasiTekan,
-        height: AppSizes.tinggiPilihanTanggal,
-        decoration: BoxDecoration(
-          color: widget.terpilih ? AppColors.stabilo : AppColors.kartu,
-          border: Border.all(color: AppColors.ink, width: AppSizes.border),
-          borderRadius: BorderRadius.circular(AppSizes.radiusKotakIkonKuota),
-          boxShadow: [
-            _isPressed
-                ? (widget.terpilih
-                      ? AppTheme.bayanganGelapTertekan
-                      : AppTheme.bayanganDefaultTertekan)
-                : (widget.terpilih
-                      ? AppTheme.bayanganKecilGelap
-                      : AppTheme.bayanganKecil),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(widget.ikon, size: AppSizes.ikonKecil, color: AppColors.ink),
-            const SizedBox(width: AppSpacing.sangatKecil),
-            Flexible(
-              child: Text(
-                widget.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.ink,
-                  fontWeight: widget.terpilih
-                      ? FontWeight.w800
-                      : FontWeight.w700,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'TANGGAL',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: AppColors.inkSoft,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.4,
               ),
-            ),
-          ],
         ),
-      ),
+        const SizedBox(height: AppSpacing.kecil),
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppSizes.radiusKotakIkonKuota),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 48),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              color: AppColors.kartu,
+              border: Border.all(
+                color: AppColors.ink,
+                width: AppSizes.border,
+              ),
+              borderRadius: BorderRadius.circular(AppSizes.radiusKotakIkonKuota),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    _formatTanggalIndonesia(tanggal),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink,
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.kecil),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 20,
+                  color: AppColors.ink,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -531,19 +443,19 @@ class _BagianKategori extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'PILIH KATEGORI',
+              'KATEGORI',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppColors.inkSoft,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.8,
-              ),
+                    color: AppColors.inkSoft,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                  ),
             ),
             Text(
               'Wajib 1',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.inkSoft,
-                fontWeight: FontWeight.w600,
-              ),
+                    color: AppColors.inkSoft,
+                    fontWeight: FontWeight.w700,
+                  ),
             ),
           ],
         ),
@@ -581,6 +493,7 @@ class _BagianKategori extends StatelessWidget {
                         final terpilih = k.id == kategoriIdTerpilih;
                         return SizedBox(
                           width: lebarItem,
+                          height: 76,
                           child: _ChipKategori(
                             kategori: k,
                             terpilih: terpilih,
@@ -604,7 +517,7 @@ class _BagianKategori extends StatelessWidget {
   }
 }
 
-// satu chip kategori: badge ikon + nama
+// satu petak kategori seragam tinggi 76: petak ikon berwarna + nama di bawah
 class _ChipKategori extends StatefulWidget {
   final KategoriEntity kategori;
   final bool terpilih;
@@ -628,93 +541,90 @@ class _ChipKategoriState extends State<_ChipKategori> {
     final warna = _parseWarna(widget.kategori.warna);
     final ikon = _parseIkon(widget.kategori.ikon);
 
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: widget.onTap,
-      child: AnimatedContainer(
-        duration: AppDurations.animasiTekan,
-        padding: const EdgeInsets.symmetric(
-          vertical: AppSpacing.sedang,
-          horizontal: AppSpacing.sangatKecil,
-        ),
-        decoration: BoxDecoration(
-          color: widget.terpilih ? warna : AppColors.kartu,
-          border: Border.all(color: AppColors.ink, width: AppSizes.border),
-          borderRadius: BorderRadius.circular(AppSizes.radiusKotakIkonKuota),
-          boxShadow: [
-            _isPressed
-                ? (widget.terpilih
-                      ? AppTheme.bayanganGelapTertekan
-                      : AppTheme.bayanganDefaultTertekan)
-                : (widget.terpilih
-                      ? AppTheme.bayanganKecilGelap
-                      : AppTheme.bayanganKecil),
-          ],
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            if (widget.terpilih)
-              Positioned(
-                top: -AppSpacing.agakKecil,
-                right: 0,
-                child: Container(
-                  width: AppSizes.ukuranTitikIndikator,
-                  height: AppSizes.ukuranTitikIndikator,
-                  decoration: BoxDecoration(
-                    color: AppColors.stabilo,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.ink, width: 1.0),
-                  ),
-                ),
-              ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: AppSizes.kotakIkonAksi,
-                  height: AppSizes.kotakIkonAksi,
-                  decoration: BoxDecoration(
-                    color: widget.terpilih
-                        ? AppColors.ink.withValues(alpha: 0.2)
-                        : warna,
-                    borderRadius: BorderRadius.circular(
-                      AppSizes.radiusKotakIkonAksi,
-                    ),
-                    border: widget.terpilih
-                        ? Border.all(
-                            color: AppColors.ink.withValues(alpha: 0.1),
-                            width: 1.0,
-                          )
-                        : null,
-                  ),
-                  child: Center(
-                    child: Icon(
-                      ikon,
-                      color: AppColors.ikonBadge,
-                      size: AppSizes.ikonAksi,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.agakKecil),
-                Text(
-                  _kapitalPertama(widget.kategori.nama),
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: widget.terpilih ? AppColors.kartu : AppColors.ink,
-                    fontWeight: widget.terpilih
-                        ? FontWeight.w800
-                        : FontWeight.w700,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+    return Semantics(
+      selected: widget.terpilih,
+      button: true,
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppDurations.animasiTekan,
+          height: 76,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sangatKecil),
+          decoration: BoxDecoration(
+            color: widget.terpilih ? AppColors.kuningMuda : AppColors.kartu,
+            border: Border.all(
+              color: widget.terpilih ? AppColors.ink : AppColors.garisPutus,
+              width: widget.terpilih ? 3.0 : AppSizes.border,
             ),
-          ],
+            borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
+            boxShadow: widget.terpilih
+                ? [
+                    _isPressed
+                        ? AppTheme.bayanganGelapTertekan
+                        : const BoxShadow(
+                            color: AppColors.ink,
+                            offset: Offset(3, 3),
+                            blurRadius: 0,
+                          ),
+                  ]
+                : null,
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (widget.terpilih)
+                const Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Icon(
+                    Icons.check_rounded,
+                    size: AppSizes.ikonKecil,
+                    color: AppColors.ink,
+                  ),
+                ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: warna,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.ink,
+                        width: AppSizes.border,
+                      ),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        ikon,
+                        color: AppColors.ikonBadge,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.agakKecil),
+                  Text(
+                    _kapitalPertama(widget.kategori.nama),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontSize: 13,
+                          letterSpacing: 0,
+                          color: AppColors.ink,
+                          fontWeight: FontWeight.w800,
+                        ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -734,7 +644,6 @@ class _BagianButuhPengen extends StatelessWidget {
           prev.kategoriId != curr.kategoriId ||
           prev.tipeKebutuhan != curr.tipeKebutuhan,
       builder: (context, state) {
-        // cek kelompok kakeibo kategori terpilih
         final kategoriId = state.kategoriId;
         if (kategoriId == null) return const SizedBox();
 
@@ -753,6 +662,8 @@ class _BagianButuhPengen extends StatelessWidget {
                   padding: const EdgeInsets.only(top: AppSpacing.besar),
                   child: KartuBukuTulis(
                     radius: AppSizes.radiusTombol,
+                    shadow: AppTheme.bayanganGelap,
+                    pressedShadow: AppTheme.bayanganGelapTertekan,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -852,7 +763,7 @@ class _BagianButuhPengen extends StatelessWidget {
                             vertical: AppSpacing.kecil,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.grid,
+                            color: AppColors.kuningMuda,
                             borderRadius: BorderRadius.circular(
                               AppSizes.radiusKotakIkonAksi,
                             ),
@@ -933,9 +844,7 @@ class _ChipButuhPengenState extends State<_ChipButuhPengen> {
           borderRadius: BorderRadius.circular(AppSizes.radiusKotakIkonAksi),
           boxShadow: [
             _isPressed
-                ? (widget.terpilih
-                      ? AppTheme.bayanganGelapTertekan
-                      : AppTheme.bayanganDefaultTertekan)
+                ? AppTheme.bayanganGelapTertekan
                 : (widget.terpilih
                       ? AppTheme.bayanganKecilGelap
                       : AppTheme.bayanganKecil),
@@ -953,9 +862,11 @@ class _ChipButuhPengenState extends State<_ChipButuhPengen> {
             Text(
               widget.label,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppColors.ink,
-                fontWeight: widget.terpilih ? FontWeight.w800 : FontWeight.w700,
-              ),
+                    color: AppColors.ink,
+                    fontWeight: widget.terpilih
+                        ? FontWeight.w800
+                        : FontWeight.w700,
+                  ),
             ),
           ],
         ),
@@ -976,19 +887,21 @@ class _BagianCatatan extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'CATATAN TAMBAHAN',
+          'CATATAN',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: AppColors.inkSoft,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
-          ),
+                color: AppColors.inkSoft,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.4,
+              ),
         ),
         const SizedBox(height: AppSpacing.kecil),
-        KartuBukuTulis(
-          radius: AppSizes.radiusTombol,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sedang,
-            vertical: AppSpacing.sangatKecil,
+        Container(
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: AppColors.kartu,
+            border: Border.all(color: AppColors.ink, width: AppSizes.border),
+            borderRadius: BorderRadius.circular(AppSizes.radiusKotakIkonKuota),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -1004,12 +917,17 @@ class _BagianCatatan extends StatelessWidget {
                   controller: controller,
                   maxLength: AppConstraints.maxPanjangCatatan,
                   maxLines: 1,
-                  style: Theme.of(context).textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
                   decoration: InputDecoration(
                     hintText: 'Tambah catatan (misal: Es kopi sama temen)...',
-                    hintStyle: Theme.of(context).textTheme.bodyMedium
-                        ?.copyWith(color: AppColors.inkSoft),
+                    hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.inkSoft,
+                          fontWeight: FontWeight.w600,
+                        ),
                     border: InputBorder.none,
                     counterText: '',
                   ),

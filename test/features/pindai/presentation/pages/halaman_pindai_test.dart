@@ -449,7 +449,7 @@ void main() {
     );
 
     testWidgets(
-      'No 12: kuota habis langsung menampilkan pemberitahuan dan navigasi ke /catat tanpa membuka pemindai',
+      'No 12: kuota habis menampilkan tampilan kuota habis, kartu langganan, dan tombol catat manual tanpa membuka pemindai',
       (tester) async {
         tester.view.physicalSize = const Size(460, 1600);
         tester.view.devicePixelRatio = 1.0;
@@ -469,15 +469,23 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Verifikasi teks kuota 0 dari 10 tersisa
-        expect(find.text('0 dari 10 tersisa'), findsOneWidget);
+        expect(find.text('Jatah pindai pekan ini habis'), findsOneWidget);
+        expect(find.text('Butuh lebih banyak?'), findsOneWidget);
+        expect(find.text('Buka Pemindai Struk'), findsNothing);
+        expect(scannerDipanggil, isFalse);
 
-        final tombolScan = find.text('Buka Pemindai Struk');
-        await tester.tap(tombolScan);
+        // Ketuk kartu langganan menampilkan SnackBar sementara
+        await tester.tap(find.text('Butuh lebih banyak?'));
+        await tester.pumpAndSettle();
+        expect(find.text('Langganan sedang dikembangkan'), findsOneWidget);
+
+        // Tunggu SnackBar hilang agar tombol Catat manual di bawah tidak tertutup
+        await tester.pump(const Duration(seconds: 5));
         await tester.pumpAndSettle();
 
-        expect(scannerDipanggil, isFalse);
-        expect(find.text('Kuota pemindaian pekan ini sudah habis'), findsOneWidget);
+        // Ketuk Catat manual mengarahkan ke /catat
+        await tester.tap(find.text('Catat manual'));
+        await tester.pumpAndSettle();
         expect(find.text('Halaman Catat Manual'), findsOneWidget);
       },
     );

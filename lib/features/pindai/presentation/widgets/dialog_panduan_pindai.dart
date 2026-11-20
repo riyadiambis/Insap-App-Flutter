@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/widgets/tombol_stabilo.dart';
 import '../../../pengaturan/domain/usecases/simpan_status_panduan_pindai.dart';
 
 /// Menampilkan popup dialog panduan pemindaian struk baru (Tahap 3).
@@ -19,115 +20,167 @@ Future<void> tampilkanDialogPanduanPindai(
     builder: (dialogContext) {
       return StatefulBuilder(
         builder: (context, setState) {
-          return AlertDialog(
-            backgroundColor: AppColors.paper,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppSizes.radiusKartu),
-              side: const BorderSide(
-                color: AppColors.ink,
-                width: AppSizes.border,
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lebihBesar,
+              vertical: AppSpacing.besar,
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: AppSizes.batasLebarKonten,
               ),
-            ),
-            title: Row(
-              children: [
-                const Icon(
-                  Icons.auto_awesome_rounded,
-                  color: AppColors.ink,
-                  size: 24,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.kartu,
+                  borderRadius: BorderRadius.circular(AppSizes.radiusKartu),
+                  border: Border.all(
+                    color: AppColors.ink,
+                    width: AppSizes.border,
+                  ),
+                  boxShadow: const [AppTheme.bayanganIlustrasi],
                 ),
-                const SizedBox(width: AppSpacing.agakKecil),
-                Text(
-                  'Panduan Pindai Struk',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.ink,
-                      ),
-                ),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'AI membaca tiap barang dan mengelompokkannya per kategori. '
-                  'Kamu bisa hapus centang barang titipan teman sebelum menyimpan.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.ink,
-                        fontWeight: FontWeight.w500,
-                        height: 1.4,
-                      ),
-                ),
-                const SizedBox(height: AppSpacing.sedang),
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: janganTampilkanLagi,
-                  activeColor: AppColors.ink,
-                  checkColor: AppColors.paper,
-                  title: Text(
-                    'Jangan tampilkan lagi',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.inkSoft,
-                          fontWeight: FontWeight.w600,
+                child: Material(
+                  color: AppColors.kartu,
+                  borderRadius: BorderRadius.circular(
+                    AppSizes.radiusKartu - AppSizes.border,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.besar),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: AppSizes.kotakIkonAksi,
+                              height: AppSizes.kotakIkonAksi,
+                              decoration: BoxDecoration(
+                                color: AppColors.stabilo,
+                                borderRadius: BorderRadius.circular(
+                                  AppSizes.radiusKotakIkonAksi,
+                                ),
+                                border: Border.all(
+                                  color: AppColors.ink,
+                                  width: AppSizes.border,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.auto_awesome_rounded,
+                                color: AppColors.ink,
+                                size: AppSizes.ikonAksi,
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sedang),
+                            Expanded(
+                              child: Text(
+                                'Panduan Pindai Struk',
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.ink,
+                                    ),
+                              ),
+                            ),
+                          ],
                         ),
-                  ),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  onChanged: (val) {
-                    setState(() {
-                      janganTampilkanLagi = val ?? false;
-                    });
-                  },
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  if (janganTampilkanLagi) {
-                    await simpanStatus.call(true);
-                  }
-                  if (dialogContext.mounted) {
-                    Navigator.of(dialogContext).pop();
-                  }
-                },
-                child: const Text(
-                  'Nanti',
-                  style: TextStyle(
-                    color: AppColors.inkSoft,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.stabilo,
-                  foregroundColor: AppColors.ink,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
-                    side: const BorderSide(
-                      color: AppColors.ink,
-                      width: AppSizes.border,
+                        const SizedBox(height: AppSpacing.sedang),
+                        Text(
+                          'AI membaca tiap barang dan mengelompokkannya per kategori. '
+                          'Kamu bisa hapus centang barang titipan teman sebelum menyimpan.',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppColors.ink,
+                                fontWeight: FontWeight.w600,
+                                height: 1.45,
+                              ),
+                        ),
+                        const SizedBox(height: AppSpacing.sedang),
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: janganTampilkanLagi,
+                          activeColor: AppColors.ink,
+                          checkColor: AppColors.kartu,
+                          side: const BorderSide(
+                            color: AppColors.ink,
+                            width: AppSizes.border,
+                          ),
+                          title: Text(
+                            'Jangan tampilkan lagi',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.inkSoft,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          controlAffinity: ListTileControlAffinity.leading,
+                          onChanged: (val) {
+                            setState(() {
+                              janganTampilkanLagi = val ?? false;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.sedang),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: SizedBox(
+                                height: AppSizes.tinggiTombol,
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    backgroundColor: AppColors.kartu,
+                                    foregroundColor: AppColors.ink,
+                                    side: const BorderSide(
+                                      color: AppColors.ink,
+                                      width: AppSizes.border,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        AppSizes.radiusTombol,
+                                      ),
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    if (janganTampilkanLagi) {
+                                      await simpanStatus.call(true);
+                                    }
+                                    if (dialogContext.mounted) {
+                                      Navigator.of(dialogContext).pop();
+                                    }
+                                  },
+                                  child: const Text(
+                                    'Nanti',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.ink,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sedang),
+                            Expanded(
+                              flex: 2,
+                              child: TombolStabilo(
+                                teks: 'Lanjut pindai',
+                                onPressed: () async {
+                                  if (janganTampilkanLagi) {
+                                    await simpanStatus.call(true);
+                                  }
+                                  if (dialogContext.mounted) {
+                                    Navigator.of(dialogContext).pop();
+                                  }
+                                  onLanjut?.call();
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                onPressed: () async {
-                  if (janganTampilkanLagi) {
-                    await simpanStatus.call(true);
-                  }
-                  if (dialogContext.mounted) {
-                    Navigator.of(dialogContext).pop();
-                  }
-                  onLanjut?.call();
-                },
-                child: const Text(
-                  'Lanjut pindai',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
               ),
-            ],
+            ),
           );
         },
       );

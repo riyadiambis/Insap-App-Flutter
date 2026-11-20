@@ -274,14 +274,15 @@ void main() {
           matching: find.byType(KartuBukuTulis),
         );
 
-    testWidgets('kartu Pindai Struk memakai aiBiru solid, Catat Cepat tetap stabilo',
+    testWidgets('kartu Pindai Struk memakai ink dengan bayangan stabilo, Catat Cepat tetap stabilo',
         (tester) async {
       ukuranStandar(tester);
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
       await tester.pumpAndSettle();
 
       final pindai = tester.widget<KartuBukuTulis>(kartuDari('Pindai Struk'));
-      expect(pindai.backgroundColor, AppColors.aiBiru);
+      expect(pindai.backgroundColor, AppColors.ink);
+      expect(pindai.shadow?.color, AppColors.stabilo);
 
       final catat = tester.widget<KartuBukuTulis>(kartuDari('Catat Cepat'));
       expect(catat.backgroundColor, AppColors.stabilo);
@@ -323,7 +324,7 @@ void main() {
       expect(teks.style?.color, AppColors.kartu);
     });
 
-    testWidgets('judul Pindai Struk putih dan jalur bilah kuota aiBiruTua',
+    testWidgets('judul Pindai Struk putih dan jalur bilah kuota inkSoft',
         (tester) async {
       ukuranStandar(tester);
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 5));
@@ -341,7 +342,7 @@ void main() {
                     w is Container &&
                     w.decoration is BoxDecoration &&
                     (w.decoration as BoxDecoration).color ==
-                        AppColors.aiBiruTua,
+                        AppColors.inkSoft,
               ),
             )
             .first,
