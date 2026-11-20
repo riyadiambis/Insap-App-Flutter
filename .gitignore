@@ -53,3 +53,10 @@ docs/
 key.properties
 *.jks
 *.keystore
+
+# Environment lain dan build Android di luar android/.gitignore
+.env.*
+!.env.example
+/android/build/
+*.p12
+*.pem
