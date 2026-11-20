@@ -14,6 +14,7 @@ import '../../../kategori/domain/entities/kategori_entity.dart';
 import '../../../kategori/presentation/cubit/kategori_cubit.dart';
 import '../../../kategori/presentation/cubit/kategori_state.dart';
 import '../../../transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
+import '../../../transaksi/presentation/riwayat/widgets/riwayat_helper.dart';
 import '../../domain/entities/hasil_pindai_entity.dart';
 import '../../domain/usecases/simpan_transaksi_pindai.dart';
 import '../cubit/konfirmasi_pindai_cubit.dart';
@@ -468,16 +469,26 @@ class _KonfirmasiPindaiView extends StatelessWidget {
                                         context,
                                         state.tanggal,
                                       ),
-                                      child: Text(
-                                        '${state.tanggal} · ${state.daftarBarang.length} barang',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(
-                                              fontSize: 13,
-                                              color: AppColors.inkSoft,
-                                              fontWeight: FontWeight.w700,
-                                            ),
+                                      child: Builder(
+                                        builder: (context) {
+                                          final dt = DateTime.tryParse(
+                                            state.tanggal,
+                                          );
+                                          final tglFormatted = dt != null
+                                              ? '${dt.day} ${RiwayatHelper.namaBulanSingkat[dt.month - 1]} ${dt.year}'
+                                              : state.tanggal;
+                                          return Text(
+                                            '$tglFormatted · ${state.daftarBarang.length} barang',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  fontSize: 13,
+                                                  color: AppColors.inkSoft,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          );
+                                        },
                                       ),
                                     ),
                                   ],
@@ -871,10 +882,16 @@ class _KonfirmasiPindaiView extends StatelessWidget {
                                                     const SizedBox(height: 6),
 
                                                     // Daftar Barang di Kelompok Ini
-                                                    for (final barang
-                                                        in kelompok.items) ...[
+                                                    for (int itemIdx = 0;
+                                                        itemIdx <
+                                                            kelompok
+                                                                .items.length;
+                                                        itemIdx++) ...[
                                                       Builder(
                                                         builder: (context) {
+                                                          final barang =
+                                                              kelompok
+                                                                  .items[itemIdx];
                                                           final itemGlobalIndex =
                                                               state.daftarBarang
                                                                   .indexOf(
@@ -887,25 +904,52 @@ class _KonfirmasiPindaiView extends StatelessWidget {
                                                                   batasTampil) {
                                                             return const SizedBox();
                                                           }
+                                                          final bool
+                                                              tampilkanGaris =
+                                                              itemIdx > 0;
                                                           hitunganBarisTampil++;
+
+                                                          final bool
+                                                              sorotLainnya =
+                                                              namaKat
+                                                                      .toLowerCase() ==
+                                                                  'lainnya';
 
                                                           return Column(
                                                             mainAxisSize:
                                                                 MainAxisSize
                                                                     .min,
                                                             children: [
-                                                              const _GarisPutus(),
-                                                              Padding(
+                                                              if (tampilkanGaris)
+                                                                const _GarisPutus(),
+                                                              Container(
+                                                                margin: sorotLainnya
+                                                                    ? const EdgeInsets.only(top: 4)
+                                                                    : EdgeInsets.zero,
                                                                 padding:
                                                                     const EdgeInsets
                                                                         .symmetric(
+                                                                  horizontal:
+                                                                      4,
                                                                   vertical: 8,
                                                                 ),
+                                                                decoration: sorotLainnya
+                                                                    ? BoxDecoration(
+                                                                        color: AppColors
+                                                                            .kuningMuda,
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(10),
+                                                                      )
+                                                                    : null,
                                                                 child: Row(
                                                                   children: [
                                                                     Checkbox(
                                                                       value: barang
                                                                           .dicentang,
+                                                                      shape: RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(6),
+                                                                      ),
                                                                       activeColor:
                                                                           AppColors
                                                                               .ink,

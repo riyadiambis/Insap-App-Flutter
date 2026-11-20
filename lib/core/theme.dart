@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   static const Color paper = Color(0xFFFFFDF4);
-  static const Color grid = Color(0xFFD9E6F2);
   static const Color ink = Color(0xFF16385D);
   static const Color inkSoft = Color(0xFF4A6480);
   static const Color kartu = Color(0xFFFFFFFF);
@@ -91,13 +90,6 @@ class AppSizes {
       (batasLebarKonten - AppSpacing.besar * 2 - AppSpacing.kecil * 2) /
       kolomKategori;
   static const double ikonChipKategori = badgeKategori * 0.6;
-
-  // grid buku tulis pada latar (paper_background)
-  static const double gridSize = 26.0;
-  static const double ukuranGrid = gridSize;
-  static const double strokeWidth = 1.0;
-  static const double strokeWidthGrid = strokeWidth;
-  static const double tebalGarisGrid = strokeWidth;
 
   // kotak ikon pada tombol aksi cepat dan kartu kuota (beranda)
   static const double kotakIkonAksi = 36.0;

@@ -9,12 +9,14 @@ class KolomInputNominal extends StatefulWidget {
   final int nominal;
   final ValueChanged<int> onChanged;
   final FocusNode? focusNode;
+  final double? fontSize;
 
   const KolomInputNominal({
     super.key,
     required this.nominal,
     required this.onChanged,
     this.focusNode,
+    this.fontSize,
   });
 
   @override
@@ -81,15 +83,18 @@ class _KolomInputNominalState extends State<KolomInputNominal> {
 
   @override
   Widget build(BuildContext context) {
+    final style = widget.fontSize != null
+        ? AppTheme.nominalUtama.copyWith(fontSize: widget.fontSize)
+        : AppTheme.nominalUtama;
     return TextFormField(
       controller: _controller,
       focusNode: widget.focusNode,
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      style: AppTheme.nominalUtama,
+      style: style,
       decoration: InputDecoration(
         hintText: 'Rp0',
-        hintStyle: AppTheme.nominalUtama.copyWith(color: AppColors.garis),
+        hintStyle: style.copyWith(color: AppColors.garis),
         border: InputBorder.none,
         contentPadding: EdgeInsets.zero,
       ),

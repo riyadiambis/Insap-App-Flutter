@@ -127,8 +127,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Nasi padang'), findsOneWidget);
-    // dibuatPada tanpa zona waktu, jadi toLocal() tetap 12:30
-    expect(find.text('12:30'), findsOneWidget);
+    expect(find.text('Makan'), findsOneWidget);
     expect(find.textContaining('WIB'), findsNothing);
   });
 }

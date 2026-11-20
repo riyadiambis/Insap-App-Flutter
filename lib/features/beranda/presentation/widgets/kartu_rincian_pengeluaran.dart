@@ -187,7 +187,7 @@ class _KartuRincianPengeluaranState extends State<KartuRincianPengeluaran> {
                         height: 8,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: AppColors.grid,
+                          color: AppColors.biruPudar,
                           border: Border.all(
                             color: AppColors.ink,
                             width: AppSizes.borderTipis,
@@ -416,7 +416,7 @@ class _BarisKategori extends StatelessWidget {
               Container(
                 height: AppSizes.tinggiBatangPorsi,
                 decoration: BoxDecoration(
-                  color: AppColors.grid,
+                  color: AppColors.biruPudar,
                   borderRadius: BorderRadius.circular(
                     AppSizes.radiusBatangPorsi,
                   ),

@@ -80,7 +80,9 @@ class KartuTransaksi extends StatelessWidget {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
-                            '$namaKategori ·',
+                            waktu.trim().isNotEmpty || dariStruk
+                                ? '$namaKategori ·'
+                                : namaKategori,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   fontSize: 13,
@@ -94,15 +96,16 @@ class KartuTransaksi extends StatelessWidget {
                               size: 13,
                               color: AppColors.inkSoft,
                             ),
-                          Text(
-                            waktu,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  fontSize: 13,
-                                  color: AppColors.inkSoft,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
+                          if (waktu.trim().isNotEmpty)
+                            Text(
+                              waktu,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    fontSize: 13,
+                                    color: AppColors.inkSoft,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
                           if (tipeKebutuhan != null &&
                               tipeKebutuhan!.trim().isNotEmpty)
                             Container(

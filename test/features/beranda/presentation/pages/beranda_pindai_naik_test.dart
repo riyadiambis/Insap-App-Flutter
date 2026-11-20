@@ -161,7 +161,7 @@ void main() {
   );
 
   testWidgets(
-    '(b) teks kuota "Sisa 10 dari $kuotaPindaiPekanan pekan ini" dan badge AI tampil',
+    '(b) teks kuota "Sisa 10 dari $kuotaPindaiPekanan" dan badge AI tampil',
     (tester) async {
       tester.view.physicalSize = const Size(411, 914);
       tester.view.devicePixelRatio = 1.0;
@@ -174,7 +174,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Sisa 10 dari $kuotaPindaiPekanan pekan ini'),
+        find.text('Sisa 10 dari $kuotaPindaiPekanan'),
         findsOneWidget,
       );
       expect(find.text('AI'), findsOneWidget);
@@ -183,7 +183,7 @@ void main() {
   );
 
   testWidgets(
-    '(c) saat sisa 0, teks "Habis, reset Senin" tampil',
+    '(c) saat sisa 0, teks "Habis, tonton iklan +1" tampil',
     (tester) async {
       tester.view.physicalSize = const Size(411, 914);
       tester.view.devicePixelRatio = 1.0;
@@ -195,7 +195,7 @@ void main() {
       await tester.pumpWidget(bangunLayarBeranda(kuotaPindai: 0));
       await tester.pumpAndSettle();
 
-      expect(find.text('Habis, reset Senin'), findsOneWidget);
+      expect(find.text('Habis, tonton iklan +1'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
@@ -216,7 +216,7 @@ void main() {
       expect(find.text('Catat cepat'), findsOneWidget);
       expect(find.text('Pindai struk'), findsOneWidget);
       expect(
-        find.text('Sisa 5 dari $kuotaPindaiPekanan pekan ini'),
+        find.text('Sisa 5 dari $kuotaPindaiPekanan'),
         findsOneWidget,
       );
 
@@ -291,7 +291,7 @@ void main() {
 
       expect(find.text('Ketik manual'), findsOneWidget);
       expect(
-        find.text('Sisa 5 dari $kuotaPindaiPekanan pekan ini'),
+        find.text('Sisa 5 dari $kuotaPindaiPekanan'),
         findsOneWidget,
       );
       expect(find.text('OCR otomatis AI'), findsNothing);
@@ -306,7 +306,7 @@ void main() {
 
       final kuotaFinder = find.descendant(
         of: kartuDari('Pindai struk'),
-        matching: find.text('Sisa 5 dari $kuotaPindaiPekanan pekan ini'),
+        matching: find.text('Sisa 5 dari $kuotaPindaiPekanan'),
       );
       expect(kuotaFinder, findsOneWidget);
       final teks = tester.widget<Text>(kuotaFinder);
@@ -353,7 +353,7 @@ void main() {
       expect(judul.style?.color, AppColors.kartu);
 
       final kuotaTeks = tester.widget<Text>(
-        find.text('Sisa 5 dari $kuotaPindaiPekanan pekan ini'),
+        find.text('Sisa 5 dari $kuotaPindaiPekanan'),
       );
       expect(kuotaTeks.style?.color, AppColors.biruPudar);
     });

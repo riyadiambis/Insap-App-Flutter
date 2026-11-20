@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../di/injection_container.dart';
 import '../theme.dart';
-import '../tur/tur_cubit.dart';
 
 /// Data satu orang yang tampil di kartu Tentang Aplikasi.
 class AnggotaTim {
@@ -126,7 +124,7 @@ class KartuTentangAplikasi extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppSizes.radiusPil),
                 ),
                 child: Text(
-                  'Versi 2.1.0',
+                  'Versi 2.1.1',
                   style: teks.bodyMedium?.copyWith(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -243,26 +241,6 @@ class KartuTentangAplikasi extends StatelessWidget {
             ),
           ],
         ),
-        if (sl.isRegistered<TurCubit>()) ...[
-          const SizedBox(height: 4),
-          Center(
-            child: TextButton.icon(
-              key: const Key('tombol_lihat_petunjuk'),
-              onPressed: () {
-                sl<TurCubit>().mulaiUlang();
-                context.go('/');
-              },
-              icon: const Icon(Icons.help_outline, color: AppColors.ink),
-              label: Text(
-                'Lihat petunjuk lagi',
-                style: teks.bodyMedium?.copyWith(
-                  color: AppColors.ink,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-        ],
       ],
     );
   }

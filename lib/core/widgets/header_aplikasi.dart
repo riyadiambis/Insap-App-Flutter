@@ -159,9 +159,15 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
                                   final p = snapshot.hasError
                                       ? pengguna
                                       : (snapshot.data ?? pengguna);
+                                  final sumberInisial =
+                                      (p?.namaTampilan?.trim().isNotEmpty ??
+                                          false)
+                                      ? p!.namaTampilan!.trim()
+                                      : p?.email?.trim();
                                   return AvatarProfil(
                                     key: kunciAvatar,
                                     fotoUrl: p?.fotoUrl,
+                                    inisial: sumberInisial,
                                     ukuran: AppSizes.ukuranAvatarHeader,
                                     ukuranIkon: AppSizes.ikonAvatarHeader,
                                     warnaLatar: AppColors.daun,

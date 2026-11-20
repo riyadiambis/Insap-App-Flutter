@@ -349,44 +349,57 @@ class _DetailTransaksiView extends StatelessWidget {
               const SizedBox(height: AppSpacing.lebihBesar),
 
               // Tombol Hapus Transaksi gaya Detail.dc.html
-              GestureDetector(
-                onTap: () => _konfirmasiHapus(context, state),
-                child: Container(
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: AppColors.kartu,
-                    borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
-                    border: Border.all(
-                      color: AppColors.merahTeks,
-                      width: AppSizes.border,
+              Semantics(
+                button: true,
+                label: 'Hapus',
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _konfirmasiHapus(context, state),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
                     ),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: AppColors.merahTeks,
-                        offset: Offset(3, 3),
-                        blurRadius: 0,
-                      ),
-                    ],
-                  ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.delete_outline_rounded,
-                          size: 18,
+                    child: Container(
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: AppColors.kartu,
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.radiusTombol,
+                        ),
+                        border: Border.all(
                           color: AppColors.merahTeks,
+                          width: AppSizes.border,
                         ),
-                        SizedBox(width: AppSpacing.kecil),
-                        Text(
-                          'Hapus',
-                          style: TextStyle(
+                        boxShadow: const [
+                          BoxShadow(
                             color: AppColors.merahTeks,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
+                            offset: Offset(3, 3),
+                            blurRadius: 0,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.delete_outline_rounded,
+                            size: 18,
+                            color: AppColors.merahTeks,
+                          ),
+                          SizedBox(width: AppSpacing.kecil),
+                          Text(
+                            'Hapus',
+                            style: TextStyle(
+                              color: AppColors.merahTeks,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                  ),
                 ),
               ),
             ],

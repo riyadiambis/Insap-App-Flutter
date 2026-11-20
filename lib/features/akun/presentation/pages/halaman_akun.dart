@@ -474,6 +474,9 @@ class _HalamanAkunState extends State<HalamanAkun> {
         children: [
           AvatarProfil(
             fotoUrl: pengguna.fotoUrl,
+            inisial: punyaNama
+                ? pengguna.namaTampilan!.trim()
+                : pengguna.email?.trim(),
             ukuran: 56,
             ukuranIkon: 28,
             warnaLatar: AppColors.daun,

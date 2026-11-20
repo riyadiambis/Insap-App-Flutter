@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/beranda/presentation/cubit/beranda_cubit.dart';
 import '../../features/pengaturan/domain/usecases/baca_status_panduan_pindai.dart';
 import '../../features/pindai/presentation/widgets/dialog_panduan_pindai.dart';
 import '../di/injection_container.dart';
@@ -39,9 +43,18 @@ class AppShell extends StatelessWidget {
     );
   }
 
+  Future<void> _dorongPindaiDanSegarkan(BuildContext context) async {
+    await context.push('/pindai?mulai=1');
+    if (context.mounted) {
+      try {
+        context.read<BerandaCubit>().muatRingkasan();
+      } catch (_) {}
+    }
+  }
+
   Future<void> _bukaPindai(BuildContext context) async {
     if (!sl.isRegistered<BacaStatusPanduanPindai>()) {
-      context.push('/pindai?mulai=1');
+      await _dorongPindaiDanSegarkan(context);
       return;
     }
     final sembunyikan = await sl<BacaStatusPanduanPindai>().call();
@@ -51,12 +64,12 @@ class AppShell extends StatelessWidget {
         context,
         onLanjut: () {
           if (context.mounted) {
-            context.push('/pindai?mulai=1');
+            unawaited(_dorongPindaiDanSegarkan(context));
           }
         },
       );
     } else {
-      context.push('/pindai?mulai=1');
+      await _dorongPindaiDanSegarkan(context);
     }
   }
 

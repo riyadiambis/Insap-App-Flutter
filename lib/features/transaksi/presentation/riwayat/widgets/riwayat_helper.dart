@@ -65,8 +65,8 @@ class RiwayatHelper {
       return 'Kemarin';
     } else {
       final hari = namaHari[dt.weekday - 1];
-      final bulan = namaBulan[dt.month - 1];
-      return '$hari, ${dt.day} $bulan ${dt.year}';
+      final bulan = namaBulanSingkat[dt.month - 1];
+      return '$hari, ${dt.day} $bulan';
     }
   }
 

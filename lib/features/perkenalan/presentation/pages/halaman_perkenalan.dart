@@ -9,9 +9,13 @@ import '../../../../core/utils/rupiah_extension.dart';
 import '../../../../core/widgets/header_aplikasi.dart';
 import '../../../../core/widgets/maskot_struki.dart';
 import '../../../../core/widgets/tombol_stabilo.dart';
+import '../../../akun/presentation/cubit/akun_cubit.dart';
+import '../../../akun/presentation/pages/halaman_masuk.dart';
 import '../../../transaksi/presentation/catat/widgets/kolom_input_nominal.dart';
 import '../cubit/onboarding_cubit.dart';
 import '../cubit/onboarding_state.dart';
+
+enum _LangkahOnboarding { sambutan, target, masuk }
 
 class HalamanPerkenalan extends StatefulWidget {
   const HalamanPerkenalan({super.key});
@@ -24,7 +28,7 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
   final PageController _pageController = PageController();
   int _targetNominal = 2000000;
   int _halamanAktif = 0;
-  bool _modeTarget = false;
+  _LangkahOnboarding _langkah = _LangkahOnboarding.sambutan;
   String? _pesanGalat;
 
   static const List<({String label, int nilai})> _pilihanPresetTarget = [
@@ -42,29 +46,43 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
 
   void _bukaLayarTarget() {
     setState(() {
-      _modeTarget = true;
+      _langkah = _LangkahOnboarding.target;
     });
   }
 
   void _kembaliKeSambutan() {
     setState(() {
-      _modeTarget = false;
+      _langkah = _LangkahOnboarding.sambutan;
       _pesanGalat = null;
     });
   }
 
-  Future<void> _simpanTarget(BuildContext context) async {
+  void _bukaLayarMasuk() {
     if (_targetNominal <= 0) {
       setState(() {
-        _pesanGalat =
-            'Masukkan target pengeluaran yang valid atau ketuk Nanti saja';
+        _pesanGalat = 'Masukkan target pengeluaran yang valid';
       });
       return;
     }
+    setState(() {
+      _pesanGalat = null;
+      _langkah = _LangkahOnboarding.masuk;
+    });
+  }
 
-    setState(() => _pesanGalat = null);
+  void _kembaliKeTarget() {
+    setState(() {
+      _langkah = _LangkahOnboarding.target;
+    });
+  }
+
+  Future<void> _selesaikanOnboarding(BuildContext context) async {
     final cubit = context.read<OnboardingCubit>();
-    await cubit.simpanTargetDanSelesai(_targetNominal);
+    if (_targetNominal > 0) {
+      await cubit.simpanTargetDanSelesai(_targetNominal);
+    } else {
+      await cubit.lewatiTargetDanSelesai();
+    }
     if (!mounted || !context.mounted) return;
     try {
       context.go('/');
@@ -96,8 +114,13 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
   }
 
   Widget _buildContent(BuildContext context) {
+    if (_langkah == _LangkahOnboarding.masuk) {
+      return _buildLayarMasuk(context);
+    }
+
+    final bool modeTarget = _langkah == _LangkahOnboarding.target;
     return Scaffold(
-      appBar: _modeTarget
+      appBar: modeTarget
           ? HeaderAplikasi(
               namaLayar: 'Target bulanan',
               modeKembali: true,
@@ -106,13 +129,13 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
           : null,
       body: PaperBackground(
         child: SafeArea(
-          top: !_modeTarget,
+          top: !modeTarget,
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
                 maxWidth: AppSizes.batasLebarKonten,
               ),
-              child: _modeTarget
+              child: modeTarget
                   ? _buildLayarTarget(context)
                   : _buildLayarSambutan(context),
             ),
@@ -120,6 +143,28 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
         ),
       ),
     );
+  }
+
+  Widget _buildLayarMasuk(BuildContext context) {
+    final halamanMasuk = HalamanMasuk(
+      modeOnboarding: true,
+      onKembali: _kembaliKeTarget,
+      onLanjutTanpaAkun: () => _selesaikanOnboarding(context),
+      onLoginSukses: () => _selesaikanOnboarding(context),
+    );
+
+    try {
+      context.read<AkunCubit>();
+      return halamanMasuk;
+    } catch (_) {
+      if (sl.isRegistered<AkunCubit>()) {
+        return BlocProvider<AkunCubit>(
+          create: (_) => sl<AkunCubit>(),
+          child: halamanMasuk,
+        );
+      }
+      return halamanMasuk;
+    }
   }
 
   Widget _buildLayarSambutan(BuildContext context) {
@@ -346,6 +391,7 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
                       child: KolomInputNominal(
                         key: const Key('kolom_target_bulanan'),
                         nominal: _targetNominal,
+                        fontSize: 30,
                         onChanged: (val) {
                           setState(() {
                             _targetNominal = val;
@@ -478,36 +524,13 @@ class _HalamanPerkenalanState extends State<HalamanPerkenalan> {
                 AppSpacing.besar,
                 AppSpacing.besar,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Center(
-                    child: TextButton(
-                      key: const Key('tombol_nanti_saja'),
-                      onPressed: memuat ? null : () => _lewatiTarget(context),
-                      style: TextButton.styleFrom(
-                        minimumSize: const Size(48, 48),
-                      ),
-                      child: const Text(
-                        'Nanti saja',
-                        style: TextStyle(
-                          color: AppColors.inkSoft,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                  TombolStabilo(
-                    key: const Key('tombol_simpan_target'),
-                    teks: 'Lanjut',
-                    isLoading: memuat,
-                    onPressed: (_targetNominal > 0 && !memuat)
-                        ? () => _simpanTarget(context)
-                        : null,
-                  ),
-                ],
+              child: TombolStabilo(
+                key: const Key('tombol_simpan_target'),
+                teks: 'Lanjut',
+                isLoading: memuat,
+                onPressed: (_targetNominal > 0 && !memuat)
+                    ? _bukaLayarMasuk
+                    : null,
               ),
             ),
           ],

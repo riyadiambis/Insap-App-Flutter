@@ -16,7 +16,6 @@ import '../../../domain/entities/transaksi_entity.dart';
 import '../../widgets/kartu_transaksi.dart';
 import '../cubit/riwayat_cubit.dart';
 import '../cubit/riwayat_state.dart';
-import '../widgets/bottom_sheet_filter.dart';
 import '../widgets/riwayat_helper.dart';
 
 enum _FilterSumber { semua, struk, manual }
@@ -49,26 +48,6 @@ class _RiwayatViewState extends State<_RiwayatView> {
   void dispose() {
     _cariController.dispose();
     super.dispose();
-  }
-
-  void _bukaFilter(BuildContext context) {
-    final state = context.read<RiwayatCubit>().state;
-    BottomSheetFilter.tampilkan(
-      context: context,
-      initialTanggalMulai: state.filterTanggalMulai,
-      initialTanggalAkhir: state.filterTanggalAkhir,
-      initialKategoriId: state.filterKategoriId,
-      onTerapkan: ({tanggalMulai, tanggalAkhir, kategoriId}) {
-        context.read<RiwayatCubit>().terapkanFilter(
-          tanggalMulai: tanggalMulai,
-          tanggalAkhir: tanggalAkhir,
-          kategoriId: kategoriId,
-        );
-      },
-      onReset: () {
-        context.read<RiwayatCubit>().resetFilter();
-      },
-    );
   }
 
   Future<void> _hapusTransaksi(BuildContext context, TransaksiEntity trx) async {
@@ -241,141 +220,85 @@ class _RiwayatViewState extends State<_RiwayatView> {
                         child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  height: 48,
-                                  padding: EdgeInsets.only(
-                                    left: 14,
-                                    right: _kataKunci.isNotEmpty ? 0 : 14,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.kartu,
-                                    border: Border.all(
-                                      color: AppColors.ink,
-                                      width: AppSizes.border,
-                                    ),
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusBadge,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.search_rounded,
-                                        size: 18,
-                                        color: AppColors.inkSoft,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: TextField(
-                                          key: const Key('input_cari_riwayat'),
-                                          controller: _cariController,
-                                          onChanged: (val) =>
-                                              setState(() => _kataKunci = val),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.copyWith(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                                color: AppColors.ink,
-                                              ),
-                                          decoration: InputDecoration(
-                                            hintText: 'Cari catatan',
-                                            hintStyle: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: AppColors.inkSoft,
-                                                ),
-                                            border: InputBorder.none,
-                                            isDense: true,
-                                            contentPadding: EdgeInsets.zero,
-                                          ),
-                                        ),
-                                      ),
-                                      if (_kataKunci.isNotEmpty)
-                                        Semantics(
-                                          button: true,
-                                          label: 'Hapus pencarian',
-                                          child: GestureDetector(
-                                            behavior: HitTestBehavior.opaque,
-                                            onTap: () {
-                                              _cariController.clear();
-                                              setState(() => _kataKunci = '');
-                                            },
-                                            child: const SizedBox(
-                                              width: 48,
-                                              height: 48,
-                                              child: Center(
-                                                child: Icon(
-                                                  Icons.close_rounded,
-                                                  size: 18,
-                                                  color: AppColors.inkSoft,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
+                          Container(
+                            height: 48,
+                            padding: EdgeInsets.only(
+                              left: 14,
+                              right: _kataKunci.isNotEmpty ? 0 : 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.kartu,
+                              border: Border.all(
+                                color: AppColors.ink,
+                                width: AppSizes.border,
                               ),
-                              const SizedBox(width: AppSpacing.kecil),
-                              GestureDetector(
-                                onTap: () => _bukaFilter(context),
-                                child: Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Container(
-                                      width: 48,
-                                      height: 48,
-                                      decoration: BoxDecoration(
-                                        color: isFilterAktif
-                                            ? AppColors.stabilo
-                                            : AppColors.kartu,
-                                        border: Border.all(
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.radiusBadge,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.search_rounded,
+                                  size: 18,
+                                  color: AppColors.inkSoft,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextField(
+                                    key: const Key('input_cari_riwayat'),
+                                    controller: _cariController,
+                                    onChanged: (val) =>
+                                        setState(() => _kataKunci = val),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
                                           color: AppColors.ink,
-                                          width: AppSizes.border,
                                         ),
-                                        borderRadius: BorderRadius.circular(
-                                          AppSizes.radiusBadge,
-                                        ),
-                                        boxShadow: const [
-                                          AppTheme.bayanganKecilGelap,
-                                        ],
-                                      ),
-                                      child: const Icon(
-                                        Icons.tune_rounded,
-                                        size: AppSizes.ikonAksi,
-                                        color: AppColors.ink,
-                                      ),
+                                    decoration: InputDecoration(
+                                      hintText: 'Cari catatan',
+                                      hintStyle: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.inkSoft,
+                                          ),
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.zero,
                                     ),
-                                    if (isFilterAktif)
-                                      Positioned(
-                                        top: -2.0,
-                                        right: -2.0,
-                                        child: Container(
-                                          width: 10,
-                                          height: 10,
-                                          decoration: BoxDecoration(
-                                            color: AppColors.salah,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: AppColors.ink,
-                                              width: 1.0,
-                                            ),
+                                  ),
+                                ),
+                                if (_kataKunci.isNotEmpty)
+                                  Semantics(
+                                    button: true,
+                                    label: 'Hapus pencarian',
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () {
+                                        _cariController.clear();
+                                        setState(() => _kataKunci = '');
+                                      },
+                                      child: const SizedBox(
+                                        width: 48,
+                                        height: 48,
+                                        child: Center(
+                                          child: Icon(
+                                            Icons.close_rounded,
+                                            size: 18,
+                                            color: AppColors.inkSoft,
                                           ),
                                         ),
                                       ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                           if (state.daftarTransaksi.isNotEmpty ||
                               _adaFilterLokal ||
@@ -558,8 +481,7 @@ class _RiwayatViewState extends State<_RiwayatView> {
             final ikonKat = RiwayatHelper.parseIkon(kat?.ikon);
             final warnaKat = RiwayatHelper.parseWarna(kat?.warna);
 
-            final jam = RiwayatHelper.formatJam(trx.dibuatPada);
-            final waktuTampil = trx.sumber == 'pindai' ? '$jam · Struk' : jam;
+            final waktuTampil = trx.sumber == 'pindai' ? 'struk' : '';
 
             return Dismissible(
               key: Key('transaksi_${trx.id}'),
@@ -603,7 +525,6 @@ class _RiwayatViewState extends State<_RiwayatView> {
                 waktu: waktuTampil,
                 ikonKategori: ikonKat,
                 warnaKategori: warnaKat,
-                tipeKebutuhan: trx.tipeKebutuhan,
                 onTap: () async {
                   final hasil = await context.push<dynamic>(
                     '/transaksi/${trx.id}',
@@ -701,7 +622,7 @@ class _RiwayatViewState extends State<_RiwayatView> {
         AppSpacing.besar,
         AppSpacing.besar,
         AppSpacing.besar,
-        AppSpacing.jarakGulirBawah,
+        AppSpacing.lebihBesar,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

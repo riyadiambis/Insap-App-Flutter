@@ -6,9 +6,10 @@ import '../theme.dart';
 ///
 /// Menampilkan foto profil dari [fotoUrl] jika tersedia via [Image.network].
 /// Jika [fotoUrl] bernilai null, kosong, atau gagal dimuat (misal karena luring),
-/// widget otomatis jatuh (fallback) ke ikon [Icons.person] bawaan.
+/// widget menampilkan [inisial] bila tersedia, atau jatuh ke ikon [Icons.person].
 class AvatarProfil extends StatelessWidget {
   final String? fotoUrl;
+  final String? inisial;
   final double ukuran;
   final double ukuranIkon;
   final Color warnaLatar;
@@ -18,12 +19,32 @@ class AvatarProfil extends StatelessWidget {
   const AvatarProfil({
     super.key,
     this.fotoUrl,
+    this.inisial,
     required this.ukuran,
     required this.ukuranIkon,
     required this.warnaLatar,
     required this.warnaIkon,
     this.bayangan,
   });
+
+  Widget _bangunFallback() {
+    final teks = inisial?.trim();
+    if (teks != null && teks.isNotEmpty) {
+      return Center(
+        child: Text(
+          teks[0].toUpperCase(),
+          style: TextStyle(
+            fontFamily: 'Baloo2',
+            fontWeight: FontWeight.w800,
+            fontSize: ukuran * 0.42,
+            color: warnaIkon,
+            height: 1.0,
+          ),
+        ),
+      );
+    }
+    return Icon(Icons.person, size: ukuranIkon, color: warnaIkon);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +65,10 @@ class AvatarProfil extends StatelessWidget {
                 width: ukuran,
                 height: ukuran,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    Icon(Icons.person, size: ukuranIkon, color: warnaIkon),
+                errorBuilder: (context, error, stackTrace) => _bangunFallback(),
               ),
             )
-          : Icon(Icons.person, size: ukuranIkon, color: warnaIkon),
+          : _bangunFallback(),
     );
   }
 }

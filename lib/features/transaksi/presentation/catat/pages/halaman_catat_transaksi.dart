@@ -359,6 +359,7 @@ class _BagianNominal extends StatelessWidget {
           child: KolomInputNominal(
             nominal: nominal,
             focusNode: focusNode,
+            fontSize: 34,
             onChanged: onChanged,
           ),
         ),
@@ -901,7 +902,7 @@ class _BagianCatatan extends StatelessWidget {
               color: AppColors.ink,
             ),
             decoration: InputDecoration(
-              hintText: 'Tambah catatan (misal: Es kopi sama temen)...',
+              hintText: 'Nasi padang dekat kampus',
               hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.inkSoft,
                 fontWeight: FontWeight.w600,

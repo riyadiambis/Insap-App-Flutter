@@ -218,12 +218,12 @@ void main() {
       expect(find.text('Nasi padang komplit'), findsOneWidget);
       expect(find.text('Es kopi susu'), findsOneWidget);
       // Memeriksa penanda struk untuk sumber pindai
-      expect(find.textContaining('Struk'), findsOneWidget);
+      expect(find.text('struk'), findsOneWidget);
     },
   );
 
   testWidgets(
-    'membuka bottom sheet filter saat tombol filter ditekan',
+    'chip filter sumber Dari struk dan Manual menyaring daftar riwayat',
     (tester) async {
       tester.view.physicalSize = const Size(460, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -239,21 +239,34 @@ void main() {
           tanggal: tglHariIni,
           catatan: 'Nasi padang',
           dibuatPada: '${tglHariIni}T12:30:00.000',
+          sumber: 'manual',
+        ),
+        TransaksiEntity(
+          id: 2,
+          jumlah: 18000,
+          kategoriId: 2,
+          tanggal: tglHariIni,
+          catatan: 'Indomaret',
+          dibuatPada: '${tglHariIni}T15:00:00.000',
+          sumber: 'pindai',
         ),
       ];
 
       await tester.pumpWidget(bangunAplikasiUji());
       await tester.pumpAndSettle();
 
-      final tombolFilter = find.byIcon(Icons.tune_rounded);
-      expect(tombolFilter, findsOneWidget);
+      expect(find.text('Nasi padang'), findsOneWidget);
+      expect(find.text('Indomaret'), findsOneWidget);
 
-      await tester.tap(tombolFilter);
+      await tester.tap(find.text('Dari struk'));
       await tester.pumpAndSettle();
+      expect(find.text('Indomaret'), findsOneWidget);
+      expect(find.text('Nasi padang'), findsNothing);
 
-      expect(find.text('Saringan Riwayat'), findsOneWidget);
-      expect(find.text('Terapkan Saringan'), findsOneWidget);
-      expect(find.text('Reset Saringan'), findsOneWidget);
+      await tester.tap(find.text('Manual'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nasi padang'), findsOneWidget);
+      expect(find.text('Indomaret'), findsNothing);
     },
   );
 

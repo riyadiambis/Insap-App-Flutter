@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -25,10 +27,9 @@ import '../../../transaksi/domain/entities/transaksi_entity.dart';
 import '../../../transaksi/presentation/widgets/kartu_transaksi.dart';
 import '../cubit/beranda_cubit.dart';
 import '../cubit/beranda_state.dart';
-import '../widgets/kartu_rincian_pengeluaran.dart';
 import '../widgets/tampilan_kategori.dart';
 
-class HalamanBeranda extends StatelessWidget {
+class HalamanBeranda extends StatefulWidget {
   final Stream<PenggunaEntity?>? streamPengguna;
   final PenggunaEntity? penggunaAwal;
   final DateTime Function()? waktuSekarang;
@@ -50,8 +51,35 @@ class HalamanBeranda extends StatelessWidget {
         : 'Kawan';
   }
 
+  @override
+  State<HalamanBeranda> createState() => _HalamanBerandaState();
+}
+
+class _HalamanBerandaState extends State<HalamanBeranda>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      try {
+        context.read<BerandaCubit>().muatRingkasan();
+      } catch (_) {}
+    }
+  }
+
   Stream<PenggunaEntity?>? _dapatkanStreamPengguna() {
-    if (streamPengguna != null) return streamPengguna;
+    if (widget.streamPengguna != null) return widget.streamPengguna;
     if (sl.isRegistered<AkunRepository>()) {
       try {
         return sl<AkunRepository>().pantauPengguna();
@@ -65,12 +93,12 @@ class HalamanBeranda extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<PenggunaEntity?>(
-      initialData: penggunaAwal,
+      initialData: widget.penggunaAwal,
       stream: _dapatkanStreamPengguna(),
       builder: (context, authSnapshot) {
         final pengguna = authSnapshot.hasError
-            ? penggunaAwal
-            : (authSnapshot.data ?? penggunaAwal);
+            ? widget.penggunaAwal
+            : (authSnapshot.data ?? widget.penggunaAwal);
         return Scaffold(
           body: PaperBackground(
             child: Center(
@@ -104,7 +132,7 @@ class HalamanBeranda extends StatelessWidget {
                         perbandinganTarget: state.perbandinganTarget,
                         refleksiPekanIniTersimpan:
                             state.refleksiPekanIniTersimpan,
-                        waktuSekarang: waktuSekarang,
+                        waktuSekarang: widget.waktuSekarang,
                       );
                     }
                     return const SizedBox();
@@ -148,20 +176,31 @@ class _BerandaContent extends StatelessWidget {
     this.waktuSekarang,
   });
 
+  Future<void> _dorongPindaiDanSegarkan(BuildContext context) async {
+    await context.push('/pindai?mulai=1');
+    if (context.mounted) {
+      try {
+        context.read<BerandaCubit>().muatRingkasan();
+      } catch (_) {}
+    }
+  }
+
   Future<void> _bukaPindai(BuildContext context) async {
-    final sembunyikan = await sl<BacaStatusPanduanPindai>().call();
+    final sembunyikan = sl.isRegistered<BacaStatusPanduanPindai>()
+        ? await sl<BacaStatusPanduanPindai>().call()
+        : true;
     if (!context.mounted) return;
     if (!sembunyikan) {
       await tampilkanDialogPanduanPindai(
         context,
         onLanjut: () {
           if (context.mounted) {
-            context.push('/pindai?mulai=1');
+            unawaited(_dorongPindaiDanSegarkan(context));
           }
         },
       );
     } else {
-      context.push('/pindai?mulai=1');
+      await _dorongPindaiDanSegarkan(context);
     }
   }
 
@@ -204,6 +243,7 @@ class _BerandaContent extends StatelessWidget {
         _KartuRingkasanPekan(
           ringkasan: ringkasan,
           perbandinganTarget: perbandinganTarget,
+          waktuSekarang: waktu,
         ),
         const SizedBox(height: 14),
 
@@ -410,8 +450,8 @@ class _BerandaContent extends StatelessWidget {
                             ),
                             Text(
                               ringkasan.kuotaPindai <= 0
-                                  ? 'Habis, reset Senin'
-                                  : 'Sisa ${ringkasan.kuotaPindai} dari $kuotaPindaiPekanan pekan ini',
+                                  ? 'Habis, tonton iklan +1'
+                                  : 'Sisa ${ringkasan.kuotaPindai} dari $kuotaPindaiPekanan',
                               style: teks.bodySmall?.copyWith(
                                 fontSize: 13,
                                 color: AppColors.biruPudar,
@@ -513,14 +553,6 @@ class _BerandaContent extends StatelessWidget {
           ...ringkasan.transaksiTerakhir.map(
             (t) => _ItemTransaksi(transaksi: t),
           ),
-        const SizedBox(height: AppSpacing.besar),
-
-        // 5. Kartu Rincian Pengeluaran (memuat rincian kategori & atur target bulanan)
-        KartuRincianPengeluaran(
-          totalPekanIni: ringkasan.totalMingguIni,
-          rincian: rincian,
-          perbandinganTarget: perbandinganTarget,
-        ),
       ],
     );
   }
@@ -529,10 +561,12 @@ class _BerandaContent extends StatelessWidget {
 class _KartuRingkasanPekan extends StatelessWidget {
   final RingkasanPekanEntity ringkasan;
   final PerbandinganTargetEntity? perbandinganTarget;
+  final DateTime waktuSekarang;
 
   const _KartuRingkasanPekan({
     required this.ringkasan,
     this.perbandinganTarget,
+    required this.waktuSekarang,
   });
 
   @override
@@ -543,15 +577,21 @@ class _KartuRingkasanPekan extends StatelessWidget {
     final Color warnaBar;
     final String teksSisa;
     final Color warnaTeksSisa;
+    int targetPekanan = 0;
 
     if (adaTarget) {
-      porsiBar = target.persen.clamp(0.0, 1.0);
-      warnaBar = target.isLewat ? AppColors.salah : AppColors.stabilo;
-      teksSisa = target.isLewat
-          ? 'Lewat ${target.lewat.toRupiah()} dari target bulanan'
-          : 'Sisa ${target.sisa.toRupiah()} dari target bulanan';
-      warnaTeksSisa =
-          target.isLewat ? AppColors.merahTeks : AppColors.daunTua;
+      targetPekanan = ((target.targetBulanan ?? 0) / 4).round();
+      final int sisaPekanan = targetPekanan - ringkasan.totalMingguIni;
+      final int sisaHari = 8 - waktuSekarang.weekday;
+      porsiBar = targetPekanan > 0
+          ? (ringkasan.totalMingguIni / targetPekanan).clamp(0.0, 1.0)
+          : 0.0;
+      final bool lewat = sisaPekanan < 0;
+      warnaBar = lewat ? AppColors.salah : AppColors.stabilo;
+      teksSisa = lewat
+          ? 'Lewat ${(-sisaPekanan).toRupiah()} dari target pekan ini'
+          : 'Sisa ${sisaPekanan.toRupiah()} untuk $sisaHari hari';
+      warnaTeksSisa = lewat ? AppColors.merahTeks : AppColors.daunTua;
     } else if (ringkasan.totalMingguLalu > 0) {
       porsiBar = (ringkasan.totalMingguIni / ringkasan.totalMingguLalu)
           .clamp(0.0, 1.0);
@@ -607,7 +647,7 @@ class _KartuRingkasanPekan extends StatelessWidget {
               if (adaTarget) ...[
                 const SizedBox(width: AppSpacing.kecil),
                 Text(
-                  'dari ${(target.targetBulanan ?? 0).toRupiah()}/bln',
+                  'dari ${targetPekanan.toRupiah()}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -677,23 +717,12 @@ class _ItemTransaksi extends StatelessWidget {
             ? parseWarnaKategori(kategori.warna)
             : AppColors.inkSoft;
 
-        String waktu = '';
-        try {
-          final dt = DateTime.parse(transaksi.dibuatPada).toLocal();
-          final jam = dt.hour.toString().padLeft(2, '0');
-          final menit = dt.minute.toString().padLeft(2, '0');
-          waktu = transaksi.sumber == 'pindai'
-              ? '$jam:$menit · struk'
-              : '$jam:$menit';
-        } catch (_) {
-          waktu = transaksi.sumber == 'pindai' ? 'struk' : '-';
-        }
+        final String waktu = transaksi.sumber == 'pindai' ? 'struk' : '';
 
         return KartuTransaksi(
           nominal: transaksi.jumlah,
           namaKategori: namaKategori,
           catatan: transaksi.catatan,
-          tipeKebutuhan: transaksi.tipeKebutuhan,
           waktu: waktu,
           ikonKategori: ikon,
           warnaKategori: warna,

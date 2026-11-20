@@ -42,7 +42,7 @@ Future<void> tampilkanDialogFiturDikembangkan(BuildContext context) {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Langganan sedang disiapkan',
+                    'Insap Pro sedang disiapkan',
                     textAlign: TextAlign.center,
                     style: Theme.of(dialogContext).textTheme.headlineSmall
                         ?.copyWith(

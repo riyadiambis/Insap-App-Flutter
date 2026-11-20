@@ -207,7 +207,7 @@ void main() {
       await tester.enterText(
         find.widgetWithText(
           TextFormField,
-          'Tambah catatan (misal: Es kopi sama temen)...',
+          'Nasi padang dekat kampus',
         ),
         'Bakso urat',
       );

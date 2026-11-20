@@ -47,7 +47,7 @@ void main() {
     });
 
     testWidgets(
-      'menampilkan AvatarProfil saat login tanpa fotoUrl (fallback ikon person)',
+      'menampilkan AvatarProfil dengan inisial nama saat login tanpa fotoUrl',
       (tester) async {
         const pengguna = PenggunaEntity(
           uid: 'uid-email',
@@ -65,7 +65,7 @@ void main() {
         );
 
         expect(find.byType(AvatarProfil), findsOneWidget);
-        expect(find.byIcon(Icons.person), findsOneWidget);
+        expect(find.text('U'), findsOneWidget);
       },
     );
 

@@ -28,7 +28,7 @@ void main() {
         expect(assetImage.assetName, equals('assets/images/logo_insap.png'));
 
         expect(find.text('Insap: Catat Keuangan'), findsOneWidget);
-        expect(find.text('Versi 2.1.0'), findsOneWidget);
+        expect(find.text('Versi 2.1.1'), findsOneWidget);
 
         expect(find.text('TIM PENGEMBANG'), findsOneWidget);
         expect(find.textContaining('Rahmat Riyadi'), findsOneWidget);

@@ -239,7 +239,6 @@ void main() {
 
     expect(find.byKey(const Key('kolom_target_bulanan')), findsOneWidget);
     expect(find.byKey(const Key('tombol_simpan_target')), findsOneWidget);
-    expect(find.byKey(const Key('tombol_nanti_saja')), findsOneWidget);
   });
 
   testWidgets('tombol kembali di layar target mengembalikan ke layar sambutan',
@@ -287,7 +286,7 @@ void main() {
     expect(find.text('Rp 3 jt'), findsOneWidget);
     expect(find.byType(KolomInputNominal), findsOneWidget);
     expect(find.text('Lanjut'), findsOneWidget);
-    expect(find.text('Nanti saja'), findsOneWidget);
+    expect(find.text('Nanti saja'), findsNothing);
 
     final maskotTarget = find.byKey(const Key('maskot_target_sambutan'));
     expect(tester.getSize(maskotTarget), const Size(120, 120));
@@ -344,6 +343,15 @@ void main() {
     await tester.tap(find.byKey(const Key('tombol_simpan_target')));
     await tester.pumpAndSettle();
 
+    // Langkah 3 dari 3: Masuk
+    expect(find.text('LANGKAH 3 DARI 3'), findsOneWidget);
+    expect(find.text('Simpan catatan di awan'), findsOneWidget);
+    expect(find.byKey(const Key('tombol_masuk_google')), findsOneWidget);
+    expect(find.byKey(const Key('tombol_lanjut_tanpa_akun')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('tombol_lanjut_tanpa_akun')));
+    await tester.pumpAndSettle();
+
     expect(repo._target, equals(3000000));
     expect(repo._sudahOnboarding, isTrue);
     expect(find.text('Beranda Dummy'), findsOneWidget);
@@ -351,7 +359,7 @@ void main() {
   });
 
   testWidgets(
-      'layar target: ketik 2000000 tampil "Rp2.000.000" dan tersimpan angka murni 2000000',
+      'layar target: ketik 2000000 tampil "Rp2.000.000" dan tersimpan angka murni 2000000 setelah langkah 3',
       (tester) async {
     ukuranLayar(tester, const Size(390, 844));
 
@@ -372,11 +380,16 @@ void main() {
     await tester.tap(find.byKey(const Key('tombol_simpan_target')));
     await tester.pumpAndSettle();
 
+    expect(find.text('LANGKAH 3 DARI 3'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('tombol_lanjut_tanpa_akun')));
+    await tester.pumpAndSettle();
+
     expect(repo._target, equals(2000000));
     expect(repo._sudahOnboarding, isTrue);
   });
 
-  testWidgets('tombol Nanti saja menyelesaikan onboarding tanpa menyimpan target',
+  testWidgets(
+      'tombol kembali di layar Masuk (langkah 3) mengembalikan ke Target bulanan',
       (tester) async {
     ukuranLayar(tester, const Size(390, 844));
 
@@ -385,14 +398,15 @@ void main() {
 
     await tester.tap(find.byKey(const Key('tombol_mulai_sambutan')));
     await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const Key('tombol_nanti_saja')));
+    await tester.tap(find.byKey(const Key('tombol_simpan_target')));
     await tester.pumpAndSettle();
 
-    expect(repo._target, isNull);
-    expect(repo._sudahOnboarding, isTrue);
-    expect(find.text('Beranda Dummy'), findsOneWidget);
-    expect(find.text(judulLayar[0]), findsNothing);
+    expect(find.text('LANGKAH 3 DARI 3'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Kembali'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('LANGKAH 2 DARI 3'), findsOneWidget);
+    expect(find.byKey(const Key('kolom_target_bulanan')), findsOneWidget);
   });
 
   for (final ukuran in const [Size(360, 640), Size(411, 914)]) {
@@ -446,7 +460,6 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byKey(const Key('tombol_simpan_target')), findsOneWidget);
-    expect(find.byKey(const Key('tombol_nanti_saja')), findsOneWidget);
 
     await tester.drag(find.text('LANGKAH 2 DARI 3'), const Offset(0, -100));
     await tester.pumpAndSettle();
@@ -496,10 +509,6 @@ void main() {
     );
     expect(
       tester.getSize(find.byKey(const Key('tombol_simpan_target'))).height,
-      greaterThanOrEqualTo(48),
-    );
-    expect(
-      tester.getSize(find.byKey(const Key('tombol_nanti_saja'))).height,
       greaterThanOrEqualTo(48),
     );
     for (final preset in const ['Rp 1 jt', 'Rp 1,5 jt', 'Rp 2 jt', 'Rp 3 jt']) {

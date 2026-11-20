@@ -523,13 +523,11 @@ class _TampilanPindaiGagal extends StatelessWidget {
           isLoading: sedangMemindai,
           onPressed: sedangMemindai ? null : onPindaiUlang,
         ),
-        if (tawarkanCatatManual) ...[
-          const SizedBox(height: AppSpacing.sedang),
-          _TombolPutih(
-            teks: 'Catat manual',
-            onPressed: onCatatManual,
-          ),
-        ],
+        const SizedBox(height: AppSpacing.sedang),
+        _TombolPutih(
+          teks: 'Catat manual',
+          onPressed: onCatatManual,
+        ),
       ],
     );
   }
@@ -643,7 +641,7 @@ class _TampilanKuotaHabis extends StatelessWidget {
                   ),
                 ),
                 child: const Icon(
-                  Icons.workspace_premium_rounded,
+                  Icons.workspace_premium_outlined,
                   color: AppColors.ink,
                   size: 20,
                 ),
@@ -683,7 +681,6 @@ class _TampilanKuotaHabis extends StatelessWidget {
         const SizedBox(height: AppSpacing.sedang),
         _TombolPutih(
           teks: 'Catat manual',
-          ikon: Icons.edit_rounded,
           onPressed: onCatatManual,
         ),
       ],
@@ -693,12 +690,10 @@ class _TampilanKuotaHabis extends StatelessWidget {
 
 class _TombolPutih extends StatefulWidget {
   final String teks;
-  final IconData? ikon;
   final VoidCallback onPressed;
 
   const _TombolPutih({
     required this.teks,
-    this.ikon,
     required this.onPressed,
   });
 
@@ -748,21 +743,12 @@ class _TombolPutihState extends State<_TombolPutih> {
               ],
             ),
             child: Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (widget.ikon != null) ...[
-                    Icon(widget.ikon, size: AppSizes.ikonAksi, color: AppColors.ink),
-                    const SizedBox(width: AppSpacing.kecil),
-                  ],
-                  Text(
-                    widget.teks,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
-                        ),
-                  ),
-                ],
+              child: Text(
+                widget.teks,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
               ),
             ),
           ),
@@ -888,13 +874,23 @@ class _KartuMemuatPindaiState extends State<KartuMemuatPindai> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Mengelompokkan barang per kategori...',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.inkSoft,
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.sedang),
                   Text(
                     'Foto struk dikirim ke layanan Google Gemini untuk dibaca. Insap tidak menyimpan fotonya.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.inkSoft,
                       height: 1.4,
                     ),
