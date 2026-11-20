@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Kunci tegak tidak boleh membatasi perangkat (Chromebook, tablet lanskap) di Play. -->
+    <uses-feature android:name="android.hardware.screen.portrait" android:required="false"/>
     <application
         android:label="Insap"
         android:name="${applicationName}"
