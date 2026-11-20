@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/bloc/app_bloc_observer.dart';
@@ -14,6 +15,7 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   setupInjectionContainer();
@@ -26,6 +28,39 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+  Widget _bungkusSkalaTablet(BuildContext context, Widget? child) {
+    final isi = child ?? const SizedBox.shrink();
+    final mq = MediaQuery.of(context);
+    if (mq.size.shortestSide < AppSizes.ambangTablet) {
+      return isi;
+    }
+
+    const skala = AppSizes.skalaTablet;
+    final ukuranSkala = mq.size / skala;
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Transform.scale(
+        scale: skala,
+        alignment: Alignment.topLeft,
+        child: SizedBox(
+          width: ukuranSkala.width,
+          height: ukuranSkala.height,
+          child: MediaQuery(
+            data: mq.copyWith(
+              size: ukuranSkala,
+              devicePixelRatio: mq.devicePixelRatio * skala,
+              padding: mq.padding / skala,
+              viewPadding: mq.viewPadding / skala,
+              viewInsets: mq.viewInsets / skala,
+              systemGestureInsets: mq.systemGestureInsets / skala,
+            ),
+            child: isi,
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +75,7 @@ class MyApp extends StatelessWidget {
         title: 'Insap: Yuk Sadar Boncos',
         theme: AppTheme.lightTheme,
         routerConfig: appRouter,
+        builder: _bungkusSkalaTablet,
       ),
     );
   }

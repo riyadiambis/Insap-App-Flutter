@@ -3,22 +3,27 @@ import 'package:flutter/material.dart';
 class AppColors {
   static const Color paper = Color(0xFFFFFDF4);
   static const Color grid = Color(0xFFD9E6F2);
-  static const Color ink = Color(0xFF1B3A5C);
-  static const Color inkSoft = Color(0xFF5B7793);
+  static const Color ink = Color(0xFF16385D);
+  static const Color inkSoft = Color(0xFF4A6480);
   static const Color kartu = Color(0xFFFFFFFF);
   static const Color garis = Color(0xFFC8D8E8);
   static const Color stabilo = Color(0xFFFFD84D);
+  static const Color daun = Color(0xFF1FB18C);
+  static const Color daunTua = Color(0xFF12795F);
+  static const Color hijauMuda = Color(0xFFE6F6F1);
+  static const Color kuningMuda = Color(0xFFFFF3C4);
+  static const Color garisPutus = Color(0xFFB9C6D3);
+  static const Color merahTeks = Color(0xFFB23A24);
   static const Color benarLatar = Color(0xFFE4F6EA);
   static const Color benar = Color(0xFF1F9254);
   static const Color salahLatar = Color(0xFFFCEAE6);
   static const Color salah = Color(0xFFD9482F);
   static const Color aksenPengen = Color(0xFFFFB020);
 
-  /// Biru solid kartu Pindai Struk di beranda (ISSUE-33 K1). Kontras teks
-  /// putih di atasnya sekitar 5,3:1.
+  /// tidak dipakai lagi sejak 2.0
   static const Color aiBiru = Color(0xFF2E6DB4);
 
-  /// Jalur bilah kuota di atas [aiBiru].
+  /// tidak dipakai lagi sejak 2.0
   static const Color aiBiruTua = Color(0xFF1F4F86);
 
   /// Putih agak redup untuk teks sekunder di atas [aiBiru].
@@ -121,13 +126,28 @@ class AppSizes {
   static const double tinggiGarisPemisah = 2.0;
 
   // header aplikasi (header_aplikasi)
-  static const double tinggiHeader = 64.0;
+  static const double tinggiHeader = 72.0;
+  static const double ukuranLogoHeader = 38.0;
+  static const double ukuranAvatarHeader = 44.0;
+  static const double ikonAvatarHeader = 22.0;
 
   // navigasi bawah (app_shell)
-  static const double tinggiNavigasiBawah = 72.0;
+  static const double tinggiNavigasiBawah = 84.0;
   static const double radiusItemNavigasi = 12.0;
   static const double ikonNavigasi = 24.0;
+  static const double ikonNavigasiKecil = 22.0;
   static const double tinggiPillNavigasi = 56.0;
+  static const double lebarPilNavigasi = 52.0;
+  static const double tinggiPilIkonNavigasi = 30.0;
+  static const double lebarSlotPindaiNav = 76.0;
+  static const double ukuranTombolPindaiNav = 68.0;
+  static const double tonjolanTombolPindaiNav = 26.0;
+  static const double borderTombolPindaiNav = 3.0;
+  static const double ikonPindaiNav = 26.0;
+
+  // skala tablet (main)
+  static const double ambangTablet = 600.0;
+  static const double skalaTablet = 1.5;
 
   // layar catat transaksi
   static const double tinggiPilihanTanggal = 44.0;
@@ -271,13 +291,13 @@ class AppTheme {
   static TextStyle get nominalUtama =>
       nominalBesar.copyWith(fontSize: AppSizes.ukuranNominalBesar);
 
-  /// Gaya teks untuk judul logo "Insap" pada header aplikasi (UI-GUIDE).
+  /// Gaya teks untuk judul logo "Insap" pada header aplikasi (Insap 2.0).
   static const TextStyle judulHeaderLogo = TextStyle(
     fontFamily: 'Baloo2',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: FontWeight.w800,
     color: AppColors.ink,
-    height: 1.1,
+    height: 1.0,
   );
 
   /// Bayangan offset solid bawaan, dipakai pada kartu dan komponen netral.
