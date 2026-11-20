@@ -31,9 +31,9 @@ void main() {
       await folderSementara.delete(recursive: true);
     });
 
-    test('1. Nilai bawaan kuotaPindaiPekanan adalah 10 jika flag build tidak disetel', () {
-      expect(kuotaPindaiPekanan, 10);
-      expect(KuotaLocalDataSourceImpl.kuotaMaksimal, 10);
+    test('1. Nilai bawaan kuotaPindaiPekanan adalah 5 jika flag build tidak disetel', () {
+      expect(kuotaPindaiPekanan, 5);
+      expect(KuotaLocalDataSourceImpl.kuotaMaksimal, 5);
     });
 
     test('2. Sisa kuota di database yang lebih besar dari jatah otomatis dipangkas ke jatah', () async {
@@ -51,15 +51,15 @@ void main() {
         whereArgs: ['kuota_pindai_sisa'],
       );
 
-      // KuotaLocalDataSource harus memangkas ke kuotaPindaiPekanan (10)
+      // KuotaLocalDataSource harus memangkas ke kuotaPindaiPekanan (5)
       final sisaPindai = await kuotaDataSource.ambilSisaKuota(waktuSekarang: seninPekanIni);
       expect(sisaPindai, kuotaPindaiPekanan);
-      expect(sisaPindai, 10);
+      expect(sisaPindai, 5);
 
-      // TransaksiLocalDataSource juga memangkas ke kuotaPindaiPekanan (10)
+      // TransaksiLocalDataSource juga memangkas ke kuotaPindaiPekanan (5)
       final sisaTransaksi = await transaksiDataSource.ambilKuotaPindai();
       expect(sisaTransaksi, kuotaPindaiPekanan);
-      expect(sisaTransaksi, 10);
+      expect(sisaTransaksi, 5);
     });
 
     test('3. Isi ulang otomatis pada hari Senin memakai jatah kuota aktif', () async {
@@ -80,9 +80,9 @@ void main() {
       final seninBerikutnya = DateTime(2026, 10, 19, 9, 0);
       final sisaSetelahReset = await kuotaDataSource.ambilSisaKuota(waktuSekarang: seninBerikutnya);
 
-      // Kuota harus diisi ulang tepat sebanyak kuotaPindaiPekanan (10)
+      // Kuota harus diisi ulang tepat sebanyak kuotaPindaiPekanan (5)
       expect(sisaSetelahReset, kuotaPindaiPekanan);
-      expect(sisaSetelahReset, 10);
+      expect(sisaSetelahReset, 5);
 
       // Verifikasi nilai tersimpan di database juga sama dengan jatah kuota
       final barisSisa = await db.query(

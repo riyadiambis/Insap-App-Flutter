@@ -220,4 +220,32 @@ void main() {
       expect(find.text('Reset Saringan'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'header grup tanggal tidak overflow pada layar sempit 328 dp',
+    (tester) async {
+      tester.view.physicalSize = const Size(328, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      fakeTransRepo.daftarKembalian = [
+        TransaksiEntity(
+          id: 1,
+          jumlah: 99999999,
+          kategoriId: 1,
+          tanggal: '2026-09-30',
+          catatan: 'Belanja bulanan panjang',
+          dibuatPada: '2026-09-30T12:30:00.000',
+          tipeKebutuhan: 'butuh',
+          sumber: 'manual',
+        ),
+      ];
+
+      await tester.pumpWidget(bangunAplikasiUji());
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

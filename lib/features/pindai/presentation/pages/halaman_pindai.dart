@@ -94,12 +94,7 @@ class _HalamanPindaiState extends State<HalamanPindai> {
     if (_sedangMemindai) return;
 
     final cubit = context.read<PindaiCubit>();
-    // No 12: Kuota habis -> satu baris pemberitahuan lalu buka /catat
     if (cubit.state.sisaKuota <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kuota pemindaian pekan ini sudah habis')),
-      );
-      context.go('/catat');
       return;
     }
 
@@ -603,7 +598,7 @@ class _TampilanKuotaHabis extends StatelessWidget {
                           ),
                     ),
                     Text(
-                      'Plus 40 pindai, Pro 100 pindai per pekan',
+                      'Plus 50 pindai, Pro 100 pindai per pekan',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             fontSize: 13,
                             color: AppColors.inkSoft,
@@ -654,50 +649,58 @@ class _TombolPutihState extends State<_TombolPutih> {
   Widget build(BuildContext context) {
     const geser = AppSizes.geserTekan;
 
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: widget.onPressed,
-      child: AnimatedContainer(
-        duration: AppDurations.animasiTekan,
-        height: AppSizes.tinggiTombol,
-        margin: EdgeInsets.only(
-          left: _isPressed ? geser : 0,
-          top: _isPressed ? geser : 0,
-          right: _isPressed ? 0 : geser,
-          bottom: _isPressed ? 0 : geser,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.kartu,
-          border: Border.all(color: AppColors.ink, width: AppSizes.border),
-          borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
-          boxShadow: [
-            _isPressed
-                ? AppTheme.bayanganGelapTertekan
-                : const BoxShadow(
-                    color: AppColors.ink,
-                    offset: Offset(3, 3),
-                    blurRadius: 0,
-                  ),
-          ],
-        ),
-        child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.ikon != null) ...[
-                Icon(widget.ikon, size: AppSizes.ikonAksi, color: AppColors.ink),
-                const SizedBox(width: AppSpacing.kecil),
+    return Semantics(
+      button: true,
+      label: widget.teks,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.onPressed,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: AnimatedContainer(
+            duration: AppDurations.animasiTekan,
+            height: AppSizes.tinggiTombol,
+            margin: EdgeInsets.only(
+              left: _isPressed ? geser : 0,
+              top: _isPressed ? geser : 0,
+              right: _isPressed ? 0 : geser,
+              bottom: _isPressed ? 0 : geser,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.kartu,
+              border: Border.all(color: AppColors.ink, width: AppSizes.border),
+              borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
+              boxShadow: [
+                _isPressed
+                    ? AppTheme.bayanganGelapTertekan
+                    : const BoxShadow(
+                        color: AppColors.ink,
+                        offset: Offset(3, 3),
+                        blurRadius: 0,
+                      ),
               ],
-              Text(
-                widget.teks,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.ink,
-                    ),
+            ),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.ikon != null) ...[
+                    Icon(widget.ikon, size: AppSizes.ikonAksi, color: AppColors.ink),
+                    const SizedBox(width: AppSpacing.kecil),
+                  ],
+                  Text(
+                    widget.teks,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

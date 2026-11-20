@@ -239,8 +239,9 @@ class _RiwayatViewState extends State<_RiwayatView> {
                               Expanded(
                                 child: Container(
                                   height: 48,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
+                                  padding: EdgeInsets.only(
+                                    left: 14,
+                                    right: _kataKunci.isNotEmpty ? 0 : 14,
                                   ),
                                   decoration: BoxDecoration(
                                     color: AppColors.kartu,
@@ -291,15 +292,26 @@ class _RiwayatViewState extends State<_RiwayatView> {
                                         ),
                                       ),
                                       if (_kataKunci.isNotEmpty)
-                                        GestureDetector(
-                                          onTap: () {
-                                            _cariController.clear();
-                                            setState(() => _kataKunci = '');
-                                          },
-                                          child: const Icon(
-                                            Icons.close_rounded,
-                                            size: 18,
-                                            color: AppColors.inkSoft,
+                                        Semantics(
+                                          button: true,
+                                          label: 'Hapus pencarian',
+                                          child: GestureDetector(
+                                            behavior: HitTestBehavior.opaque,
+                                            onTap: () {
+                                              _cariController.clear();
+                                              setState(() => _kataKunci = '');
+                                            },
+                                            child: const SizedBox(
+                                              width: 48,
+                                              height: 48,
+                                              child: Center(
+                                                child: Icon(
+                                                  Icons.close_rounded,
+                                                  size: 18,
+                                                  color: AppColors.inkSoft,
+                                                ),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                     ],
@@ -496,15 +508,20 @@ class _RiwayatViewState extends State<_RiwayatView> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      RiwayatHelper.formatTanggalGrup(item.tanggal),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.inkSoft,
-                        letterSpacing: 0.4,
+                    Flexible(
+                      child: Text(
+                        RiwayatHelper.formatTanggalGrup(item.tanggal),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.inkSoft,
+                          letterSpacing: 0.4,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: AppSpacing.kecil),
                     Text(
                       item.totalHarian.toRupiah(),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -757,22 +774,34 @@ class _ChipFilterSumber extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 36),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: aktif ? AppColors.ink : AppColors.kartu,
-          border: Border.all(color: AppColors.ink, width: AppSizes.border),
-          borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-        ),
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: aktif ? AppColors.kartu : AppColors.ink,
+    return Semantics(
+      button: true,
+      selected: aktif,
+      label: label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: Center(
+            widthFactor: 1.0,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 36),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: aktif ? AppColors.ink : AppColors.kartu,
+                border: Border.all(color: AppColors.ink, width: AppSizes.border),
+                borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+              ),
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: aktif ? AppColors.kartu : AppColors.ink,
+                ),
+              ),
+            ),
           ),
         ),
       ),

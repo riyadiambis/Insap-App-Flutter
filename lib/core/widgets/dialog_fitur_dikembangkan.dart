@@ -39,7 +39,7 @@ Future<void> tampilkanDialogFiturDikembangkan(BuildContext context) {
                   const MaskotStruki(pose: PoseMaskot.nabung, ukuran: 130),
                   const SizedBox(height: 10),
                   Text(
-                    'Insap Pro sedang disiapkan',
+                    'Langganan sedang disiapkan',
                     textAlign: TextAlign.center,
                     style: Theme.of(dialogContext).textTheme.headlineSmall
                         ?.copyWith(

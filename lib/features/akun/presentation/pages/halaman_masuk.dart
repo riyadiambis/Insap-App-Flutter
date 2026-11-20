@@ -405,34 +405,43 @@ class _TombolGoogleMasuk extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        height: 52,
-        decoration: BoxDecoration(
-          color: AppColors.kartu,
-          border: Border.all(color: AppColors.ink, width: AppSizes.border),
-          borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
-          boxShadow: const [AppTheme.bayanganKecilGelap],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.g_mobiledata_rounded,
-              size: 26,
-              color: AppColors.ink,
+    return Semantics(
+      button: true,
+      label: 'Masuk dengan Google',
+      enabled: onPressed != null,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: Container(
+            height: 52,
+            decoration: BoxDecoration(
+              color: AppColors.kartu,
+              border: Border.all(color: AppColors.ink, width: AppSizes.border),
+              borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
+              boxShadow: const [AppTheme.bayanganKecilGelap],
             ),
-            const SizedBox(width: AppSpacing.kecil),
-            Text(
-              'Masuk dengan Google',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ink,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.g_mobiledata_rounded,
+                  size: 26,
+                  color: AppColors.ink,
+                ),
+                const SizedBox(width: AppSpacing.kecil),
+                Text(
+                  'Masuk dengan Google',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

@@ -78,59 +78,59 @@ void main() {
       }
     });
 
-    test('kuota awal pada saat aplikasi baru dibuka adalah 10', () async {
+    test('kuota awal pada saat aplikasi baru dibuka adalah 5', () async {
       final sisa =
           await dataSource.ambilSisaKuota(waktuSekarang: waktuSeninAwal);
-      expect(sisa, 10);
+      expect(sisa, 5);
     });
 
     test('potongKuota berhasil mengurangi kuota bertahap', () async {
       await dataSource.potongKuota(waktuSekarang: waktuSeninAwal);
       expect(
         await dataSource.ambilSisaKuota(waktuSekarang: waktuSeninAwal),
-        9,
+        4,
       );
 
       await dataSource.potongKuota(waktuSekarang: waktuSeninAwal);
       expect(
         await dataSource.ambilSisaKuota(waktuSekarang: waktuSeninAwal),
-        8,
+        3,
       );
     });
 
     test('tidak melakukan reset kuota jika masih di dalam pekan yang sama', () async {
-      // Kurangi kuota hingga 7 pada hari Senin
+      // Kurangi kuota hingga 2 pada hari Senin
       final senin = DateTime(2026, 10, 12, 10, 0); // Senin
       await dataSource.ambilSisaKuota(waktuSekarang: senin);
       await dataSource.potongKuota(waktuSekarang: senin);
       await dataSource.potongKuota(waktuSekarang: senin);
       await dataSource.potongKuota(waktuSekarang: senin);
-      expect(await dataSource.ambilSisaKuota(waktuSekarang: senin), 7);
+      expect(await dataSource.ambilSisaKuota(waktuSekarang: senin), 2);
 
       // Cek pada hari Kamis di pekan yang sama
       final kamis = DateTime(2026, 10, 15, 14, 0);
       final sisaKamis = await dataSource.ambilSisaKuota(waktuSekarang: kamis);
 
-      // Kuota harus tetap 7, tidak boleh direset
-      expect(sisaKamis, 7);
+      // Kuota harus tetap 2, tidak boleh direset
+      expect(sisaKamis, 2);
     });
 
-    test('mereset kuota otomatis ke 10 saat berganti ke pekan berikutnya', () async {
-      // Set kuota terpakai menjadi 5 pada pekan lama
+    test('mereset kuota otomatis ke 5 saat berganti ke pekan berikutnya', () async {
+      // Set kuota terpakai menjadi 2 pada pekan lama
       final pekanLama = DateTime(2026, 10, 12, 10, 0);
       await dataSource.ambilSisaKuota(waktuSekarang: pekanLama);
-      for (int i = 0; i < 5; i++) {
+      for (int i = 0; i < 3; i++) {
         await dataSource.potongKuota(waktuSekarang: pekanLama);
       }
-      expect(await dataSource.ambilSisaKuota(waktuSekarang: pekanLama), 5);
+      expect(await dataSource.ambilSisaKuota(waktuSekarang: pekanLama), 2);
 
       // Berpindah ke Senin pekan depan (2026-10-19)
       final seninPekanDepan = DateTime(2026, 10, 19, 8, 30);
       final sisaPekanBaru =
           await dataSource.ambilSisaKuota(waktuSekarang: seninPekanDepan);
 
-      // Kuota harus otomatis ter-reset kembali ke 10
-      expect(sisaPekanBaru, 10);
+      // Kuota harus otomatis ter-reset kembali ke 5
+      expect(sisaPekanBaru, 5);
 
       // Verifikasi bahwa periode di database juga sudah terbarui
       final result = await db.query(
@@ -144,11 +144,11 @@ void main() {
     test('berjalan konsisten pada hari Minggu maupun Senin tanpa gagal', () async {
       final minggu = DateTime(2026, 10, 18, 23, 59);
       final sisaMinggu = await dataSource.ambilSisaKuota(waktuSekarang: minggu);
-      expect(sisaMinggu, 10);
+      expect(sisaMinggu, 5);
 
       final senin = DateTime(2026, 10, 19, 0, 1);
       final sisaSenin = await dataSource.ambilSisaKuota(waktuSekarang: senin);
-      expect(sisaSenin, 10);
+      expect(sisaSenin, 5);
     });
   });
 }

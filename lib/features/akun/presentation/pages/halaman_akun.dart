@@ -503,7 +503,7 @@ class _HalamanAkunState extends State<HalamanAkun> {
                 ],
                 const SizedBox(height: 2),
                 Text(
-                  'Tersambung dengan Google',
+                  'Akun tersambung',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontSize: 13,
                     color: AppColors.inkSoft,
@@ -561,7 +561,7 @@ class _HalamanAkunState extends State<HalamanAkun> {
                   ),
                 ),
                 Text(
-                  'Plus Rp15 rb · Pro Rp39 rb per bulan',
+                  'Plus Rp15 rb · Pro Rp29 rb per bulan',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,

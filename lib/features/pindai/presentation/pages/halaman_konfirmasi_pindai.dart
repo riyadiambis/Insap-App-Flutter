@@ -954,54 +954,66 @@ class _KonfirmasiPindaiView extends StatelessWidget {
                                                                             height:
                                                                                 4,
                                                                           ),
-                                                                          InkWell(
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(AppSizes.radiusPil),
-                                                                            onTap: () => _tampilkanSheetGantiKategori(
-                                                                              context,
-                                                                              itemGlobalIndex,
-                                                                              barang.kategoriId,
-                                                                              barang.nama,
-                                                                              barang.harga,
-                                                                            ),
-                                                                            child:
-                                                                                Container(
-                                                                              padding: const EdgeInsets.symmetric(
-                                                                                horizontal: 10,
-                                                                                vertical: 4,
+                                                                          Semantics(
+                                                                            button: true,
+                                                                            label: 'Ubah kategori ${kapitalPertama(namaKat)} untuk ${barang.nama}',
+                                                                            child: InkWell(
+                                                                              borderRadius:
+                                                                                  BorderRadius.circular(AppSizes.radiusPil),
+                                                                              onTap: () => _tampilkanSheetGantiKategori(
+                                                                                context,
+                                                                                itemGlobalIndex,
+                                                                                barang.kategoriId,
+                                                                                barang.nama,
+                                                                                barang.harga,
                                                                               ),
-                                                                              decoration: BoxDecoration(
-                                                                                color: AppColors.kartu,
-                                                                                borderRadius: BorderRadius.circular(AppSizes.radiusPil),
-                                                                                border: Border.all(
-                                                                                  color: warnaKat,
-                                                                                  width: 1.5,
+                                                                              child: ConstrainedBox(
+                                                                                constraints: const BoxConstraints(
+                                                                                  minWidth: 48,
+                                                                                  minHeight: 48,
                                                                                 ),
-                                                                              ),
-                                                                              child: Row(
-                                                                                mainAxisSize: MainAxisSize.min,
-                                                                                children: [
-                                                                                  Icon(
-                                                                                    ikonKat,
-                                                                                    size: 15,
-                                                                                    color: warnaKat,
-                                                                                  ),
-                                                                                  const SizedBox(width: 5),
-                                                                                  Text(
-                                                                                    kapitalPertama(namaKat),
-                                                                                    style: const TextStyle(
-                                                                                      fontSize: 13,
-                                                                                      fontWeight: FontWeight.w800,
-                                                                                      color: AppColors.ink,
+                                                                                child: Center(
+                                                                                  widthFactor: 1.0,
+                                                                                  child: Container(
+                                                                                    padding: const EdgeInsets.symmetric(
+                                                                                      horizontal: 10,
+                                                                                      vertical: 4,
+                                                                                    ),
+                                                                                    decoration: BoxDecoration(
+                                                                                      color: AppColors.kartu,
+                                                                                      borderRadius: BorderRadius.circular(AppSizes.radiusPil),
+                                                                                      border: Border.all(
+                                                                                        color: warnaKat,
+                                                                                        width: 1.5,
+                                                                                      ),
+                                                                                    ),
+                                                                                    child: Row(
+                                                                                      mainAxisSize: MainAxisSize.min,
+                                                                                      children: [
+                                                                                        Icon(
+                                                                                          ikonKat,
+                                                                                          size: 15,
+                                                                                          color: warnaKat,
+                                                                                        ),
+                                                                                        const SizedBox(width: 5),
+                                                                                        Text(
+                                                                                          kapitalPertama(namaKat),
+                                                                                          style: const TextStyle(
+                                                                                            fontSize: 13,
+                                                                                            fontWeight: FontWeight.w800,
+                                                                                            color: AppColors.ink,
+                                                                                          ),
+                                                                                        ),
+                                                                                        const SizedBox(width: 2),
+                                                                                        const Icon(
+                                                                                          Icons.keyboard_arrow_down_rounded,
+                                                                                          size: 16,
+                                                                                          color: AppColors.ink,
+                                                                                        ),
+                                                                                      ],
                                                                                     ),
                                                                                   ),
-                                                                                  const SizedBox(width: 2),
-                                                                                  const Icon(
-                                                                                    Icons.keyboard_arrow_down_rounded,
-                                                                                    size: 16,
-                                                                                    color: AppColors.ink,
-                                                                                  ),
-                                                                                ],
+                                                                                ),
                                                                               ),
                                                                             ),
                                                                           ),
@@ -1012,67 +1024,79 @@ class _KonfirmasiPindaiView extends StatelessWidget {
                                                                       width: AppSpacing
                                                                           .sedang,
                                                                     ),
-                                                                    InkWell(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                        12,
-                                                                      ),
-                                                                      onTap: () =>
-                                                                          _tampilkanDialogSuntingHarga(
-                                                                        context,
-                                                                        itemGlobalIndex,
-                                                                        barang
-                                                                            .harga,
-                                                                      ),
-                                                                      child:
-                                                                          Container(
-                                                                        constraints:
-                                                                            const BoxConstraints(
-                                                                          minHeight:
-                                                                              36,
+                                                                    Semantics(
+                                                                      button: true,
+                                                                      label: 'Sunting harga ${barang.nama}',
+                                                                      child: InkWell(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(
+                                                                          12,
                                                                         ),
-                                                                        padding:
-                                                                            const EdgeInsets
-                                                                                .symmetric(
-                                                                          horizontal:
-                                                                              10,
-                                                                          vertical:
-                                                                              6,
+                                                                        onTap: () =>
+                                                                            _tampilkanDialogSuntingHarga(
+                                                                          context,
+                                                                          itemGlobalIndex,
+                                                                          barang
+                                                                              .harga,
                                                                         ),
-                                                                        alignment:
-                                                                            Alignment
-                                                                                .center,
-                                                                        decoration:
-                                                                            BoxDecoration(
-                                                                          color:
-                                                                              AppColors.kartu,
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(
-                                                                            12,
+                                                                        child: ConstrainedBox(
+                                                                          constraints: const BoxConstraints(
+                                                                            minWidth: 48,
+                                                                            minHeight: 48,
                                                                           ),
-                                                                          border:
-                                                                              Border.all(
-                                                                            color:
-                                                                                AppColors.ink,
-                                                                            width:
-                                                                                1.5,
-                                                                          ),
-                                                                        ),
-                                                                        child:
-                                                                            Text(
-                                                                          formatRupiah(
-                                                                            barang.harga,
-                                                                          ),
-                                                                          style:
-                                                                              TextStyle(
-                                                                            fontSize:
-                                                                                15,
-                                                                            fontWeight:
-                                                                                FontWeight.w700,
-                                                                            color:
-                                                                                AppColors.ink,
-                                                                            decoration:
-                                                                                barang.dicentang ? null : TextDecoration.lineThrough,
+                                                                          child: Center(
+                                                                            widthFactor: 1.0,
+                                                                            child: Container(
+                                                                              constraints:
+                                                                                  const BoxConstraints(
+                                                                                minHeight:
+                                                                                    36,
+                                                                              ),
+                                                                              padding:
+                                                                                  const EdgeInsets
+                                                                                      .symmetric(
+                                                                                horizontal:
+                                                                                    10,
+                                                                                vertical:
+                                                                                    6,
+                                                                              ),
+                                                                              alignment:
+                                                                                  Alignment
+                                                                                      .center,
+                                                                              decoration:
+                                                                                  BoxDecoration(
+                                                                                color:
+                                                                                    AppColors.kartu,
+                                                                                borderRadius:
+                                                                                    BorderRadius.circular(
+                                                                                  12,
+                                                                                ),
+                                                                                border:
+                                                                                    Border.all(
+                                                                                  color:
+                                                                                      AppColors.ink,
+                                                                                  width:
+                                                                                      1.5,
+                                                                                ),
+                                                                              ),
+                                                                              child:
+                                                                                  Text(
+                                                                                formatRupiah(
+                                                                                  barang.harga,
+                                                                                ),
+                                                                                style:
+                                                                                    TextStyle(
+                                                                                  fontSize:
+                                                                                      15,
+                                                                                  fontWeight:
+                                                                                      FontWeight.w700,
+                                                                                  color:
+                                                                                      AppColors.ink,
+                                                                                  decoration:
+                                                                                      barang.dicentang ? null : TextDecoration.lineThrough,
+                                                                                ),
+                                                                              ),
+                                                                            ),
                                                                           ),
                                                                         ),
                                                                       ),

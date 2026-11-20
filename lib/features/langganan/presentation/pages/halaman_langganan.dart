@@ -20,18 +20,35 @@ class HalamanLangganan extends StatefulWidget {
 class _HalamanLanggananState extends State<HalamanLangganan> {
   PaketInsap _paketTerpilih = PaketInsap.pro;
 
-  static const _daftarFiturPro = [
-    (ikon: Icons.auto_awesome_outlined, label: 'Laporan AI bulanan'),
-    (ikon: Icons.chat_bubble_outline_rounded, label: 'Tanya Struki 30x per pekan'),
-    (ikon: Icons.group_outlined, label: 'Patungan dari struk'),
-    (ikon: Icons.savings_outlined, label: 'Target tabungan'),
-    (ikon: Icons.palette_outlined, label: 'Tema dan pose maskot eksklusif'),
+  static const _fiturGratis = [
+    'Bonus +1 pindai/iklan (maks 10, plafon 15/pekan) · segera hadir',
+    'Catat manual dan refleksi tanpa batas',
+    'Anggaran kategori bawaan',
+    'Ekspor ZIP data pribadi (UU PDP)',
+    'Cadangan manual',
+  ];
+
+  static const _fiturPlus = [
+    '50 pindai/pekan, bebas iklan',
+    'Kategori kustom',
+    'Unduh foto struk per struk',
+    'Ekspor PDF mingguan/bulanan',
+    'Cadangan otomatis Google Drive',
+  ];
+
+  static const _fiturPro = [
+    '100 pindai/pekan, bebas iklan & semua isi Plus',
+    'Multi-Kantong saldo',
+    'Radar Saldo Kritis (prediksi habis + batas belanja harian)',
+    'Audit Kebocoran AI 1x/pekan & evaluasi bulanan AI',
+    'Patungan tagihan & target tabungan',
+    'Tema eksklusif',
   ];
 
   String get _labelTombolCta => switch (_paketTerpilih) {
-    PaketInsap.gratis => 'Langganan Gratis · Rp0/bulan',
+    PaketInsap.gratis => 'Paketmu sekarang',
     PaketInsap.plus => 'Langganan Plus · Rp15.000/bulan',
-    PaketInsap.pro => 'Langganan Pro · Rp39.000/bulan',
+    PaketInsap.pro => 'Langganan Pro · Rp29.000/bulan',
   };
 
   @override
@@ -107,10 +124,11 @@ class _HalamanLanggananState extends State<HalamanLangganan> {
                             key: const Key('kartu_paket_gratis'),
                             paket: PaketInsap.gratis,
                             judul: 'Gratis',
-                            deskripsi: 'Catat, refleksi, cadangan manual',
+                            deskripsi: 'Catat, refleksi, ekspor ZIP, cadangan manual',
                             harga: 'Rp0',
-                            kuota: '10 pindai/pekan',
+                            kuota: '5 pindai/pekan',
                             catatanStatus: 'Paketmu sekarang',
+                            daftarFitur: _fiturGratis,
                             terpilih: _paketTerpilih == PaketInsap.gratis,
                             onTap: () => setState(
                               () => _paketTerpilih = PaketInsap.gratis,
@@ -121,9 +139,10 @@ class _HalamanLanggananState extends State<HalamanLangganan> {
                             key: const Key('kartu_paket_plus'),
                             paket: PaketInsap.plus,
                             judul: 'Plus',
-                            deskripsi: 'Unduh struk, cadangan otomatis, PDF',
+                            deskripsi: '50 pindai/pekan, bebas iklan, ekspor PDF',
                             harga: 'Rp15 rb',
-                            kuota: '40 pindai/pekan',
+                            kuota: '50 pindai/pekan',
+                            daftarFitur: _fiturPlus,
                             terpilih: _paketTerpilih == PaketInsap.plus,
                             onTap: () => setState(
                               () => _paketTerpilih = PaketInsap.plus,
@@ -134,83 +153,14 @@ class _HalamanLanggananState extends State<HalamanLangganan> {
                             key: const Key('kartu_paket_pro'),
                             paket: PaketInsap.pro,
                             judul: 'Pro',
-                            deskripsi: 'Semua Plus + fitur AI dan patungan',
-                            harga: 'Rp39 rb',
+                            deskripsi: 'Semua isi Plus + AI, Multi-Kantong, patungan',
+                            harga: 'Rp29 rb',
                             kuota: '100 pindai/pekan',
                             labelSorotan: 'PALING LENGKAP',
+                            daftarFitur: _fiturPro,
                             terpilih: _paketTerpilih == PaketInsap.pro,
                             onTap: () => setState(
                               () => _paketTerpilih = PaketInsap.pro,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.besar),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.kartu,
-                              border: Border.all(
-                                color: AppColors.ink,
-                                width: AppSizes.border,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                AppSizes.radiusKartu,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'YANG KAMU DAPAT DI PRO',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall
-                                      ?.copyWith(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.4,
-                                        color: AppColors.inkSoft,
-                                      ),
-                                ),
-                                const SizedBox(height: AppSpacing.sangatKecil),
-                                for (final fitur in _daftarFiturPro)
-                                  ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      minHeight: 34,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          fitur.ikon,
-                                          size: 18,
-                                          color: AppColors.ink,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Text(
-                                            fitur.label,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: AppColors.ink,
-                                                ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: AppSpacing.kecil),
-                                        const Icon(
-                                          Icons.check_rounded,
-                                          size: 18,
-                                          color: AppColors.daunTua,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                              ],
                             ),
                           ),
                         ],
@@ -230,12 +180,13 @@ class _HalamanLanggananState extends State<HalamanLangganan> {
                         TombolStabilo(
                           key: const Key('tombol_langganan_cta'),
                           teks: _labelTombolCta,
-                          onPressed: () =>
-                              tampilkanDialogFiturDikembangkan(context),
+                          onPressed: _paketTerpilih == PaketInsap.gratis
+                              ? null
+                              : () => tampilkanDialogFiturDikembangkan(context),
                         ),
                         const SizedBox(height: AppSpacing.kecil),
                         Text(
-                          'Ditagih bulanan lewat Google Play. Batalkan kapan saja.',
+                          'Pembayaran langganan belum aktif. Kami kabari begitu siap.',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             fontSize: 12,
@@ -264,6 +215,7 @@ class _KartuPaket extends StatelessWidget {
   final String kuota;
   final String? catatanStatus;
   final String? labelSorotan;
+  final List<String> daftarFitur;
   final bool terpilih;
   final VoidCallback onTap;
 
@@ -276,6 +228,7 @@ class _KartuPaket extends StatelessWidget {
     required this.kuota,
     this.catatanStatus,
     this.labelSorotan,
+    this.daftarFitur = const [],
     required this.terpilih,
     required this.onTap,
   });
@@ -312,101 +265,142 @@ class _KartuPaket extends StatelessWidget {
                     ]
                   : null,
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.ink,
-                      width: AppSizes.border,
+                Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.ink,
+                          width: AppSizes.border,
+                        ),
+                      ),
+                      child: terpilih
+                          ? Center(
+                              child: Container(
+                                width: 12,
+                                height: 12,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.ink,
+                                ),
+                              ),
+                            )
+                          : null,
                     ),
-                  ),
-                  child: terpilih
-                      ? Center(
-                          child: Container(
-                            width: 12,
-                            height: 12,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.ink,
+                    const SizedBox(width: AppSpacing.sedang),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              LencanaPaket(paket: paket),
+                              const SizedBox(width: AppSpacing.kecil),
+                              Flexible(
+                                child: Text(
+                                  judul,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.ink,
+                                        height: 1.15,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            deskripsi,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontSize: 13,
+                                  color: AppColors.inkSoft,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          if (catatanStatus != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              catatanStatus!,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    fontSize: 12,
+                                    color: AppColors.daunTua,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.kecil),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          harga,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.ink,
+                                height: 1.15,
+                              ),
+                        ),
+                        Text(
+                          kuota,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                fontSize: 12,
+                                color: AppColors.inkSoft,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                if (daftarFitur.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.kecil),
+                  for (final fitur in daftarFitur)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(top: 2),
+                            child: Icon(
+                              Icons.check_rounded,
+                              size: 16,
+                              color: AppColors.daunTua,
                             ),
                           ),
-                        )
-                      : null,
-                ),
-                const SizedBox(width: AppSpacing.sedang),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          LencanaPaket(paket: paket),
-                          const SizedBox(width: AppSpacing.kecil),
-                          Flexible(
+                          const SizedBox(width: 6),
+                          Expanded(
                             child: Text(
-                              judul,
-                              style: Theme.of(context).textTheme.titleMedium
+                              fitur,
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.w800,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
                                     color: AppColors.ink,
-                                    height: 1.15,
+                                    height: 1.3,
                                   ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        deskripsi,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontSize: 13,
-                          color: AppColors.inkSoft,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (catatanStatus != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          catatanStatus!,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                fontSize: 12,
-                                color: AppColors.daunTua,
-                                fontWeight: FontWeight.w800,
-                              ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.kecil),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      harga,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.ink,
-                        height: 1.15,
-                      ),
                     ),
-                    Text(
-                      kuota,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontSize: 12,
-                        color: AppColors.inkSoft,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
+                ],
               ],
             ),
           ),

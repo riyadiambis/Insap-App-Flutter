@@ -77,8 +77,8 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
                           onTap: onKembali ?? () => context.pop(),
                           behavior: HitTestBehavior.opaque,
                           child: const SizedBox(
-                            width: AppSizes.ukuranAvatarHeader,
-                            height: AppSizes.ukuranAvatarHeader,
+                            width: 48,
+                            height: 48,
                             child: Center(
                               child: Icon(
                                 Icons.chevron_left_rounded,
@@ -146,23 +146,30 @@ class HeaderAplikasi extends StatelessWidget implements PreferredSizeWidget {
                         button: true,
                         child: GestureDetector(
                           key: const Key('tombol_profil_header'),
+                          behavior: HitTestBehavior.opaque,
                           onTap: () => context.push('/akun'),
-                          child: StreamBuilder<PenggunaEntity?>(
-                            initialData: pengguna,
-                            stream: _dapatkanStreamPengguna(),
-                            builder: (context, snapshot) {
-                              final p = snapshot.hasError
-                                  ? pengguna
-                                  : (snapshot.data ?? pengguna);
-                              return AvatarProfil(
-                                key: kunciAvatar,
-                                fotoUrl: p?.fotoUrl,
-                                ukuran: AppSizes.ukuranAvatarHeader,
-                                ukuranIkon: AppSizes.ikonAvatarHeader,
-                                warnaLatar: AppColors.daun,
-                                warnaIkon: AppColors.kartu,
-                              );
-                            },
+                          child: SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: Center(
+                              child: StreamBuilder<PenggunaEntity?>(
+                                initialData: pengguna,
+                                stream: _dapatkanStreamPengguna(),
+                                builder: (context, snapshot) {
+                                  final p = snapshot.hasError
+                                      ? pengguna
+                                      : (snapshot.data ?? pengguna);
+                                  return AvatarProfil(
+                                    key: kunciAvatar,
+                                    fotoUrl: p?.fotoUrl,
+                                    ukuran: AppSizes.ukuranAvatarHeader,
+                                    ukuranIkon: AppSizes.ikonAvatarHeader,
+                                    warnaLatar: AppColors.daun,
+                                    warnaIkon: AppColors.kartu,
+                                  );
+                                },
+                              ),
+                            ),
                           ),
                         ),
                       ),
