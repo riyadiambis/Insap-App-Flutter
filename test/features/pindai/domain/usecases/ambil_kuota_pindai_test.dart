@@ -32,6 +32,12 @@ class _FakePindaiRepository implements PindaiRepository {
 
   @override
   Future<void> potongKuota() async {}
+
+  @override
+  Future<int> ambilSisaBonusIklan() async => 10;
+
+  @override
+  Future<bool> klaimBonusIklan() async => true;
 }
 
 void main() {

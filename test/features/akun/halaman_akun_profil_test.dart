@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:insap/core/iklan/layanan_iklan.dart';
 import 'package:insap/core/theme.dart';
 import 'package:insap/core/widgets/avatar_profil.dart';
 import 'package:insap/features/akun/domain/entities/cadangan_info.dart';
@@ -133,5 +134,78 @@ void main() {
         expect(find.text('null'), findsNothing);
       },
     );
+
+    testWidgets(
+      'menampilkan menu Pengaturan privasi iklan saat perluTombolPrivasi true dan menyembunyikan saat false',
+      (tester) async {
+        const pengguna = PenggunaEntity(
+          uid: 'uid-3',
+          email: 'iklan@insap.id',
+        );
+
+        final fakeIklan = _FakeLayananIklanPrivasi(perluPrivasi: false);
+        sl.registerSingleton<LayananIklan>(fakeIklan);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: BlocProvider(
+              create: (_) => AkunCubit(akunRepository: _FakeAkunRepository()),
+              child: const HalamanAkun(pengguna: pengguna),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Pengaturan privasi iklan'), findsNothing);
+
+        await sl.unregister<LayananIklan>();
+        final fakeIklanWajib = _FakeLayananIklanPrivasi(perluPrivasi: true);
+        sl.registerSingleton<LayananIklan>(fakeIklanWajib);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: BlocProvider(
+              create: (_) => AkunCubit(akunRepository: _FakeAkunRepository()),
+              child: const HalamanAkun(pengguna: pengguna),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final tombolPrivasi = find.text('Pengaturan privasi iklan');
+        expect(tombolPrivasi, findsOneWidget);
+        await tester.ensureVisible(tombolPrivasi);
+        await tester.tap(tombolPrivasi);
+        await tester.pumpAndSettle();
+
+        expect(fakeIklanWajib.jumlahTampilOpsi, 1);
+      },
+    );
   });
+}
+
+class _FakeLayananIklanPrivasi implements LayananIklan {
+  final bool perluPrivasi;
+  int jumlahTampilOpsi = 0;
+
+  _FakeLayananIklanPrivasi({required this.perluPrivasi});
+
+  @override
+  bool get bolehMintaIklan => true;
+
+  @override
+  bool get perluTombolPrivasi => perluPrivasi;
+
+  @override
+  Future<void> siapkan() async {}
+
+  @override
+  Future<void> tampilkanOpsiPrivasi() async {
+    jumlahTampilOpsi++;
+  }
+
+  @override
+  Future<bool> tontonIklanBonus() async => false;
 }

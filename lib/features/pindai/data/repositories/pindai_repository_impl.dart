@@ -53,4 +53,14 @@ class PindaiRepositoryImpl implements PindaiRepository {
   Future<void> potongKuota() {
     return localDataSource.potongKuota();
   }
+
+  @override
+  Future<int> ambilSisaBonusIklan() {
+    return localDataSource.ambilSisaBonusIklan();
+  }
+
+  @override
+  Future<bool> klaimBonusIklan() {
+    return localDataSource.tambahBonusIklan();
+  }
 }

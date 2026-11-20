@@ -41,12 +41,26 @@ class _FakePindaiRemoteDataSource implements PindaiRemoteDataSource {
 
 class _FakeKuotaLocalDataSource implements KuotaLocalDataSource {
   int sisaKuota = 10;
+  int sisaBonus = 10;
   bool potongKuotaDipanggil = false;
   bool resetKuotaDipanggil = false;
 
   @override
   Future<int> ambilSisaKuota({DateTime? waktuSekarang}) async {
     return sisaKuota;
+  }
+
+  @override
+  Future<int> ambilSisaBonusIklan({DateTime? waktuSekarang}) async {
+    return sisaBonus;
+  }
+
+  @override
+  Future<bool> tambahBonusIklan({DateTime? waktuSekarang}) async {
+    if (sisaBonus <= 0) return false;
+    sisaBonus--;
+    sisaKuota++;
+    return true;
   }
 
   @override
@@ -61,6 +75,7 @@ class _FakeKuotaLocalDataSource implements KuotaLocalDataSource {
   Future<void> resetKuotaKeAwal({DateTime? waktuSekarang}) async {
     resetKuotaDipanggil = true;
     sisaKuota = 10;
+    sisaBonus = 10;
   }
 }
 

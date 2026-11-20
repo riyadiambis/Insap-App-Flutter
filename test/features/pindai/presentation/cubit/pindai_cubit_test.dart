@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:insap/core/iklan/layanan_iklan.dart';
 import 'package:insap/core/network/gemini_client.dart';
 import 'package:insap/features/pindai/domain/entities/hasil_pindai_entity.dart';
 import 'package:insap/features/pindai/domain/repositories/pindai_repository.dart';
 import 'package:insap/features/pindai/domain/usecases/ambil_kuota_pindai.dart';
+import 'package:insap/features/pindai/domain/usecases/ambil_sisa_bonus_iklan.dart';
+import 'package:insap/features/pindai/domain/usecases/klaim_bonus_iklan.dart';
 import 'package:insap/features/pindai/domain/usecases/pindai_struk.dart';
 import 'package:insap/features/pindai/presentation/cubit/pindai_cubit.dart';
 import 'package:insap/features/pindai/presentation/cubit/pindai_state.dart';
@@ -13,6 +16,8 @@ import 'package:insap/features/transaksi/domain/usecases/tambah_transaksi.dart';
 
 class _FakePindaiRepository implements PindaiRepository {
   int kuota = 10;
+  int sisaBonus = 10;
+  int jumlahKlaimDipanggil = 0;
   HasilPindaiEntity? hasilKembalian;
   Exception? errorToThrow;
   CancelToken? capturedCancelToken;
@@ -45,6 +50,41 @@ class _FakePindaiRepository implements PindaiRepository {
   @override
   Future<void> potongKuota() async {
     if (kuota > 0) kuota--;
+  }
+
+  @override
+  Future<int> ambilSisaBonusIklan() async => sisaBonus;
+
+  @override
+  Future<bool> klaimBonusIklan() async {
+    jumlahKlaimDipanggil++;
+    if (sisaBonus <= 0) return false;
+    sisaBonus--;
+    kuota++;
+    return true;
+  }
+}
+
+class _FakeLayananIklan implements LayananIklan {
+  bool hasilTonton = true;
+  int jumlahTontonDipanggil = 0;
+
+  @override
+  bool get bolehMintaIklan => true;
+
+  @override
+  bool get perluTombolPrivasi => false;
+
+  @override
+  Future<void> siapkan() async {}
+
+  @override
+  Future<void> tampilkanOpsiPrivasi() async {}
+
+  @override
+  Future<bool> tontonIklanBonus() async {
+    jumlahTontonDipanggil++;
+    return hasilTonton;
   }
 }
 
@@ -98,22 +138,31 @@ class _FakeTransaksiRepository implements TransaksiRepository {
 void main() {
   late _FakePindaiRepository fakePindaiRepo;
   late _FakeTransaksiRepository fakeTransaksiRepo;
+  late _FakeLayananIklan fakeLayananIklan;
   late PindaiStruk pindaiStruk;
   late AmbilKuotaPindai ambilKuotaPindai;
+  late AmbilSisaBonusIklan ambilSisaBonusIklan;
+  late KlaimBonusIklan klaimBonusIklan;
   late TambahTransaksi tambahTransaksi;
   late PindaiCubit cubit;
 
   setUp(() {
     fakePindaiRepo = _FakePindaiRepository();
     fakeTransaksiRepo = _FakeTransaksiRepository();
+    fakeLayananIklan = _FakeLayananIklan();
     pindaiStruk = PindaiStruk(fakePindaiRepo);
     ambilKuotaPindai = AmbilKuotaPindai(fakePindaiRepo);
+    ambilSisaBonusIklan = AmbilSisaBonusIklan(fakePindaiRepo);
+    klaimBonusIklan = KlaimBonusIklan(fakePindaiRepo);
     tambahTransaksi = TambahTransaksi(fakeTransaksiRepo);
 
     cubit = PindaiCubit(
       pindaiStruk: pindaiStruk,
       ambilKuotaPindai: ambilKuotaPindai,
       tambahTransaksi: tambahTransaksi,
+      ambilSisaBonusIklan: ambilSisaBonusIklan,
+      klaimBonusIklanUseCase: klaimBonusIklan,
+      layananIklan: fakeLayananIklan,
     );
   });
 
@@ -401,6 +450,48 @@ void main() {
       expect(fakePindaiRepo.capturedCancelToken!.isCancelled, isTrue);
       // Menunggu future selesai, tidak boleh ada exception emit after close
       await future;
+    });
+
+    test('klaimBonusIklan berhasil menambah kuota saat iklan mengembalikan true', () async {
+      fakePindaiRepo.kuota = 0;
+      fakePindaiRepo.sisaBonus = 10;
+      fakeLayananIklan.hasilTonton = true;
+      await cubit.inisialisasi();
+
+      await cubit.klaimBonusIklan();
+
+      expect(fakeLayananIklan.jumlahTontonDipanggil, 1);
+      expect(fakePindaiRepo.jumlahKlaimDipanggil, 1);
+      expect(cubit.state.sisaKuota, 1);
+      expect(cubit.state.sisaBonusIklan, 9);
+      expect(cubit.state.statusKlaimBonus, StatusKlaimBonus.berhasil);
+    });
+
+    test('klaimBonusIklan tidak menambah kuota saat iklan mengembalikan false', () async {
+      fakePindaiRepo.kuota = 0;
+      fakePindaiRepo.sisaBonus = 10;
+      fakeLayananIklan.hasilTonton = false;
+      await cubit.inisialisasi();
+
+      await cubit.klaimBonusIklan();
+
+      expect(fakeLayananIklan.jumlahTontonDipanggil, 1);
+      expect(fakePindaiRepo.jumlahKlaimDipanggil, 0);
+      expect(cubit.state.sisaKuota, 0);
+      expect(cubit.state.sisaBonusIklan, 10);
+      expect(cubit.state.statusKlaimBonus, StatusKlaimBonus.gagal);
+    });
+
+    test('klaimBonusIklan tidak berbuat apa-apa saat sisaBonusIklan <= 0', () async {
+      fakePindaiRepo.kuota = 0;
+      fakePindaiRepo.sisaBonus = 0;
+      await cubit.inisialisasi();
+
+      await cubit.klaimBonusIklan();
+
+      expect(fakeLayananIklan.jumlahTontonDipanggil, 0);
+      expect(fakePindaiRepo.jumlahKlaimDipanggil, 0);
+      expect(cubit.state.statusKlaimBonus, StatusKlaimBonus.diam);
     });
   });
 }

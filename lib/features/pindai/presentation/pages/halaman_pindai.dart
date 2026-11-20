@@ -272,7 +272,27 @@ class _HalamanPindaiState extends State<HalamanPindai> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PindaiCubit, PindaiState>(
+    return BlocConsumer<PindaiCubit, PindaiState>(
+      listenWhen: (prev, curr) => prev.statusKlaimBonus != curr.statusKlaimBonus,
+      listener: (context, state) {
+        if (state.statusKlaimBonus == StatusKlaimBonus.gagal) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Iklan belum tersedia atau belum selesai ditonton. Coba lagi sebentar lagi.',
+                ),
+              ),
+            );
+        } else if (state.statusKlaimBonus == StatusKlaimBonus.berhasil) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(content: Text('Yay, +1 pindai!')),
+            );
+        }
+      },
       builder: (context, state) {
         // Jika Gemini berhasil mengekstrak dan butuh konfirmasi draf
         if (state.status == PindaiStatus.butuhKonfirmasi &&
@@ -332,6 +352,9 @@ class _HalamanPindaiState extends State<HalamanPindai> {
 
     if (kuotaHabis) {
       return _TampilanKuotaHabis(
+        sisaBonusIklan: state.sisaBonusIklan,
+        sedangMemuatBonus: state.statusKlaimBonus == StatusKlaimBonus.sedang,
+        onTontonIklan: () => context.read<PindaiCubit>().klaimBonusIklan(),
         onBukaLangganan: () => _bukaLangganan(context),
         onCatatManual: () => context.go('/catat'),
       );
@@ -512,16 +535,27 @@ class _TampilanPindaiGagal extends StatelessWidget {
 }
 
 class _TampilanKuotaHabis extends StatelessWidget {
+  final int sisaBonusIklan;
+  final bool sedangMemuatBonus;
+  final VoidCallback onTontonIklan;
   final VoidCallback onBukaLangganan;
   final VoidCallback onCatatManual;
 
   const _TampilanKuotaHabis({
+    required this.sisaBonusIklan,
+    required this.sedangMemuatBonus,
+    required this.onTontonIklan,
     required this.onBukaLangganan,
     required this.onCatatManual,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bool bisaTonton = !sedangMemuatBonus && sisaBonusIklan > 0;
+    final String teksTombolBonus = sisaBonusIklan <= 0
+        ? 'Bonus iklan pekan ini sudah habis'
+        : 'Tonton iklan, dapat +1 pindai';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -532,7 +566,7 @@ class _TampilanKuotaHabis extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const MaskotStruki(pose: PoseMaskot.cukup, ukuran: 190),
+                  const MaskotStruki(pose: PoseMaskot.cukup, ukuran: 170),
                   const SizedBox(height: AppSpacing.sedang),
                   Text(
                     'Jatah pindai pekan ini habis',
@@ -557,6 +591,32 @@ class _TampilanKuotaHabis extends StatelessWidget {
               ),
             ),
           ),
+        ),
+        const SizedBox(height: AppSpacing.sedang),
+        Semantics(
+          button: true,
+          enabled: bisaTonton,
+          label: teksTombolBonus,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            child: TombolStabilo(
+              key: const Key('tombol_bonus_iklan'),
+              teks: teksTombolBonus,
+              ikon: sisaBonusIklan <= 0 ? null : Icons.play_arrow_rounded,
+              isLoading: sedangMemuatBonus,
+              onPressed: bisaTonton ? onTontonIklan : null,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.kecil),
+        Text(
+          'Sisa bonus pekan ini: $sisaBonusIklan dari $bonusIklanMaksimalPekanan',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontSize: 13,
+                color: AppColors.inkSoft,
+                fontWeight: FontWeight.w700,
+              ),
         ),
         const SizedBox(height: AppSpacing.sedang),
         KartuBukuTulis(
@@ -617,7 +677,7 @@ class _TampilanKuotaHabis extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sedang),
-        TombolStabilo(
+        _TombolPutih(
           teks: 'Catat manual',
           ikon: Icons.edit_rounded,
           onPressed: onCatatManual,

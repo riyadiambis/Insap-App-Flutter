@@ -70,6 +70,19 @@ class TransaksiLocalDataSource {
 
   Future<int> ambilKuotaPindai() async {
     final db = await _dbHelper.database;
+    final resultBonus = await db.query(
+      'pengaturan',
+      columns: ['nilai'],
+      where: 'kunci = ?',
+      whereArgs: ['kuota_bonus_iklan_terpakai'],
+      limit: 1,
+    );
+    final bonusTerpakai = resultBonus.isNotEmpty
+        ? (int.tryParse(resultBonus.first['nilai'] as String? ?? '') ?? 0)
+            .clamp(0, bonusIklanMaksimalPekanan)
+        : 0;
+    final batasMaksimal = _kuotaPindaiCadangan + bonusTerpakai;
+
     final result = await db.query(
       'pengaturan',
       columns: ['nilai'],
@@ -81,8 +94,8 @@ class TransaksiLocalDataSource {
     if (result.isNotEmpty) {
       final val = result.first['nilai'] as String?;
       final sisa = int.tryParse(val ?? '') ?? _kuotaPindaiCadangan;
-      if (sisa > _kuotaPindaiCadangan) {
-        return _kuotaPindaiCadangan;
+      if (sisa > batasMaksimal) {
+        return batasMaksimal;
       }
       return sisa;
     }
