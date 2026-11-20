@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/injection_container.dart';
@@ -9,6 +8,7 @@ import '../../../../core/theme.dart';
 import '../../../../core/utils/iso_week.dart';
 import '../../../../core/utils/rupiah_extension.dart';
 import '../../../../core/widgets/kartu_buku_tulis.dart';
+import '../../../../core/widgets/maskot_struki.dart';
 import '../../../beranda/presentation/cubit/beranda_cubit.dart';
 import '../../../beranda/presentation/cubit/beranda_state.dart';
 import '../../domain/usecases/ambil_refleksi_pekan.dart';
@@ -25,8 +25,6 @@ class HalamanRefleksi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // gunakan RefleksiCubit dari context bila sudah disediakan (misal pada pengujian),
-    // atau buat dari service locator sl dan langsung muat data pekan berjalan
     try {
       context.read<RefleksiCubit>();
       return const _RefleksiView();
@@ -119,8 +117,6 @@ class _RefleksiView extends StatelessWidget {
       ),
     );
 
-    // ikuti perubahan transaksi dari BerandaCubit supaya angka pengeluaran sepekan
-    // otomatis segar kembali meskipun tab refleksi ditahan oleh IndexedStack
     if (_adaBerandaCubit(context)) {
       return BlocListener<BerandaCubit, BerandaState>(
         listenWhen: (prev, curr) => curr is BerandaLoaded,
@@ -154,8 +150,6 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
   @override
   void didUpdateWidget(covariant _KontenRefleksi oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // jika sebelumnya sedang menyimpan dan sekarang sudah selesai tersimpan,
-    // kembalikan form ke kartu ringkasan
     if (oldWidget.sedangMenyimpan && !widget.sedangMenyimpan) {
       if (widget.data.refleksiTersimpan != null) {
         setState(() {
@@ -179,49 +173,19 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: AppSpacing.agakKecil,
-                children: [
-                  Text(
-                    'Refleksi',
-                    style: textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Positioned(
-                        left: -AppSizes.geserStabiloJudul,
-                        right: -AppSizes.geserStabiloJudul,
-                        bottom: AppSpacing.mini,
-                        child: Container(
-                          height: AppSizes.tinggiStabiloJudul,
-                          decoration: BoxDecoration(
-                            color: AppColors.stabilo,
-                            borderRadius: BorderRadius.circular(
-                              AppSizes.radiusLabel,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        'Mingguan',
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.mini),
               Text(
-                'Pekan ke-${widget.data.mingguKe} • Ritual Kakeibo',
+                'Refleksi Mingguan',
+                style: textTheme.headlineSmall?.copyWith(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Pekan ke-${widget.data.mingguKe} · Ritual Kakeibo',
                 style: textTheme.bodySmall?.copyWith(
+                  fontSize: 13,
                   color: AppColors.inkSoft,
                   fontWeight: FontWeight.w700,
                 ),
@@ -231,12 +195,9 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
         ),
         const SizedBox(width: AppSpacing.kecil),
         Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sedang,
-            vertical: AppSpacing.agakKecil,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.paper,
+            color: AppColors.kartu,
             border: Border.all(color: AppColors.ink, width: AppSizes.border),
             borderRadius: BorderRadius.circular(AppSizes.radiusPil),
             boxShadow: const [AppTheme.bayanganKecilGelap],
@@ -299,41 +260,67 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
         ? widget.data.targetPekanIni!.toRupiah()
         : 'belum ada target';
 
+    final int? selisihTarget = widget.data.selisihTarget;
+    final bool punyaTarget =
+        widget.data.targetPekanIni != null && widget.data.targetPekanIni! > 0;
+    final bool hemat = punyaTarget && selisihTarget != null && selisihTarget <= 0;
+    final bool boncos = punyaTarget && selisihTarget != null && selisihTarget > 0;
+
+    final Color latarKartu = hemat
+        ? AppColors.hijauMuda
+        : (boncos ? AppColors.salahLatar : AppColors.kartu);
+
     return KartuBukuTulis(
-      radius: AppSizes.radiusTombol,
+      radius: AppSizes.radiusKartu,
+      backgroundColor: latarKartu,
+      shadow: AppTheme.bayanganGelap,
+      pressedShadow: AppTheme.bayanganGelapTertekan,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (hemat || boncos) ...[
+            Center(
+              child: Column(
+                children: [
+                  MaskotStruki(
+                    pose: hemat ? PoseMaskot.hemat : PoseMaskot.boncos,
+                    ukuran: 112,
+                  ),
+                  const SizedBox(height: AppSpacing.kecil),
+                  Text(
+                    hemat ? 'Hemat dan happy!' : 'Astaga, lewat sedikit',
+                    textAlign: TextAlign.center,
+                    style: textTheme.titleLarge?.copyWith(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sedang),
+                ],
+              ),
+            ),
+          ],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.payments_outlined,
-                      size: AppSizes.ikonKalender,
-                      color: AppColors.ink,
-                    ),
-                    const SizedBox(width: AppSpacing.agakKecil),
-                    Flexible(
-                      child: Text(
-                        'PENGELUARAN SEPEKAN',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: AppColors.inkSoft,
-                          fontWeight: FontWeight.w800,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  'PENGELUARAN SEPEKAN',
+                  style: textTheme.labelSmall?.copyWith(
+                    fontSize: 13,
+                    letterSpacing: 0.4,
+                    color: AppColors.inkSoft,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: AppSpacing.kecil),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.kecil,
-                  vertical: AppSpacing.mini,
+                  vertical: 2,
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.stabilo,
@@ -346,6 +333,8 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
                 child: Text(
                   'Evaluasi Santai',
                   style: textTheme.labelSmall?.copyWith(
+                    fontSize: 11,
+                    letterSpacing: 0.2,
                     color: AppColors.ink,
                     fontWeight: FontWeight.w800,
                   ),
@@ -353,7 +342,7 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sedang),
+          const SizedBox(height: AppSpacing.kecil),
           Text(
             widget.data.agregat.totalPekanIni.toRupiah(),
             style: AppTheme.nominalUtama,
@@ -369,7 +358,7 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
                   vertical: AppSpacing.sangatKecil,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.paper,
+                  color: AppColors.kartu,
                   borderRadius: BorderRadius.circular(
                     AppSizes.radiusKotakIkonAksi,
                   ),
@@ -392,7 +381,7 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
                   vertical: AppSpacing.sangatKecil,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.grid,
+                  color: AppColors.kuningMuda,
                   borderRadius: BorderRadius.circular(
                     AppSizes.radiusKotakIkonAksi,
                   ),
@@ -415,25 +404,28 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sedang),
             decoration: BoxDecoration(
-              color: AppColors.paper,
+              color: AppColors.kartu,
               borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
               border: Border.all(color: AppColors.ink, width: AppSizes.border),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
+                Icon(
                   Icons.tips_and_updates_outlined,
                   size: AppSizes.ikonAksi,
-                  color: AppColors.ink,
+                  color: boncos
+                      ? AppColors.merahTeks
+                      : (hemat ? AppColors.daunTua : AppColors.ink),
                 ),
                 const SizedBox(width: AppSpacing.kecil),
                 Expanded(
                   child: Text(
                     _buatTeksCatatanKartuUtama(),
                     style: textTheme.bodySmall?.copyWith(
+                      fontSize: 13.5,
                       color: AppColors.ink,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -448,7 +440,8 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
   @override
   Widget build(BuildContext context) {
     final data = widget.data;
-    final adaRefleksiPekanLalu = data.refleksiPekanLalu != null &&
+    final adaRefleksiPekanLalu =
+        data.refleksiPekanLalu != null &&
         data.refleksiPekanLalu!.catatanRefleksi != null &&
         data.refleksiPekanLalu!.catatanRefleksi!.trim().isNotEmpty;
 
@@ -516,13 +509,11 @@ class _KontenRefleksiState extends State<_KontenRefleksi> {
               label: const Text(
                 'Lihat refleksi sebelumnya',
                 style: TextStyle(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   decoration: TextDecoration.underline,
                 ),
               ),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.inkSoft,
-              ),
+              style: TextButton.styleFrom(foregroundColor: AppColors.ink),
             ),
           ),
         ],

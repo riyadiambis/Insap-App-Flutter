@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/tur/tur_cubit.dart';
+import '../../../../core/utils/rupiah_extension.dart';
 import '../../../../core/widgets/avatar_profil.dart';
 import '../../../../core/widgets/dialog_sukses.dart';
-import '../../../../core/widgets/kartu_tentang_aplikasi.dart';
+import '../../../../core/widgets/header_aplikasi.dart';
+import '../../../../core/widgets/kartu_buku_tulis.dart';
+import '../../../../core/widgets/lencana_paket.dart';
 import '../../../beranda/presentation/cubit/beranda_cubit.dart';
+import '../../../beranda/presentation/widgets/bottom_sheet_target_bulanan.dart';
+import '../../../pengaturan/domain/usecases/ambil_target_bulanan.dart';
+import '../../../pengaturan/domain/usecases/simpan_target_bulanan.dart';
 import '../../../transaksi/presentation/riwayat/cubit/riwayat_cubit.dart';
 import '../../domain/entities/cadangan_info.dart';
 import '../../domain/entities/pengguna_entity.dart';
@@ -28,6 +36,7 @@ class HalamanAkun extends StatefulWidget {
 
 class _HalamanAkunState extends State<HalamanAkun> {
   CadanganInfo? _infoTerakhir;
+  int? _targetBulanan;
 
   PenggunaEntity get pengguna => widget.pengguna;
 
@@ -45,6 +54,54 @@ class _HalamanAkunState extends State<HalamanAkun> {
     'Nov',
     'Des',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _muatTargetBulanan();
+  }
+
+  Future<void> _muatTargetBulanan() async {
+    if (!sl.isRegistered<AmbilTargetBulanan>()) return;
+    try {
+      final target = await sl<AmbilTargetBulanan>().call();
+      if (mounted) {
+        setState(() => _targetBulanan = target);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _bukaTargetBulanan(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BottomSheetTargetBulanan(
+        targetSaatIni: _targetBulanan,
+        onSimpan: (nominalBaru) async {
+          if (sl.isRegistered<SimpanTargetBulanan>()) {
+            await sl<SimpanTargetBulanan>().call(nominalBaru);
+          }
+          if (mounted) {
+            setState(() => _targetBulanan = nominalBaru);
+          }
+          if (context.mounted) {
+            try {
+              await context.read<BerandaCubit>().muatRingkasan();
+            } catch (_) {}
+          }
+        },
+      ),
+    );
+  }
+
+  void _tampilkanFiturDikembangkanSnack(BuildContext context) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('Fitur sedang dikembangkan')),
+      );
+  }
 
   static String _formatWaktu(DateTime dt) {
     final d = dt.day.toString().padLeft(2, '0');
@@ -395,499 +452,409 @@ class _HalamanAkunState extends State<HalamanAkun> {
     );
   }
 
-  Widget _buildScaffold(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Akun & Cadangan',
-            style: Theme.of(context).textTheme.titleLarge,
+  Widget _buildKartuProfil(BuildContext context) {
+    final punyaNama =
+        pengguna.namaTampilan != null &&
+        pengguna.namaTampilan!.trim().isNotEmpty;
+
+    return KartuBukuTulis(
+      shadow: AppTheme.bayanganGelap,
+      pressedShadow: AppTheme.bayanganGelapTertekan,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          AvatarProfil(
+            fotoUrl: pengguna.fotoUrl,
+            ukuran: 56,
+            ukuranIkon: 28,
+            warnaLatar: AppColors.daun,
+            warnaIkon: AppColors.kartu,
           ),
-          backgroundColor: AppColors.paper,
-          elevation: 0,
-          iconTheme: const IconThemeData(color: AppColors.ink),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(AppSizes.borderTipis),
-            child: Container(
-              color: AppColors.ink,
-              height: AppSizes.borderTipis,
+          const SizedBox(width: AppSpacing.sedang),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  punyaNama
+                      ? pengguna.namaTampilan!.trim()
+                      : (pengguna.email ?? 'Pengguna Anonim'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    height: 1.15,
+                  ),
+                ),
+                if (punyaNama && pengguna.email != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    pengguna.email!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontSize: 13,
+                      color: AppColors.inkSoft,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 2),
+                Text(
+                  'Tersambung dengan Google',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontSize: 13,
+                    color: AppColors.inkSoft,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        body: BlocListener<CadanganCubit, CadanganState>(
-          listener: (context, state) {
-            if (state is CadanganSukses) {
-              final info = state.info ?? _infoTerakhir;
-              final ringkasan = info != null
-                  ? '${info.jumlahTransaksi} transaksi, ${info.jumlahKategori} kategori, ${info.jumlahRefleksi} refleksi'
-                  : state.pesan;
-              tampilkanDialogSukses(
-                context,
-                'Cadangan berhasil',
-                ringkasan,
-              );
-            } else if (state is CadanganPulihSukses) {
-              final ringkasan =
-                  '${state.info.jumlahTransaksi} transaksi, ${state.info.jumlahKategori} kategori, ${state.info.jumlahRefleksi} refleksi';
-              tampilkanDialogSukses(
-                context,
-                'Data berhasil dipulihkan',
-                ringkasan,
-              );
-              // Muat ulang KEDUANYA sesuai aturan ISSUE-16 dan ISSUE-14
-              try {
-                context.read<BerandaCubit>().muatRingkasan();
-              } catch (_) {}
-              try {
-                context.read<RiwayatCubit>().muatRiwayat();
-              } catch (_) {}
-            } else if (state is CadanganGalat) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.pesan),
-                  backgroundColor: AppColors.salah,
-                ),
-              );
-            }
-          },
-          child: PaperBackground(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.besar),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: AppSizes.batasLebarKonten,
+          const SizedBox(width: AppSpacing.kecil),
+          const LencanaPaket(paket: PaketInsap.gratis),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKartuLangganan(BuildContext context) {
+    return KartuBukuTulis(
+      key: const Key('kartu_langganan_akun'),
+      onTap: () => context.push('/langganan'),
+      backgroundColor: AppColors.stabilo,
+      shadow: AppTheme.bayanganGelap,
+      pressedShadow: AppTheme.bayanganGelapTertekan,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.kartu,
+              border: Border.all(
+                color: AppColors.ink,
+                width: AppSizes.border,
+              ),
+              borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+            ),
+            child: const Icon(
+              Icons.workspace_premium_outlined,
+              size: 20,
+              color: AppColors.ink,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sedang),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Langganan Insap',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Kartu Info Pengguna
-                      Container(
-                        padding: const EdgeInsets.all(AppSpacing.besar),
-                        decoration: BoxDecoration(
-                          color: AppColors.kartu,
-                          border: Border.all(
-                            color: AppColors.ink,
-                            width: AppSizes.border,
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            AppSizes.radiusKartu,
-                          ),
-                          boxShadow: const [AppTheme.bayanganDefault],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                AvatarProfil(
-                                  fotoUrl: pengguna.fotoUrl,
-                                  ukuran: 52,
-                                  ukuranIkon: 28,
-                                  warnaLatar: AppColors.stabilo,
-                                  warnaIkon: AppColors.ink,
-                                ),
-                                const SizedBox(width: AppSpacing.sedang),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                ),
+                Text(
+                  'Plus Rp15 rb · Pro Rp39 rb per bulan',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.chevron_right_rounded,
+            size: 20,
+            color: AppColors.ink,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
+    return Scaffold(
+      appBar: const HeaderAplikasi(namaLayar: 'Akun', modeKembali: true),
+      body: MultiBlocListener(
+        listeners: [
+          BlocListener<CadanganCubit, CadanganState>(
+            listener: (context, state) {
+              if (state is CadanganSukses) {
+                final info = state.info ?? _infoTerakhir;
+                final ringkasan = info != null
+                    ? '${info.jumlahTransaksi} transaksi, ${info.jumlahKategori} kategori, ${info.jumlahRefleksi} refleksi'
+                    : state.pesan;
+                tampilkanDialogSukses(
+                  context,
+                  'Cadangan berhasil',
+                  ringkasan,
+                );
+              } else if (state is CadanganPulihSukses) {
+                final ringkasan =
+                    '${state.info.jumlahTransaksi} transaksi, ${state.info.jumlahKategori} kategori, ${state.info.jumlahRefleksi} refleksi';
+                tampilkanDialogSukses(
+                  context,
+                  'Data berhasil dipulihkan',
+                  ringkasan,
+                );
+                try {
+                  context.read<BerandaCubit>().muatRingkasan();
+                } catch (_) {}
+                try {
+                  context.read<RiwayatCubit>().muatRiwayat();
+                } catch (_) {}
+              } else if (state is CadanganGalat) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.pesan),
+                    backgroundColor: AppColors.salah,
+                  ),
+                );
+              }
+            },
+          ),
+          BlocListener<AkunCubit, AkunState>(
+            listener: (context, state) {
+              if (state is AkunGalat) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.pesan),
+                    backgroundColor: AppColors.salah,
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+        child: PaperBackground(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.besar),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: AppSizes.batasLebarKonten,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildKartuProfil(context),
+                    const SizedBox(height: 14),
+                    _buildKartuLangganan(context),
+                    const SizedBox(height: 14),
+
+                    // Menu utama
+                    KartuBukuTulis(
+                      shadow: AppTheme.bayanganGelap,
+                      pressedShadow: AppTheme.bayanganGelapTertekan,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      child: Builder(
+                        builder: (cardContext) {
+                          return StreamBuilder<CadanganInfo?>(
+                            stream: cardContext
+                                .read<CadanganCubit>()
+                                .pantauCadanganTerakhir(pengguna.uid),
+                            builder: (context, snapshot) {
+                              final info = snapshot.data;
+                              if (info != null) {
+                                _infoTerakhir = info;
+                              }
+                              final waktuStr =
+                                  info?.waktuCadanganTerakhir != null
+                                  ? 'Terakhir: ${_formatWaktu(info!.waktuCadanganTerakhir!)}'
+                                  : 'Belum pernah dicadangkan';
+
+                              return BlocBuilder<CadanganCubit, CadanganState>(
+                                builder: (context, cadanganState) {
+                                  final sedangMemuat =
+                                      cadanganState is CadanganMemuat;
+                                  final targetStr =
+                                      _targetBulanan != null &&
+                                          _targetBulanan! > 0
+                                      ? _targetBulanan!.toRupiah()
+                                      : 'Belum diatur';
+
+                                  return Column(
                                     children: [
-                                      if (pengguna.namaTampilan != null &&
-                                          pengguna.namaTampilan!
-                                              .trim()
-                                              .isNotEmpty) ...[
-                                        Text(
-                                          pengguna.namaTampilan!,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w700,
+                                      _BarisMenuAkun(
+                                        key: const Key('tombol_cadangkan'),
+                                        ikon: Icons.cloud_outlined,
+                                        judul: 'Cadangkan sekarang',
+                                        keterangan: sedangMemuat
+                                            ? cadanganState.pesan
+                                            : waktuStr,
+                                        sedangMemuat: sedangMemuat,
+                                        onTap: sedangMemuat
+                                            ? null
+                                            : () => _mulaiCadangkan(
+                                                context,
+                                                info,
                                               ),
-                                        ),
-                                        if (pengguna.email != null) ...[
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            pengguna.email!,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.copyWith(
-                                                  color: AppColors.inkSoft,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                          ),
-                                        ],
-                                      ] else ...[
-                                        Text(
-                                          pengguna.email ?? 'Pengguna Anonim',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w700,
+                                      ),
+                                      const _GarisPutus(),
+                                      _BarisMenuAkun(
+                                        key: const Key('tombol_pulihkan'),
+                                        ikon: Icons.cloud_download_outlined,
+                                        judul: 'Pulihkan data',
+                                        keterangan:
+                                            info != null &&
+                                                info.waktuCadanganTerakhir !=
+                                                    null
+                                            ? '${info.jumlahTransaksi} transaksi, ${info.jumlahKategori} kategori, ${info.jumlahRefleksi} refleksi'
+                                            : 'Timpa data lokal dari awan',
+                                        onTap: sedangMemuat
+                                            ? null
+                                            : () => _konfirmasiPulihkan(
+                                                context,
+                                                info,
                                               ),
-                                        ),
-                                      ],
-                                      const SizedBox(height: 2),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: AppSpacing.agakKecil,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.benarLatar,
-                                          borderRadius: BorderRadius.circular(
-                                            AppSizes.radiusLabel,
-                                          ),
-                                          border: Border.all(
-                                            color: AppColors.benar,
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: const Text(
-                                          'Akun Terhubung',
-                                          style: TextStyle(
-                                            color: AppColors.benar,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
+                                      ),
+                                      const _GarisPutus(),
+                                      _BarisMenuAkun(
+                                        key: const Key('tombol_target_bulanan'),
+                                        ikon: Icons.track_changes_outlined,
+                                        judul: 'Target bulanan',
+                                        keterangan: targetStr,
+                                        onTap: () =>
+                                            _bukaTargetBulanan(context),
+                                      ),
+                                      const _GarisPutus(),
+                                      _BarisMenuAkun(
+                                        key: const Key('tombol_ulangi_tur'),
+                                        ikon: Icons.explore_outlined,
+                                        judul: 'Ulangi tur aplikasi',
+                                        onTap: () {
+                                          if (sl.isRegistered<TurCubit>()) {
+                                            sl<TurCubit>().mulaiUlang();
+                                          }
+                                          context.go('/');
+                                        },
+                                      ),
+                                      const _GarisPutus(),
+                                      _BarisMenuAkun(
+                                        key: const Key('tombol_tentang'),
+                                        ikon: Icons.info_outline_rounded,
+                                        judul: 'Tentang Insap',
+                                        tampilkanGaris: false,
+                                        onTap: () => context.push('/tentang'),
                                       ),
                                     ],
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Seksi PRIVASI
+                    KartuBukuTulis(
+                      shadow: AppTheme.bayanganGelap,
+                      pressedShadow: AppTheme.bayanganGelapTertekan,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 2),
+                            child: Text(
+                              'PRIVASI',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.4,
+                                    color: AppColors.inkSoft,
                                   ),
-                                ),
-                              ],
                             ),
-                            const SizedBox(height: AppSpacing.besar),
-                            const Divider(color: AppColors.garis, thickness: 1),
-                            const SizedBox(height: AppSpacing.agakKecil),
-                            const Text(
-                              'ID Pengguna:',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.inkSoft,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              pengguna.uid,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontFamily: 'monospace',
-                                color: AppColors.ink,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.besar),
-
-                      // Kartu Cadangan Awan (Cloud Firestore)
-                      Container(
-                        padding: const EdgeInsets.all(AppSpacing.besar),
-                        decoration: BoxDecoration(
-                          color: AppColors.kartu,
-                          border: Border.all(
-                            color: AppColors.ink,
-                            width: AppSizes.border,
                           ),
-                          borderRadius: BorderRadius.circular(
-                            AppSizes.radiusKartu,
+                          _BarisMenuAkun(
+                            key: const Key('tombol_salinan_data'),
+                            ikon: Icons.verified_user_outlined,
+                            judul: 'Minta salinan data',
+                            keterangan: 'Hak UU PDP, berkas ZIP',
+                            onTap: () =>
+                                _tampilkanFiturDikembangkanSnack(context),
                           ),
-                          boxShadow: const [AppTheme.bayanganDefault],
-                        ),
-                        child: Builder(
-                          builder: (cardContext) {
-                            return StreamBuilder<CadanganInfo?>(
-                              stream: cardContext
-                                  .read<CadanganCubit>()
-                                  .pantauCadanganTerakhir(pengguna.uid),
-                              builder: (context, snapshot) {
-                                final info = snapshot.data;
-                                if (info != null) {
-                                  _infoTerakhir = info;
-                                }
-                                final waktuStr =
-                                    info?.waktuCadanganTerakhir != null
-                                    ? _formatWaktu(info!.waktuCadanganTerakhir!)
-                                    : 'Belum pernah dicadangkan';
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.cloud_outlined,
-                                          color: AppColors.ink,
-                                          size: 24,
-                                        ),
-                                        const SizedBox(
-                                          width: AppSpacing.sedang,
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            'Cadangan Awan (Firestore)',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w700,
-                                                  color: AppColors.ink,
-                                                ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: AppSpacing.sedang),
-                                    Text(
-                                      'Simpan data transaksi, kategori, dan refleksi ke awan secara aman. Anda dapat memulihkannya kembali kapan saja.',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: AppColors.inkSoft,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                    ),
-                                    const SizedBox(height: AppSpacing.sedang),
-                                    Container(
-                                      padding: const EdgeInsets.all(
-                                        AppSpacing.sedang,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.paper,
-                                        borderRadius: BorderRadius.circular(
-                                          AppSizes.radiusKotakIkonKuota,
-                                        ),
-                                        border: Border.all(
-                                          color: AppColors.garis,
-                                          width: AppSizes.borderTipis,
-                                        ),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                'Cadangan Terakhir:',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall
-                                                    ?.copyWith(
-                                                      color: AppColors.inkSoft,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                              ),
-                                              const SizedBox(
-                                                width: AppSpacing.kecil,
-                                              ),
-                                              Expanded(
-                                                child: Text(
-                                                  waktuStr,
-                                                  textAlign: TextAlign.end,
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                        color: AppColors.ink,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          if (info != null &&
-                                              info.waktuCadanganTerakhir !=
-                                                  null) ...[
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              'Tersimpan: ${info.jumlahTransaksi} transaksi, ${info.jumlahKategori} kategori, ${info.jumlahRefleksi} refleksi',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .labelSmall
-                                                  ?.copyWith(
-                                                    color: AppColors.inkSoft,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: AppSpacing.besar),
-                                    BlocBuilder<CadanganCubit, CadanganState>(
-                                      builder: (context, cadanganState) {
-                                        final sedangMemuat =
-                                            cadanganState is CadanganMemuat;
-                                        return Column(
-                                          children: [
-                                            SizedBox(
-                                              width: double.infinity,
-                                              child: ElevatedButton.icon(
-                                                key: const Key(
-                                                  'tombol_cadangkan',
-                                                ),
-                                                onPressed: sedangMemuat
-                                                    ? null
-                                                    : () => _mulaiCadangkan(
-                                                        context,
-                                                        info,
-                                                      ),
-                                                icon: sedangMemuat
-                                                    ? const SizedBox(
-                                                        width: 18,
-                                                        height: 18,
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                              strokeWidth: 2,
-                                                              color:
-                                                                  AppColors.ink,
-                                                            ),
-                                                      )
-                                                    : const Icon(
-                                                        Icons
-                                                            .cloud_upload_outlined,
-                                                        size: 20,
-                                                      ),
-                                                label: Text(
-                                                  sedangMemuat
-                                                      ? cadanganState.pesan
-                                                      : 'Cadangkan Sekarang',
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              height: AppSpacing.sedang,
-                                            ),
-                                            SizedBox(
-                                              width: double.infinity,
-                                              child: OutlinedButton.icon(
-                                                key: const Key(
-                                                  'tombol_pulihkan',
-                                                ),
-                                                onPressed: sedangMemuat
-                                                    ? null
-                                                    : () => _konfirmasiPulihkan(
-                                                        context,
-                                                        info,
-                                                      ),
-                                                icon: const Icon(
-                                                  Icons.cloud_download_outlined,
-                                                  size: 20,
-                                                ),
-                                                label: const Text(
-                                                  'Pulihkan Data',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        ),
+                          const _GarisPutus(),
+                          _BarisMenuAkun(
+                            key: const Key('tombol_foto_struk'),
+                            ikon: Icons.image_outlined,
+                            judul: 'Foto struk',
+                            keterangan: 'Bersihkan foto struk lama',
+                            tampilkanGaris: false,
+                            onTap: () =>
+                                _tampilkanFiturDikembangkanSnack(context),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: AppSpacing.besar),
+                    ),
+                    const SizedBox(height: 14),
 
-                      // Tentang aplikasi pindah ke halaman sendiri (ISSUE-38)
-                      const TombolTentangAplikasi(),
-                      const SizedBox(height: AppSpacing.sedang),
-
-                      // Tombol Keluar (Paling Bawah)
-                      BlocBuilder<AkunCubit, AkunState>(
+                    // Seksi Keluar & Hapus Akun
+                    KartuBukuTulis(
+                      shadow: AppTheme.bayanganGelap,
+                      pressedShadow: AppTheme.bayanganGelapTertekan,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      child: BlocBuilder<AkunCubit, AkunState>(
                         builder: (context, state) {
                           final sedangMemuat = state is AkunMemuat;
-                          return OutlinedButton.icon(
-                            key: const Key('tombol_keluar'),
-                            onPressed: sedangMemuat
-                                ? null
-                                : () => _konfirmasiKeluar(context),
-                            icon: const Icon(
-                              Icons.logout,
-                              color: AppColors.salah,
-                              size: 20,
-                            ),
-                            label: Text(
-                              sedangMemuat
-                                  ? 'Memproses...'
-                                  : 'Keluar dari Akun',
-                              style: const TextStyle(
-                                color: AppColors.salah,
-                                fontWeight: FontWeight.w700,
+                          return Column(
+                            children: [
+                              _BarisMenuAkun(
+                                key: const Key('tombol_keluar'),
+                                ikon: Icons.logout_rounded,
+                                judul: sedangMemuat ? 'Memproses...' : 'Keluar',
+                                sedangMemuat: sedangMemuat,
+                                onTap: sedangMemuat
+                                    ? null
+                                    : () => _konfirmasiKeluar(context),
                               ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: AppSpacing.sedang,
+                              const _GarisPutus(),
+                              _BarisMenuAkun(
+                                key: const Key('tombol_hapus_akun'),
+                                ikon: Icons.delete_outline_rounded,
+                                warnaIkon: AppColors.merahTeks,
+                                warnaJudul: AppColors.merahTeks,
+                                judul: 'Hapus akun dan data awan',
+                                keterangan: 'Tidak bisa dibatalkan',
+                                tampilkanGaris: false,
+                                onTap: sedangMemuat
+                                    ? null
+                                    : () => _konfirmasiHapusAkun(context),
                               ),
-                              side: const BorderSide(
-                                color: AppColors.salah,
-                                width: AppSizes.border,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  AppSizes.radiusTombol,
-                                ),
-                              ),
-                            ),
+                            ],
                           );
                         },
                       ),
-                      const SizedBox(height: AppSpacing.kecil),
-
-                      // Tombol Hapus Akun (ISSUE-36, syarat Google Play)
-                      BlocConsumer<AkunCubit, AkunState>(
-                        listener: (context, state) {
-                          if (state is AkunGalat) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(state.pesan),
-                                backgroundColor: AppColors.salah,
-                              ),
-                            );
-                          }
-                        },
-                        builder: (context, state) {
-                          return TextButton(
-                            key: const Key('tombol_hapus_akun'),
-                            onPressed: state is AkunMemuat
-                                ? null
-                                : () => _konfirmasiHapusAkun(context),
-                            child: const Text(
-                              'Hapus Akun Permanen',
-                              style: TextStyle(
-                                color: AppColors.salah,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
   }
 
   @override
@@ -904,4 +871,131 @@ class _HalamanAkunState extends State<HalamanAkun> {
       );
     }
   }
+}
+
+class _BarisMenuAkun extends StatelessWidget {
+  final IconData ikon;
+  final Color warnaIkon;
+  final String judul;
+  final Color warnaJudul;
+  final String? keterangan;
+  final VoidCallback? onTap;
+  final bool sedangMemuat;
+  final bool tampilkanGaris;
+
+  const _BarisMenuAkun({
+    super.key,
+    required this.ikon,
+    this.warnaIkon = AppColors.ink,
+    required this.judul,
+    this.warnaJudul = AppColors.ink,
+    this.keterangan,
+    this.onTap,
+    this.sedangMemuat = false,
+    this.tampilkanGaris = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 52),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.paper,
+                  border: Border.all(
+                    color: AppColors.ink,
+                    width: AppSizes.border,
+                  ),
+                  borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+                ),
+                child: sedangMemuat
+                    ? const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.ink,
+                        ),
+                      )
+                    : Icon(ikon, size: 18, color: warnaIkon),
+              ),
+              const SizedBox(width: AppSpacing.sedang),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      judul,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: warnaJudul,
+                      ),
+                    ),
+                    if (keterangan != null)
+                      Text(
+                        keterangan!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontSize: 13,
+                          color: AppColors.inkSoft,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.kecil),
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: AppColors.ink,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GarisPutus extends StatelessWidget {
+  const _GarisPutus();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: const Size(double.infinity, 1.5),
+      painter: _GarisPutusPainter(),
+    );
+  }
+}
+
+class _GarisPutusPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.garisPutus
+      ..strokeWidth = 1.5;
+    const double dash = 5;
+    const double gap = 4;
+    double x = 0;
+    final y = size.height / 2;
+    while (x < size.width) {
+      final end = (x + dash).clamp(0.0, size.width);
+      canvas.drawLine(Offset(x, y), Offset(end, y), paint);
+      x += dash + gap;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

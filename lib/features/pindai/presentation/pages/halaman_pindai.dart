@@ -272,18 +272,7 @@ class _HalamanPindaiState extends State<HalamanPindai> {
   }
 
   void _bukaLangganan(BuildContext context) {
-    final router = GoRouter.maybeOf(context);
-    final adaRuteLangganan = router != null &&
-        router.configuration.routes.any(
-          (r) => r is GoRoute && r.path == '/langganan',
-        );
-    if (adaRuteLangganan) {
-      context.push('/langganan');
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Langganan sedang dikembangkan')),
-    );
+    context.push('/langganan');
   }
 
   @override

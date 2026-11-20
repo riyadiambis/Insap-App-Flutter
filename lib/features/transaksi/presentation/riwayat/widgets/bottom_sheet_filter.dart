@@ -210,9 +210,7 @@ class _BottomSheetFilterState extends State<BottomSheetFilter> {
                   color: AppColors.kartu,
                   borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
                   border: Border.all(
-                    color: _rentangTanggal != null
-                        ? AppColors.ink
-                        : AppColors.garis,
+                    color: AppColors.ink,
                     width: AppSizes.border,
                   ),
                   boxShadow: const [AppTheme.bayanganKecilGelap],
@@ -359,31 +357,27 @@ class _ChipKategoriFilter extends StatelessWidget {
           vertical: AppSpacing.kecil,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.stabilo : AppColors.kartu,
+          color: isSelected ? AppColors.ink : AppColors.kartu,
           borderRadius: BorderRadius.circular(AppSizes.radiusPil),
           border: Border.all(
-            color: isSelected ? AppColors.ink : AppColors.garis,
-            width: isSelected ? AppSizes.border : 1.5,
+            color: AppColors.ink,
+            width: AppSizes.border,
           ),
-          boxShadow: [
-            isSelected
-                ? AppTheme.bayanganKecilGelap
-                : AppTheme.bayanganKecil,
-          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 20.0,
-              height: 20.0,
+              width: 22.0,
+              height: 22.0,
               decoration: BoxDecoration(
                 color: warna,
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.ink, width: 1.5),
               ),
               child: Icon(
                 ikon,
-                size: 12.0,
+                size: 13.0,
                 color: AppColors.ikonBadge,
               ),
             ),
@@ -391,8 +385,8 @@ class _ChipKategoriFilter extends StatelessWidget {
             Text(
               RiwayatHelper.kapitalPertama(kategori.nama),
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                    color: AppColors.ink,
+                    fontWeight: FontWeight.w800,
+                    color: isSelected ? AppColors.kartu : AppColors.ink,
                   ),
             ),
           ],

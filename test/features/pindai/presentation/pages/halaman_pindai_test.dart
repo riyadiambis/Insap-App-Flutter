@@ -9,6 +9,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:insap/core/network/gemini_client.dart';
 import 'package:insap/core/theme.dart';
+import 'package:insap/features/langganan/presentation/pages/halaman_langganan.dart';
 import 'package:insap/features/beranda/presentation/cubit/beranda_cubit.dart';
 import 'package:insap/features/kategori/domain/entities/kategori_entity.dart';
 import 'package:insap/features/kategori/domain/repositories/kategori_repository.dart';
@@ -163,6 +164,10 @@ void main() {
           path: '/catat',
           builder: (context, state) =>
               const Scaffold(body: Center(child: Text('Halaman Catat Manual'))),
+        ),
+        GoRoute(
+          path: '/langganan',
+          builder: (context, state) => const HalamanLangganan(),
         ),
       ],
     );
@@ -474,16 +479,16 @@ void main() {
         expect(find.text('Buka Pemindai Struk'), findsNothing);
         expect(scannerDipanggil, isFalse);
 
-        // Ketuk kartu langganan menampilkan SnackBar sementara
+        // Ketuk kartu langganan membuka /langganan
         await tester.tap(find.text('Butuh lebih banyak?'));
         await tester.pumpAndSettle();
-        expect(find.text('Langganan sedang dikembangkan'), findsOneWidget);
+        expect(find.byType(HalamanLangganan), findsOneWidget);
+        expect(find.text('Pilih paket Insap'), findsOneWidget);
 
-        // Tunggu SnackBar hilang agar tombol Catat manual di bawah tidak tertutup
-        await tester.pump(const Duration(seconds: 5));
+        // Kembali ke halaman Pindai lalu ketuk Catat manual mengarahkan ke /catat
+        Navigator.of(tester.element(find.byType(HalamanLangganan))).pop();
         await tester.pumpAndSettle();
 
-        // Ketuk Catat manual mengarahkan ke /catat
         await tester.tap(find.text('Catat manual'));
         await tester.pumpAndSettle();
         expect(find.text('Halaman Catat Manual'), findsOneWidget);

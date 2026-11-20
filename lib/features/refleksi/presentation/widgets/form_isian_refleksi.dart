@@ -117,28 +117,30 @@ class _FormIsianRefleksiState extends State<FormIsianRefleksi> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           KartuBukuTulis(
-            radius: AppSizes.radiusTombol,
+            radius: AppSizes.radiusKartu,
+            shadow: AppTheme.bayanganGelap,
+            pressedShadow: AppTheme.bayanganGelapTertekan,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     Container(
-                      width: AppSizes.kotakIkonAksi,
-                      height: AppSizes.kotakIkonAksi,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
                         color: AppColors.stabilo,
                         borderRadius: BorderRadius.circular(
-                          AppSizes.radiusKotakIkonAksi,
+                          AppSizes.radiusBadge,
                         ),
                         border: Border.all(
                           color: AppColors.ink,
-                          width: AppSizes.borderTipis,
+                          width: AppSizes.border,
                         ),
                       ),
                       child: const Icon(
-                        Icons.edit_note,
-                        size: AppSizes.ikonAksi,
+                        Icons.edit_note_rounded,
+                        size: 20,
                         color: AppColors.ink,
                       ),
                     ),
@@ -168,13 +170,12 @@ class _FormIsianRefleksiState extends State<FormIsianRefleksi> {
                     vertical: AppSpacing.kecil,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.paper,
+                    color: AppColors.kartu,
                     borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
                     border: Border.all(
                       color: AppColors.ink,
                       width: AppSizes.border,
                     ),
-                    boxShadow: const [AppTheme.bayanganKecil],
                   ),
                   child: TextFormField(
                     key: const Key('input_catatan_refleksi'),
@@ -211,13 +212,12 @@ class _FormIsianRefleksiState extends State<FormIsianRefleksi> {
                     vertical: AppSpacing.sangatKecil,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.paper,
+                    color: AppColors.kartu,
                     borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
                     border: Border.all(
                       color: AppColors.ink,
                       width: AppSizes.border,
                     ),
-                    boxShadow: const [AppTheme.bayanganKecil],
                   ),
                   child: Row(
                     children: [

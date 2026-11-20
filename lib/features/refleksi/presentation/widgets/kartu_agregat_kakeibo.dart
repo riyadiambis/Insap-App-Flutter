@@ -15,7 +15,9 @@ class KartuAgregatKakeibo extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return KartuBukuTulis(
-      radius: AppSizes.radiusTombol,
+      radius: AppSizes.radiusKartu,
+      shadow: AppTheme.bayanganGelap,
+      pressedShadow: AppTheme.bayanganGelapTertekan,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -23,27 +25,14 @@ class KartuAgregatKakeibo extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      width: AppSizes.ukuranTitikIndikator,
-                      height: AppSizes.ukuranTitikIndikator,
-                      decoration: const BoxDecoration(
-                        color: AppColors.ink,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.kecil),
-                    Flexible(
-                      child: Text(
-                        '4 Kelompok Kakeibo',
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  '4 Kelompok Kakeibo',
+                  style: textTheme.titleMedium?.copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: AppSpacing.kecil),
@@ -51,46 +40,51 @@ class KartuAgregatKakeibo extends StatelessWidget {
                 agregat.adaTransaksi ? '100% Tercatat' : 'Belum Ada Data',
                 style: textTheme.labelSmall?.copyWith(
                   color: AppColors.inkSoft,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
                 ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.sedang),
           _BarisKelompokKakeibo(
+            ikon: Icons.restaurant_outlined,
             nama: 'Esensial',
             contoh: 'Makan harian, transport, kos, kuliah',
             persen: agregat.persenEsensial,
             porsi: agregat.porsiEsensial,
             nominal: agregat.totalEsensial,
-            warnaBadge: AppColors.paletBadgeKategori[3],
+            warnaBadge: AppColors.paletBadgeKategori[0],
           ),
           const SizedBox(height: AppSpacing.sedang),
           _BarisKelompokKakeibo(
+            ikon: Icons.shopping_bag_outlined,
             nama: 'Opsional',
             contoh: 'Jajan daring, kopi kekinian',
             persen: agregat.persenOpsional,
             porsi: agregat.porsiOpsional,
             nominal: agregat.totalOpsional,
-            warnaBadge: AppColors.paletBadgeKategori[0],
+            warnaBadge: AppColors.paletBadgeKategori[2],
           ),
           const SizedBox(height: AppSpacing.sedang),
           _BarisKelompokKakeibo(
+            ikon: Icons.local_cafe_outlined,
             nama: 'Hiburan',
             contoh: 'Nongkrong, bioskop, top up',
             persen: agregat.persenHiburan,
             porsi: agregat.porsiHiburan,
             nominal: agregat.totalHiburan,
-            warnaBadge: AppColors.paletBadgeKategori[2],
+            warnaBadge: AppColors.aksenPengen,
           ),
           const SizedBox(height: AppSpacing.sedang),
           _BarisKelompokKakeibo(
+            ikon: Icons.medical_services_outlined,
             nama: 'Ekstra',
             contoh: 'Darurat, obat, keperluan lainnya',
             persen: agregat.persenEkstra,
             porsi: agregat.porsiEkstra,
             nominal: agregat.totalEkstra,
-            warnaBadge: AppColors.aksenPengen,
+            warnaBadge: AppColors.paletBadgeKategori[5],
           ),
         ],
       ),
@@ -99,6 +93,7 @@ class KartuAgregatKakeibo extends StatelessWidget {
 }
 
 class _BarisKelompokKakeibo extends StatelessWidget {
+  final IconData ikon;
   final String nama;
   final String contoh;
   final int persen;
@@ -107,6 +102,7 @@ class _BarisKelompokKakeibo extends StatelessWidget {
   final Color warnaBadge;
 
   const _BarisKelompokKakeibo({
+    required this.ikon,
     required this.nama,
     required this.contoh,
     required this.persen,
@@ -128,23 +124,13 @@ class _BarisKelompokKakeibo extends StatelessWidget {
             Expanded(
               child: Row(
                 children: [
-                  Container(
-                    width: AppSizes.ukuranTitikIndikator,
-                    height: AppSizes.ukuranTitikIndikator,
-                    decoration: BoxDecoration(
-                      color: warnaBadge,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusLabel),
-                      border: Border.all(
-                        color: AppColors.ink,
-                        width: AppSizes.borderTipis,
-                      ),
-                    ),
-                  ),
+                  Icon(ikon, size: 16, color: warnaBadge),
                   const SizedBox(width: AppSpacing.agakKecil),
                   Flexible(
                     child: Text(
                       '$nama ($persen%)',
                       style: textTheme.bodyMedium?.copyWith(
+                        fontSize: 14,
                         fontWeight: FontWeight.w800,
                         color: AppColors.ink,
                       ),
@@ -158,31 +144,38 @@ class _BarisKelompokKakeibo extends StatelessWidget {
             Text(
               nominal.toRupiah(),
               style: textTheme.bodyMedium?.copyWith(
+                fontSize: 14,
                 fontWeight: FontWeight.w800,
                 color: AppColors.ink,
               ),
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.mini),
-        Text(contoh, style: textTheme.bodySmall),
+        const SizedBox(height: 2),
+        Text(
+          contoh,
+          style: textTheme.bodySmall?.copyWith(
+            fontSize: 12.5,
+            color: AppColors.inkSoft,
+          ),
+        ),
         const SizedBox(height: AppSpacing.agakKecil),
         Container(
-          height: AppSizes.tinggiBatangPorsi,
+          height: 12,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: AppColors.grid,
-            borderRadius: BorderRadius.circular(AppSizes.radiusBatangPorsi),
+            color: AppColors.kartu,
+            borderRadius: BorderRadius.circular(AppSizes.radiusPil),
             border: Border.all(
               color: AppColors.ink,
-              width: AppSizes.borderTipis,
+              width: AppSizes.border,
             ),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppSizes.radiusBatangPorsi),
+            borderRadius: BorderRadius.circular(AppSizes.radiusPil),
             child: FractionallySizedBox(
               alignment: Alignment.centerLeft,
-              widthFactor: porsi,
+              widthFactor: porsi.clamp(0.0, 1.0),
               child: Container(color: warnaBadge),
             ),
           ),

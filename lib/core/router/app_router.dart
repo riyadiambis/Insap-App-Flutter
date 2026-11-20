@@ -16,6 +16,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../features/akun/presentation/pages/auth_gate.dart';
 import '../../features/akun/presentation/pages/halaman_tentang.dart';
+import '../../features/langganan/presentation/pages/halaman_langganan.dart';
 import '../../features/pindai/presentation/cubit/pindai_cubit.dart';
 import '../../features/pindai/presentation/pages/halaman_pindai.dart';
 import 'app_shell.dart';
@@ -127,6 +128,10 @@ GoRouter buatAppRouter({
       GoRoute(
         path: '/tentang',
         builder: (context, state) => const HalamanTentang(),
+      ),
+      GoRoute(
+        path: '/langganan',
+        builder: (context, state) => const HalamanLangganan(),
       ),
       GoRoute(
         path: '/pindai',

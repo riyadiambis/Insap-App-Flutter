@@ -3,7 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/widgets/header_aplikasi.dart';
+import '../../../../core/widgets/kartu_buku_tulis.dart';
 import '../../../../core/widgets/kartu_tentang_aplikasi.dart';
+import '../../../../core/widgets/tombol_stabilo.dart';
 import '../cubit/akun_cubit.dart';
 import '../cubit/akun_state.dart';
 
@@ -77,10 +80,10 @@ class _HalamanMasukState extends State<HalamanMasuk> {
                   labelText: 'Surel (Email)',
                   hintText: 'nama@domain.com',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSizes.radiusLabel),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
                     borderSide: const BorderSide(
                       color: AppColors.ink,
-                      width: AppSizes.borderTipis,
+                      width: AppSizes.border,
                     ),
                   ),
                 ),
@@ -106,7 +109,7 @@ class _HalamanMasukState extends State<HalamanMasuk> {
                 elevation: 0,
                 side: const BorderSide(
                   color: AppColors.ink,
-                  width: AppSizes.borderTipis,
+                  width: AppSizes.border,
                 ),
               ),
               child: const Text(
@@ -120,21 +123,36 @@ class _HalamanMasukState extends State<HalamanMasuk> {
     );
   }
 
+  InputDecoration _dekorasiInput({
+    required String hintText,
+    required IconData prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSizes.radiusBadge),
+      borderSide: const BorderSide(
+        color: AppColors.ink,
+        width: AppSizes.border,
+      ),
+    );
+    return InputDecoration(
+      hintText: hintText,
+      prefixIcon: Icon(prefixIcon, color: AppColors.ink),
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: AppColors.paper,
+      border: border,
+      enabledBorder: border,
+      focusedBorder: border,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _modeDaftar ? 'Daftar Akun' : 'Masuk Akun',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        backgroundColor: AppColors.paper,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.ink),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(AppSizes.borderTipis),
-          child: Container(color: AppColors.ink, height: AppSizes.borderTipis),
-        ),
+      appBar: HeaderAplikasi(
+        namaLayar: _modeDaftar ? 'Daftar Akun' : 'Masuk Akun',
+        modeKembali: true,
       ),
       body: PaperBackground(
         child: BlocConsumer<AkunCubit, AkunState>(
@@ -170,114 +188,76 @@ class _HalamanMasukState extends State<HalamanMasuk> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Container(
+                      Row(
+                        children: [
+                          Image.asset(
+                            'assets/images/logo_insap.png',
+                            width: 52,
+                            height: 52,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(width: AppSpacing.sedang),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _modeDaftar
+                                      ? 'Buat Akun Insap'
+                                      : 'Simpan catatan di awan',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.ink,
+                                      ),
+                                ),
+                                Text(
+                                  _modeDaftar
+                                      ? 'Daftar untuk mencadangkan catatan'
+                                      : 'Masuk supaya catatanmu aman saat ganti HP.',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        fontSize: 13.5,
+                                        color: AppColors.inkSoft,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.besar),
+
+                      KartuBukuTulis(
+                        shadow: AppTheme.bayanganGelap,
+                        pressedShadow: AppTheme.bayanganGelapTertekan,
                         padding: const EdgeInsets.all(AppSpacing.besar),
-                        decoration: BoxDecoration(
-                          color: AppColors.kartu,
-                          border: Border.all(
-                            color: AppColors.ink,
-                            width: AppSizes.border,
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            AppSizes.radiusKartu,
-                          ),
-                          boxShadow: const [AppTheme.bayanganDefault],
-                        ),
                         child: Form(
                           key: _formKey,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.stabilo,
-                                      border: Border.all(
-                                        color: AppColors.ink,
-                                        width: AppSizes.border,
-                                      ),
-                                      borderRadius: BorderRadius.circular(
-                                        AppSizes.radiusKotakIkonAksi,
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.lock_outline,
-                                      color: AppColors.ink,
-                                    ),
-                                  ),
-                                  const SizedBox(width: AppSpacing.sedang),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          _modeDaftar
-                                              ? 'Buat Akun Insap'
-                                              : 'Selamat Datang!',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .headlineSmall,
-                                        ),
-                                        Text(
-                                          _modeDaftar
-                                              ? 'Daftar untuk mencadangkan catatan'
-                                              : 'Masuk untuk sinkronisasi awan',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: AppSpacing.besar),
-                              // Kolom surel
                               Text(
                                 'Alamat Surel',
-                                style: Theme.of(context).textTheme.labelMedium,
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.4,
+                                      color: AppColors.inkSoft,
+                                    ),
                               ),
                               const SizedBox(height: AppSpacing.agakKecil),
                               TextFormField(
                                 controller: _emailController,
                                 keyboardType: TextInputType.emailAddress,
                                 enabled: !sedangMemuat,
-                                decoration: InputDecoration(
+                                decoration: _dekorasiInput(
                                   hintText: 'nama@domain.com',
-                                  prefixIcon: const Icon(Icons.email_outlined),
-                                  filled: true,
-                                  fillColor: AppColors.paper,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusLabel,
-                                    ),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.ink,
-                                      width: AppSizes.borderTipis,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusLabel,
-                                    ),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.ink,
-                                      width: AppSizes.borderTipis,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusLabel,
-                                    ),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.ink,
-                                      width: AppSizes.border,
-                                    ),
-                                  ),
+                                  prefixIcon: Icons.email_outlined,
                                 ),
                                 validator: (val) {
                                   if (val == null || val.trim().isEmpty) {
@@ -291,59 +271,35 @@ class _HalamanMasukState extends State<HalamanMasuk> {
                                 },
                               ),
                               const SizedBox(height: AppSpacing.sedang),
-                              // Kolom kata sandi
                               Text(
                                 'Kata Sandi',
-                                style: Theme.of(context).textTheme.labelMedium,
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.4,
+                                      color: AppColors.inkSoft,
+                                    ),
                               ),
                               const SizedBox(height: AppSpacing.agakKecil),
                               TextFormField(
                                 controller: _sandiController,
                                 obscureText: _sembunyikanSandi,
                                 enabled: !sedangMemuat,
-                                decoration: InputDecoration(
+                                decoration: _dekorasiInput(
                                   hintText: 'Minimal 6 karakter',
-                                  prefixIcon: const Icon(Icons.key_outlined),
+                                  prefixIcon: Icons.key_outlined,
                                   suffixIcon: IconButton(
                                     icon: Icon(
                                       _sembunyikanSandi
                                           ? Icons.visibility_outlined
                                           : Icons.visibility_off_outlined,
+                                      color: AppColors.ink,
                                     ),
                                     onPressed: () {
                                       setState(() {
                                         _sembunyikanSandi = !_sembunyikanSandi;
                                       });
                                     },
-                                  ),
-                                  filled: true,
-                                  fillColor: AppColors.paper,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusLabel,
-                                    ),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.ink,
-                                      width: AppSizes.borderTipis,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusLabel,
-                                    ),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.ink,
-                                      width: AppSizes.borderTipis,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusLabel,
-                                    ),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.ink,
-                                      width: AppSizes.border,
-                                    ),
                                   ),
                                 ),
                                 validator: (val) {
@@ -363,89 +319,35 @@ class _HalamanMasukState extends State<HalamanMasuk> {
                                     onPressed: sedangMemuat
                                         ? null
                                         : _tampilkanDialogLupaSandi,
-                                    child: Text(
+                                    child: const Text(
                                       'Lupa kata sandi?',
                                       style: TextStyle(
                                         color: AppColors.inkSoft,
-                                        fontSize: 12,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ),
                                 ),
                               ] else
                                 const SizedBox(height: AppSpacing.besar),
-                              // Tombol Utama (Masuk / Daftar)
-                              ElevatedButton(
+                              TombolStabilo(
+                                teks: _modeDaftar
+                                    ? 'Daftar Sekarang'
+                                    : 'Masuk ke Akun',
+                                isLoading: sedangMemuat,
                                 onPressed: sedangMemuat ? null : _kirimForm,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.stabilo,
-                                  foregroundColor: AppColors.ink,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: AppSpacing.sedang,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusTombol,
-                                    ),
-                                    side: const BorderSide(
-                                      color: AppColors.ink,
-                                      width: AppSizes.border,
-                                    ),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: sedangMemuat
-                                    ? const SizedBox(
-                                        width: AppSizes.indikatorMuat,
-                                        height: AppSizes.indikatorMuat,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth:
-                                              AppSizes.tebalIndikatorMuat,
-                                          color: AppColors.ink,
-                                        ),
-                                      )
-                                    : Text(
-                                        _modeDaftar
-                                            ? 'Daftar Sekarang'
-                                            : 'Masuk ke Akun',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 15,
-                                        ),
-                                      ),
                               ),
                               const SizedBox(height: AppSpacing.sedang),
-                              // Tombol Google
-                              OutlinedButton.icon(
+                              _TombolGoogleMasuk(
                                 key: const Key('tombol_masuk_google'),
                                 onPressed: sedangMemuat
                                     ? null
                                     : () => context
                                           .read<AkunCubit>()
                                           .masukDenganGoogle(),
-                                icon: const Icon(Icons.g_mobiledata, size: 24),
-                                label: const Text(
-                                  'Masuk dengan Google',
-                                  style: TextStyle(fontWeight: FontWeight.w700),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.ink,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: AppSpacing.sedang,
-                                  ),
-                                  side: const BorderSide(
-                                    color: AppColors.ink,
-                                    width: AppSizes.border,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppSizes.radiusTombol,
-                                    ),
-                                  ),
-                                ),
                               ),
-                              const SizedBox(height: AppSpacing.besar),
-                              // Beralih Mode Masuk / Daftar
+                              const SizedBox(height: AppSpacing.sedang),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -453,9 +355,9 @@ class _HalamanMasukState extends State<HalamanMasuk> {
                                     _modeDaftar
                                         ? 'Sudah punya akun?'
                                         : 'Belum punya akun?',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
                                   TextButton(
                                     onPressed: sedangMemuat
@@ -483,7 +385,6 @@ class _HalamanMasukState extends State<HalamanMasuk> {
                         ),
                       ),
                       const SizedBox(height: AppSpacing.besar),
-                      // tentang aplikasi pindah ke halaman sendiri (ISSUE-38)
                       const TombolTentangAplikasi(),
                     ],
                   ),
@@ -491,6 +392,47 @@ class _HalamanMasukState extends State<HalamanMasuk> {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _TombolGoogleMasuk extends StatelessWidget {
+  final VoidCallback? onPressed;
+
+  const _TombolGoogleMasuk({super.key, this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: AppColors.kartu,
+          border: Border.all(color: AppColors.ink, width: AppSizes.border),
+          borderRadius: BorderRadius.circular(AppSizes.radiusTombol),
+          boxShadow: const [AppTheme.bayanganKecilGelap],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.g_mobiledata_rounded,
+              size: 26,
+              color: AppColors.ink,
+            ),
+            const SizedBox(width: AppSpacing.kecil),
+            Text(
+              'Masuk dengan Google',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+              ),
+            ),
+          ],
         ),
       ),
     );

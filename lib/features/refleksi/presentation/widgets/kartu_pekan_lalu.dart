@@ -21,15 +21,17 @@ class KartuPekanLalu extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final nominalTarget = target ?? refleksi.targetPengeluaran;
-    final teksTarget =
-        nominalTarget != null && nominalTarget > 0
-            ? nominalTarget.toRupiah()
-            : null;
+    final teksTarget = nominalTarget != null && nominalTarget > 0
+        ? nominalTarget.toRupiah()
+        : null;
 
     return KartuBukuTulis(
       key: const Key('kartu_pekan_lalu'),
       onTap: onTap,
-      radius: AppSizes.radiusTombol,
+      radius: AppSizes.radiusKartu,
+      backgroundColor: AppColors.kuningMuda,
+      shadow: AppTheme.bayanganGelap,
+      pressedShadow: AppTheme.bayanganGelapTertekan,
       padding: const EdgeInsets.all(AppSpacing.sedang),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,15 +46,14 @@ class KartuPekanLalu extends StatelessWidget {
                       width: AppSizes.kotakIkonAksi,
                       height: AppSizes.kotakIkonAksi,
                       decoration: BoxDecoration(
-                        color: AppColors.stabilo,
+                        color: AppColors.kartu,
                         borderRadius: BorderRadius.circular(
-                          AppSizes.radiusKotakIkonAksi,
+                          AppSizes.radiusBadge,
                         ),
                         border: Border.all(
                           color: AppColors.ink,
-                          width: AppSizes.borderTipis,
+                          width: AppSizes.border,
                         ),
-                        boxShadow: const [AppTheme.bayanganKecilGelap],
                       ),
                       child: const Icon(
                         Icons.history_rounded,
@@ -75,9 +76,9 @@ class KartuPekanLalu extends StatelessWidget {
               ),
               if (onTap != null)
                 const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: AppSizes.ikonKecil,
-                  color: AppColors.inkSoft,
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: AppColors.ink,
                 ),
             ],
           ),
