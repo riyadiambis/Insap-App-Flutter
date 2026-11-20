@@ -7,3 +7,6 @@ const int _kuotaEnv =
 /// jatah dapat diatur melalui flag build `--dart-define=KUOTA_PINDAI_PEKANAN=200`.
 /// Jika nilai yang diberikan kurang dari 1, otomatis memakai 5.
 const int kuotaPindaiPekanan = _kuotaEnv < 1 ? 5 : _kuotaEnv;
+
+/// Batas maksimal tambahan kuota pindai dari menonton iklan rewarded per pekan.
+const int bonusIklanMaksimalPekanan = 10;

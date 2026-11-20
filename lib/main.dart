@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/bloc/app_bloc_observer.dart';
 import 'core/di/injection_container.dart';
+import 'core/iklan/layanan_iklan.dart';
 import 'core/router/app_router.dart';
 import 'core/theme.dart';
 import 'features/beranda/presentation/cubit/beranda_cubit.dart';
@@ -19,6 +22,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   setupInjectionContainer();
+  unawaited(sl<LayananIklan>().siapkan());
   if (kDebugMode) {
     Bloc.observer = AppBlocObserver();
   }

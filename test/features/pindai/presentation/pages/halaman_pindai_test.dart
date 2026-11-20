@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:insap/core/iklan/layanan_iklan.dart';
 import 'package:insap/core/network/gemini_client.dart';
 import 'package:insap/core/theme.dart';
 import 'package:insap/features/langganan/presentation/pages/halaman_langganan.dart';
@@ -18,6 +20,8 @@ import 'package:insap/features/kategori/presentation/cubit/kategori_cubit.dart';
 import 'package:insap/features/pindai/domain/entities/hasil_pindai_entity.dart';
 import 'package:insap/features/pindai/domain/repositories/pindai_repository.dart';
 import 'package:insap/features/pindai/domain/usecases/ambil_kuota_pindai.dart';
+import 'package:insap/features/pindai/domain/usecases/ambil_sisa_bonus_iklan.dart';
+import 'package:insap/features/pindai/domain/usecases/klaim_bonus_iklan.dart';
 import 'package:insap/features/pindai/domain/usecases/pindai_struk.dart';
 import 'package:insap/features/pindai/domain/usecases/simpan_transaksi_pindai.dart';
 import 'package:insap/features/pindai/presentation/cubit/pindai_cubit.dart';
@@ -79,6 +83,7 @@ class _FakeTransaksiRepository implements TransaksiRepository {
 
 class _FakePindaiRepository implements PindaiRepository {
   int sisaKuota = 8;
+  int sisaBonus = 10;
   Exception? errorToThrow;
   Completer<HasilPindaiEntity>? completer;
 
@@ -105,12 +110,55 @@ class _FakePindaiRepository implements PindaiRepository {
   Future<void> potongKuota() async {
     if (sisaKuota > 0) sisaKuota--;
   }
+
+  @override
+  Future<int> ambilSisaBonusIklan() async => sisaBonus;
+
+  @override
+  Future<bool> klaimBonusIklan() async {
+    if (sisaBonus <= 0) return false;
+    sisaBonus--;
+    sisaKuota++;
+    return true;
+  }
+}
+
+class _FakeLayananIklan implements LayananIklan {
+  bool hasilTonton = true;
+  Completer<bool>? completer;
+  int jumlahDipanggil = 0;
+  final ValueNotifier<bool> _perluTombolPrivasi = ValueNotifier<bool>(false);
+
+  @override
+  bool get bolehMintaIklan => true;
+
+  @override
+  bool get perluTombolPrivasi => _perluTombolPrivasi.value;
+
+  @override
+  ValueListenable<bool> get perluTombolPrivasiListenable => _perluTombolPrivasi;
+
+  @override
+  Future<void> siapkan() async {}
+
+  @override
+  Future<void> tampilkanOpsiPrivasi() async {}
+
+  @override
+  Future<bool> tontonIklanBonus() async {
+    jumlahDipanggil++;
+    if (completer != null) {
+      return completer!.future;
+    }
+    return hasilTonton;
+  }
 }
 
 void main() {
   late _FakeKategoriRepository fakeKatRepo;
   late _FakeTransaksiRepository fakeTransRepo;
   late _FakePindaiRepository fakePindaiRepo;
+  late _FakeLayananIklan fakeLayananIklan;
   late KategoriCubit kategoriCubit;
   late PindaiCubit pindaiCubit;
   late BerandaCubit berandaCubit;
@@ -120,6 +168,7 @@ void main() {
     fakeKatRepo = _FakeKategoriRepository();
     fakeTransRepo = _FakeTransaksiRepository();
     fakePindaiRepo = _FakePindaiRepository();
+    fakeLayananIklan = _FakeLayananIklan();
 
     GetIt.instance.registerSingleton<SimpanTransaksiPindai>(
       SimpanTransaksiPindai(fakeTransRepo),
@@ -130,6 +179,9 @@ void main() {
       pindaiStruk: PindaiStruk(fakePindaiRepo),
       ambilKuotaPindai: AmbilKuotaPindai(fakePindaiRepo),
       tambahTransaksi: TambahTransaksi(fakeTransRepo),
+      ambilSisaBonusIklan: AmbilSisaBonusIklan(fakePindaiRepo),
+      klaimBonusIklanUseCase: KlaimBonusIklan(fakePindaiRepo),
+      layananIklan: fakeLayananIklan,
     );
     berandaCubit = BerandaCubit(
       ambilRingkasanPekan: AmbilRingkasanPekan(fakeTransRepo),
@@ -591,6 +643,111 @@ void main() {
         );
         expect(find.text('Halaman Catat Manual'), findsOneWidget);
         expect(fakePindaiRepo.sisaKuota, 8); // Kuota tidak berkurang
+      },
+    );
+
+    testWidgets(
+      'ISSUE-40: tampilan kuota habis menampilkan tombol iklan bonus dan sisa bonus pekan ini',
+      (tester) async {
+        tester.view.physicalSize = const Size(411, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        fakePindaiRepo.sisaKuota = 0;
+        fakePindaiRepo.sisaBonus = 7;
+
+        await tester.pumpWidget(bangunAplikasiUji());
+        await tester.pumpAndSettle();
+
+        final tombolBonus = find.byKey(const Key('tombol_bonus_iklan'));
+        expect(tombolBonus, findsOneWidget);
+        expect(find.text('Tonton iklan, dapat +1 pindai'), findsOneWidget);
+        expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+        expect(find.text('Sisa bonus pekan ini: 7 dari 10'), findsOneWidget);
+        expect(tester.getSize(tombolBonus).height, greaterThanOrEqualTo(48));
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'ISSUE-40: tombol bonus nonaktif dengan teks habis saat sisaBonusIklan 0',
+      (tester) async {
+        tester.view.physicalSize = const Size(411, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        fakePindaiRepo.sisaKuota = 0;
+        fakePindaiRepo.sisaBonus = 0;
+
+        await tester.pumpWidget(bangunAplikasiUji());
+        await tester.pumpAndSettle();
+
+        expect(find.text('Bonus iklan pekan ini sudah habis'), findsOneWidget);
+        expect(find.text('Sisa bonus pekan ini: 0 dari 10'), findsOneWidget);
+
+        await tester.tap(find.byKey(const Key('tombol_bonus_iklan')));
+        await tester.pumpAndSettle();
+        expect(fakeLayananIklan.jumlahDipanggil, 0);
+      },
+    );
+
+    testWidgets(
+      'ISSUE-40: menonton iklan berhasil menampilkan SnackBar Yay dan kembali ke siap pindai',
+      (tester) async {
+        tester.view.physicalSize = const Size(411, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        fakePindaiRepo.sisaKuota = 0;
+        fakePindaiRepo.sisaBonus = 10;
+        fakeLayananIklan.hasilTonton = true;
+
+        await tester.pumpWidget(bangunAplikasiUji());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('tombol_bonus_iklan')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Yay, +1 pindai!'), findsOneWidget);
+        expect(find.text('Buka Pemindai Struk'), findsOneWidget);
+        expect(pindaiCubit.state.sisaKuota, 1);
+      },
+    );
+
+    testWidgets(
+      'ISSUE-40: iklan gagal atau ditutup sebelum selesai menampilkan SnackBar galat dan kuota tetap 0',
+      (tester) async {
+        tester.view.physicalSize = const Size(411, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        fakePindaiRepo.sisaKuota = 0;
+        fakePindaiRepo.sisaBonus = 10;
+        fakeLayananIklan.completer = Completer<bool>();
+
+        await tester.pumpWidget(bangunAplikasiUji());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('tombol_bonus_iklan')));
+        await tester.pump();
+
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+        fakeLayananIklan.completer!.complete(false);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            'Iklan belum tersedia atau belum selesai ditonton. Coba lagi sebentar lagi.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Jatah pindai pekan ini habis'), findsOneWidget);
+        expect(pindaiCubit.state.sisaKuota, 0);
       },
     );
   });

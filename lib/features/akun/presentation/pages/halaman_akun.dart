@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/injection_container.dart';
+import '../../../../core/iklan/layanan_iklan.dart';
 import '../../../../core/paper_background.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/tur/tur_cubit.dart';
@@ -101,6 +102,14 @@ class _HalamanAkunState extends State<HalamanAkun> {
       ..showSnackBar(
         const SnackBar(content: Text('Fitur sedang dikembangkan')),
       );
+  }
+
+  Future<void> _bukaOpsiPrivasiIklan() async {
+    if (!sl.isRegistered<LayananIklan>()) return;
+    await sl<LayananIklan>().tampilkanOpsiPrivasi();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   static String _formatWaktu(DateTime dt) {
@@ -798,10 +807,34 @@ class _HalamanAkunState extends State<HalamanAkun> {
                             ikon: Icons.image_outlined,
                             judul: 'Foto struk',
                             keterangan: 'Bersihkan foto struk lama',
-                            tampilkanGaris: false,
+                            tampilkanGaris:
+                                sl.isRegistered<LayananIklan>() &&
+                                sl<LayananIklan>().perluTombolPrivasi,
                             onTap: () =>
                                 _tampilkanFiturDikembangkanSnack(context),
                           ),
+                          if (sl.isRegistered<LayananIklan>())
+                            ValueListenableBuilder<bool>(
+                              valueListenable: sl<LayananIklan>()
+                                  .perluTombolPrivasiListenable,
+                              builder: (context, perluPrivasi, _) {
+                                if (!perluPrivasi) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Column(
+                                  children: [
+                                    const _GarisPutus(),
+                                    _BarisMenuAkun(
+                                      key: const Key('tombol_privasi_iklan'),
+                                      ikon: Icons.privacy_tip_outlined,
+                                      judul: 'Pengaturan privasi iklan',
+                                      tampilkanGaris: false,
+                                      onTap: _bukaOpsiPrivasiIklan,
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
                         ],
                       ),
                     ),

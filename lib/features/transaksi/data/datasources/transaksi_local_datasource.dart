@@ -1,5 +1,6 @@
 import '../../../../core/constants/kuota_constants.dart';
 import '../../../../core/database/database_helper.dart';
+import '../../../../core/utils/periode_kuota.dart';
 import '../models/transaksi_model.dart';
 
 class TransaksiLocalDataSource {
@@ -68,8 +69,39 @@ class TransaksiLocalDataSource {
   // 3, ISSUE-02), supaya kedua kasus gagal berperilaku sama.
   static const int _kuotaPindaiCadangan = kuotaPindaiPekanan;
 
-  Future<int> ambilKuotaPindai() async {
+  Future<int> ambilKuotaPindai({DateTime? waktuSekarang}) async {
     final db = await _dbHelper.database;
+    final seninIso = hitungSeninPeriodeKuotaIso(
+      waktuSekarang ?? DateTime.now(),
+    );
+
+    final resultPeriode = await db.query(
+      'pengaturan',
+      columns: ['nilai'],
+      where: 'kunci = ?',
+      whereArgs: ['kuota_periode_mulai'],
+      limit: 1,
+    );
+    final periodeDatabase = resultPeriode.isNotEmpty
+        ? resultPeriode.first['nilai'] as String?
+        : null;
+    if (periodeDatabase != seninIso) {
+      return _kuotaPindaiCadangan;
+    }
+
+    final resultBonus = await db.query(
+      'pengaturan',
+      columns: ['nilai'],
+      where: 'kunci = ?',
+      whereArgs: ['kuota_bonus_iklan_terpakai'],
+      limit: 1,
+    );
+    final bonusTerpakai = resultBonus.isNotEmpty
+        ? (int.tryParse(resultBonus.first['nilai'] as String? ?? '') ?? 0)
+            .clamp(0, bonusIklanMaksimalPekanan)
+        : 0;
+    final batasMaksimal = _kuotaPindaiCadangan + bonusTerpakai;
+
     final result = await db.query(
       'pengaturan',
       columns: ['nilai'],
@@ -81,8 +113,8 @@ class TransaksiLocalDataSource {
     if (result.isNotEmpty) {
       final val = result.first['nilai'] as String?;
       final sisa = int.tryParse(val ?? '') ?? _kuotaPindaiCadangan;
-      if (sisa > _kuotaPindaiCadangan) {
-        return _kuotaPindaiCadangan;
+      if (sisa > batasMaksimal) {
+        return batasMaksimal;
       }
       return sisa;
     }
