@@ -813,17 +813,28 @@ class _HalamanAkunState extends State<HalamanAkun> {
                             onTap: () =>
                                 _tampilkanFiturDikembangkanSnack(context),
                           ),
-                          if (sl.isRegistered<LayananIklan>() &&
-                              sl<LayananIklan>().perluTombolPrivasi) ...[
-                            const _GarisPutus(),
-                            _BarisMenuAkun(
-                              key: const Key('tombol_privasi_iklan'),
-                              ikon: Icons.privacy_tip_outlined,
-                              judul: 'Pengaturan privasi iklan',
-                              tampilkanGaris: false,
-                              onTap: _bukaOpsiPrivasiIklan,
+                          if (sl.isRegistered<LayananIklan>())
+                            ValueListenableBuilder<bool>(
+                              valueListenable: sl<LayananIklan>()
+                                  .perluTombolPrivasiListenable,
+                              builder: (context, perluPrivasi, _) {
+                                if (!perluPrivasi) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Column(
+                                  children: [
+                                    const _GarisPutus(),
+                                    _BarisMenuAkun(
+                                      key: const Key('tombol_privasi_iklan'),
+                                      ikon: Icons.privacy_tip_outlined,
+                                      judul: 'Pengaturan privasi iklan',
+                                      tampilkanGaris: false,
+                                      onTap: _bukaOpsiPrivasiIklan,
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
-                          ],
                         ],
                       ),
                     ),

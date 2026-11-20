@@ -57,7 +57,9 @@ void main() {
       expect(sisaPindai, 5);
 
       // TransaksiLocalDataSource juga memangkas ke kuotaPindaiPekanan (5)
-      final sisaTransaksi = await transaksiDataSource.ambilKuotaPindai();
+      final sisaTransaksi = await transaksiDataSource.ambilKuotaPindai(
+        waktuSekarang: seninPekanIni,
+      );
       expect(sisaTransaksi, kuotaPindaiPekanan);
       expect(sisaTransaksi, 5);
     });

@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insap/core/iklan/layanan_iklan.dart';
 import 'package:insap/core/network/gemini_client.dart';
@@ -67,13 +70,18 @@ class _FakePindaiRepository implements PindaiRepository {
 
 class _FakeLayananIklan implements LayananIklan {
   bool hasilTonton = true;
+  Completer<bool>? completer;
   int jumlahTontonDipanggil = 0;
+  final ValueNotifier<bool> _perluTombolPrivasi = ValueNotifier<bool>(false);
 
   @override
   bool get bolehMintaIklan => true;
 
   @override
-  bool get perluTombolPrivasi => false;
+  bool get perluTombolPrivasi => _perluTombolPrivasi.value;
+
+  @override
+  ValueListenable<bool> get perluTombolPrivasiListenable => _perluTombolPrivasi;
 
   @override
   Future<void> siapkan() async {}
@@ -84,6 +92,9 @@ class _FakeLayananIklan implements LayananIklan {
   @override
   Future<bool> tontonIklanBonus() async {
     jumlahTontonDipanggil++;
+    if (completer != null) {
+      return completer!.future;
+    }
     return hasilTonton;
   }
 }
@@ -493,5 +504,31 @@ void main() {
       expect(fakePindaiRepo.jumlahKlaimDipanggil, 0);
       expect(cubit.state.statusKlaimBonus, StatusKlaimBonus.diam);
     });
+
+    test(
+      'dua panggilan klaimBonusIklan berturut-turut hanya memanggil tontonIklanBonus sekali dan menambah kuota sekali',
+      () async {
+        fakePindaiRepo.kuota = 0;
+        fakePindaiRepo.sisaBonus = 10;
+        final completer = Completer<bool>();
+        fakeLayananIklan.completer = completer;
+        await cubit.inisialisasi();
+
+        final panggilan1 = cubit.klaimBonusIklan();
+        final panggilan2 = cubit.klaimBonusIklan();
+
+        expect(cubit.state.statusKlaimBonus, StatusKlaimBonus.sedang);
+        expect(fakeLayananIklan.jumlahTontonDipanggil, 1);
+
+        completer.complete(true);
+        await Future.wait([panggilan1, panggilan2]);
+
+        expect(fakeLayananIklan.jumlahTontonDipanggil, 1);
+        expect(fakePindaiRepo.jumlahKlaimDipanggil, 1);
+        expect(cubit.state.sisaKuota, 1);
+        expect(cubit.state.sisaBonusIklan, 9);
+        expect(cubit.state.statusKlaimBonus, StatusKlaimBonus.berhasil);
+      },
+    );
   });
 }

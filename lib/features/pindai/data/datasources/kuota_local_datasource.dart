@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../../../../core/constants/kuota_constants.dart';
 import '../../../../core/database/database_helper.dart';
+import '../../../../core/utils/periode_kuota.dart';
 
 abstract class KuotaLocalDataSource {
   Future<int> ambilSisaKuota({DateTime? waktuSekarang});
@@ -20,12 +21,8 @@ class KuotaLocalDataSourceImpl implements KuotaLocalDataSource {
 
   KuotaLocalDataSourceImpl(this._dbHelper);
 
-  static String _hitungSeninIso(DateTime sekarang) {
-    final seninPekanIni = sekarang.subtract(Duration(days: sekarang.weekday - 1));
-    return '${seninPekanIni.year.toString().padLeft(4, '0')}-'
-        '${seninPekanIni.month.toString().padLeft(2, '0')}-'
-        '${seninPekanIni.day.toString().padLeft(2, '0')}';
-  }
+  static String _hitungSeninIso(DateTime sekarang) =>
+      hitungSeninPeriodeKuotaIso(sekarang);
 
   Future<String?> _bacaNilai(DatabaseExecutor db, String kunci) async {
     final result = await db.query(

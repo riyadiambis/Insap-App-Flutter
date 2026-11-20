@@ -14,6 +14,9 @@ abstract class LayananIklan {
   /// Apakah tombol pengaturan opsi privasi iklan wajib ditampilkan di Akun.
   bool get perluTombolPrivasi;
 
+  /// Notifier reaktif apakah tombol pengaturan opsi privasi iklan wajib ditampilkan.
+  ValueListenable<bool> get perluTombolPrivasiListenable;
+
   /// Membuka formulir pengaturan opsi privasi iklan (UMP).
   Future<void> tampilkanOpsiPrivasi();
 
@@ -29,9 +32,12 @@ class LayananIklanAdMob implements LayananIklan {
   static const String _idUnitRewardedUji =
       'ca-app-pub-3940256099942544/5224354917';
   static const Duration _batasWaktuMuat = Duration(seconds: 15);
+  static const Duration _batasWaktuTampil = Duration(minutes: 2);
+  static const Duration _batasWaktuPersetujuan = Duration(seconds: 20);
 
+  final ValueNotifier<bool> _perluTombolPrivasiNotifier =
+      ValueNotifier<bool>(false);
   bool _bolehMintaIklan = false;
-  bool _perluTombolPrivasi = false;
   bool _sdkSudahInisialisasi = false;
   bool _sedangMemintaIklan = false;
   Future<void>? _sedangMenyiapkan;
@@ -43,7 +49,11 @@ class LayananIklanAdMob implements LayananIklan {
   bool get bolehMintaIklan => _bolehMintaIklan;
 
   @override
-  bool get perluTombolPrivasi => _perluTombolPrivasi;
+  bool get perluTombolPrivasi => _perluTombolPrivasiNotifier.value;
+
+  @override
+  ValueListenable<bool> get perluTombolPrivasiListenable =>
+      _perluTombolPrivasiNotifier;
 
   @override
   Future<void> siapkan() {
@@ -66,38 +76,56 @@ class LayananIklanAdMob implements LayananIklan {
   Future<void> _perbaruiInfoPersetujuan() async {
     final completer = Completer<void>();
 
-    ConsentInformation.instance.requestConsentInfoUpdate(
-      ConsentRequestParameters(),
-      () async {
-        try {
-          await ConsentForm.loadAndShowConsentFormIfRequired((formError) {
-            if (formError != null) {
-              debugPrint(
-                '[LayananIklan] Galat formulir persetujuan: '
-                '${formError.errorCode} - ${formError.message}',
-              );
+    try {
+      ConsentInformation.instance.requestConsentInfoUpdate(
+        ConsentRequestParameters(),
+        () async {
+          try {
+            await ConsentForm.loadAndShowConsentFormIfRequired((formError) {
+              if (formError != null) {
+                debugPrint(
+                  '[LayananIklan] Galat formulir persetujuan: '
+                  '${formError.errorCode} - ${formError.message}',
+                );
+              }
+            });
+          } catch (e) {
+            debugPrint('[LayananIklan] Galat menampilkan formulir UMP: $e');
+          } finally {
+            if (!completer.isCompleted) {
+              completer.complete();
             }
-          });
-        } catch (e) {
-          debugPrint('[LayananIklan] Galat menampilkan formulir UMP: $e');
-        } finally {
+          }
+        },
+        (formError) {
+          debugPrint(
+            '[LayananIklan] Gagal memperbarui info persetujuan: '
+            '${formError.errorCode} - ${formError.message}',
+          );
           if (!completer.isCompleted) {
             completer.complete();
           }
-        }
-      },
-      (formError) {
-        debugPrint(
-          '[LayananIklan] Gagal memperbarui info persetujuan: '
-          '${formError.errorCode} - ${formError.message}',
-        );
-        if (!completer.isCompleted) {
-          completer.complete();
-        }
-      },
-    );
+        },
+      );
 
-    await completer.future;
+      await completer.future.timeout(
+        _batasWaktuPersetujuan,
+        onTimeout: () {
+          debugPrint(
+            '[LayananIklan] Batas waktu pembaruan info persetujuan 20 detik habis',
+          );
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
+        },
+      );
+    } catch (e) {
+      debugPrint('[LayananIklan] Galat memperbarui info persetujuan: $e');
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    }
+
     await _segarkanStatusPersetujuan();
   }
 
@@ -106,7 +134,7 @@ class LayananIklanAdMob implements LayananIklan {
       _bolehMintaIklan = await ConsentInformation.instance.canRequestAds();
       final statusPrivasi = await ConsentInformation.instance
           .getPrivacyOptionsRequirementStatus();
-      _perluTombolPrivasi =
+      _perluTombolPrivasiNotifier.value =
           statusPrivasi == PrivacyOptionsRequirementStatus.required;
     } catch (e) {
       debugPrint('[LayananIklan] Galat membaca status UMP: $e');
@@ -212,6 +240,9 @@ class LayananIklanAdMob implements LayananIklan {
         _batasWaktuMuat,
         onTimeout: () {
           debugPrint('[LayananIklan] Batas waktu muat iklan 15 detik habis');
+          if (!loadCompleter.isCompleted) {
+            loadCompleter.complete(null);
+          }
           return null;
         },
       );
@@ -249,7 +280,19 @@ class LayananIklanAdMob implements LayananIklan {
         },
       );
 
-      return await tampilCompleter.future;
+      return await tampilCompleter.future.timeout(
+        _batasWaktuTampil,
+        onTimeout: () async {
+          debugPrint(
+            '[LayananIklan] Batas waktu tampil iklan 2 menit habis',
+          );
+          await disposeAman(iklanDimuat);
+          if (!tampilCompleter.isCompleted) {
+            tampilCompleter.complete(dapatHadiah);
+          }
+          return dapatHadiah;
+        },
+      );
     } catch (e) {
       debugPrint('[LayananIklan] Galat menjalankan iklan rewarded: $e');
       await disposeAman(iklanDimuat);

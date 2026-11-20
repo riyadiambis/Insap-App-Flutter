@@ -22,6 +22,7 @@ class PindaiCubit extends Cubit<PindaiState> {
   final LayananIklan? layananIklan;
 
   CancelToken? _cancelToken;
+  bool _sedangKlaimBonus = false;
 
   PindaiCubit({
     required this.pindaiStruk,
@@ -56,13 +57,16 @@ class PindaiCubit extends Cubit<PindaiState> {
 
   /// Menonton iklan rewarded untuk menambah +1 kuota pindai pekan berjalan.
   Future<void> klaimBonusIklan() async {
+    if (isClosed) return;
+    if (_sedangKlaimBonus ||
+        state.statusKlaimBonus == StatusKlaimBonus.sedang) {
+      return;
+    }
     if (state.sisaBonusIklan <= 0) return;
-    if (state.statusKlaimBonus == StatusKlaimBonus.sedang) return;
     if (layananIklan == null || klaimBonusIklanUseCase == null) return;
 
-    if (!isClosed) {
-      emit(state.copyWith(statusKlaimBonus: StatusKlaimBonus.sedang));
-    }
+    _sedangKlaimBonus = true;
+    emit(state.copyWith(statusKlaimBonus: StatusKlaimBonus.sedang));
 
     try {
       final selesaiMenonton = await layananIklan!.tontonIklanBonus();
@@ -107,6 +111,8 @@ class PindaiCubit extends Cubit<PindaiState> {
       if (!isClosed) {
         emit(state.copyWith(statusKlaimBonus: StatusKlaimBonus.gagal));
       }
+    } finally {
+      _sedangKlaimBonus = false;
     }
   }
 

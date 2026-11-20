@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -126,12 +127,16 @@ class _FakeLayananIklan implements LayananIklan {
   bool hasilTonton = true;
   Completer<bool>? completer;
   int jumlahDipanggil = 0;
+  final ValueNotifier<bool> _perluTombolPrivasi = ValueNotifier<bool>(false);
 
   @override
   bool get bolehMintaIklan => true;
 
   @override
-  bool get perluTombolPrivasi => false;
+  bool get perluTombolPrivasi => _perluTombolPrivasi.value;
+
+  @override
+  ValueListenable<bool> get perluTombolPrivasiListenable => _perluTombolPrivasi;
 
   @override
   Future<void> siapkan() async {}

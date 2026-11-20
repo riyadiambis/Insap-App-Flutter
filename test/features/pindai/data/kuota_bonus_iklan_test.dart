@@ -126,7 +126,9 @@ void main() {
         final sisaKuota = await kuotaDataSource.ambilSisaKuota(
           waktuSekarang: seninPekanIni,
         );
-        final sisaDariTransaksi = await transaksiDataSource.ambilKuotaPindai();
+        final sisaDariTransaksi = await transaksiDataSource.ambilKuotaPindai(
+          waktuSekarang: seninPekanIni,
+        );
 
         expect(sisaKuota, kuotaPindaiPekanan + bonusIklanMaksimalPekanan);
         expect(
@@ -201,6 +203,31 @@ void main() {
           ),
           bonusIklanMaksimalPekanan - 1,
         );
+      },
+    );
+
+    test(
+      'transaksi_local_datasource ambilKuotaPindai saat periode tersimpan pekan lalu mengembalikan kuotaPindaiPekanan',
+      () async {
+        // Simulasikan pekan lalu punya bonus terpakai 10 dan sisa kuota 12
+        await db.update(
+          'pengaturan',
+          {'nilai': '12'},
+          where: 'kunci = ?',
+          whereArgs: ['kuota_pindai_sisa'],
+        );
+        await db.insert(
+          'pengaturan',
+          {'kunci': 'kuota_bonus_iklan_terpakai', 'nilai': '10'},
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+
+        final seninPekanDepan = seninPekanIni.add(const Duration(days: 7));
+        final kuota = await transaksiDataSource.ambilKuotaPindai(
+          waktuSekarang: seninPekanDepan,
+        );
+
+        expect(kuota, kuotaPindaiPekanan);
       },
     );
   });

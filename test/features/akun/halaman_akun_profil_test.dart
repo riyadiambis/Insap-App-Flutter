@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -183,20 +184,60 @@ void main() {
         expect(fakeIklanWajib.jumlahTampilOpsi, 1);
       },
     );
+
+    testWidgets(
+      'menu Pengaturan privasi iklan muncul saat notifier berubah ke true tanpa membuka ulang halaman',
+      (tester) async {
+        const pengguna = PenggunaEntity(
+          uid: 'uid-4',
+          email: 'reaktif@insap.id',
+        );
+
+        final fakeIklan = _FakeLayananIklanPrivasi(perluPrivasi: false);
+        sl.registerSingleton<LayananIklan>(fakeIklan);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: BlocProvider(
+              create: (_) => AkunCubit(akunRepository: _FakeAkunRepository()),
+              child: const HalamanAkun(pengguna: pengguna),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Pengaturan privasi iklan'), findsNothing);
+
+        fakeIklan.setPerluPrivasi(true);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Pengaturan privasi iklan'), findsOneWidget);
+      },
+    );
   });
 }
 
 class _FakeLayananIklanPrivasi implements LayananIklan {
-  final bool perluPrivasi;
+  final ValueNotifier<bool> _perluPrivasiNotifier;
   int jumlahTampilOpsi = 0;
 
-  _FakeLayananIklanPrivasi({required this.perluPrivasi});
+  _FakeLayananIklanPrivasi({required bool perluPrivasi})
+    : _perluPrivasiNotifier = ValueNotifier<bool>(perluPrivasi);
+
+  void setPerluPrivasi(bool nilai) {
+    _perluPrivasiNotifier.value = nilai;
+  }
 
   @override
   bool get bolehMintaIklan => true;
 
   @override
-  bool get perluTombolPrivasi => perluPrivasi;
+  bool get perluTombolPrivasi => _perluPrivasiNotifier.value;
+
+  @override
+  ValueListenable<bool> get perluTombolPrivasiListenable =>
+      _perluPrivasiNotifier;
 
   @override
   Future<void> siapkan() async {}
