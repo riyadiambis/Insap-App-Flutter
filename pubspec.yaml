@@ -47,6 +47,7 @@ dependencies:
   dio: ^5.11.1
   google_mlkit_document_scanner: ^0.6.1
   google_mobile_ads: ^9.2.0
+  flutter_image_compress: ^2.5.1
 
 dev_dependencies:
   flutter_test:

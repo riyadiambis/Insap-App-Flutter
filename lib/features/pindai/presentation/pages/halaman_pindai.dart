@@ -192,7 +192,7 @@ class _HalamanPindaiState extends State<HalamanPindai> {
 
       try {
         final stopwatchPengecilan = Stopwatch()..start();
-        // 2. Kecilkan citra ke sisi terpanjang maksimal 1024px menggunakan dart:ui
+        // 2. Kecilkan citra ke sisi terpanjang maksimal 1024px menggunakan kompresi native JPEG kualitas 75
         pathSiapKirim = await GambarHelper.kompresDanKecilkanCitra(pathAsli);
         stopwatchPengecilan.stop();
         final msPengecilan = stopwatchPengecilan.elapsedMilliseconds;
@@ -243,7 +243,7 @@ class _HalamanPindaiState extends State<HalamanPindai> {
           );
         }
       } finally {
-        // No 16: Berkas sementara _1024.png selalu dihapus di finally setelah dikirim termasuk saat gagal
+        // No 16 & ISSUE-34: Berkas sementara hasil kompresi selalu dihapus di finally setelah dikirim termasuk saat gagal
         await GambarHelper.hapusBerkasSementara(pathSiapKirim);
       }
     } finally {
