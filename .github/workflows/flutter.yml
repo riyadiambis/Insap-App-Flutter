@@ -22,6 +22,8 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          # Samakan dengan versi pengembangan lokal (.metadata). 3.50 mendeprekasi material.dart.
+          flutter-version: 3.47.1
           cache: true
       - run: flutter --version
       - run: flutter pub get

@@ -46,7 +46,7 @@ Pengeluaran mahasiswa kebanyakan bernominal kecil tapi sering: jajan daring, ong
 
 ## Menjalankan secara lokal
 
-Prasyarat: Flutter stable terbaru (Dart SDK 3.13 ke atas) dan Android SDK.
+Prasyarat: Flutter 3.47.1 (stable, sama dengan CI) dan Android SDK.
 
 ```bash
 git clone https://github.com/riyadiambis/Insap-App-Flutter.git
